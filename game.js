@@ -207,7 +207,7 @@ const ITEMS = {
   }
 };
 
-const map = [
+const baseMap = [
   "##############################",
   "#............~~..............#",
   "#....TT.....~~~~....TT.......#",
@@ -228,6 +228,193 @@ const map = [
   "#............................#",
   "##############################"
 ];
+
+const WORLD_LAYOUTS = {
+  village: {
+    map: baseMap,
+    buildings: [
+      { x: 86, y: 116, w: 112, h: 72, wall: "#d9c6a0", roof: "roofA" },
+      { x: 612, y: 116, w: 104, h: 72, wall: "#c5d3b1", roof: "roofB" },
+      { x: 396, y: 430, w: 136, h: 72, wall: "#d7d0c3", roof: "roofC" },
+      { x: 740, y: 466, w: 92, h: 56, wall: "#d0a66f", roof: "roofD" }
+    ]
+  },
+  modernBritain: {
+    map: [
+      "##############################",
+      "#............................#",
+      "#...TT..................TT...#",
+      "#..######......,,,,....####..#",
+      "#..######......,,,,....####..#",
+      "#..######......,,,,....####..#",
+      "#..............,,,,..........#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
+      "#..............,,,,..........#",
+      "#..............,,,,..........#",
+      "#.....TT.......,,,,....TT....#",
+      "#............................#",
+      "#...........########.........#",
+      "#...........########...####..#",
+      "#...........########...####..#",
+      "#......................####..#",
+      "#............................#",
+      "##############################"
+    ],
+    buildings: [
+      { x: 72, y: 104, w: 128, h: 84, wall: "#d9c6a0", roof: "roofA" },
+      { x: 646, y: 96, w: 118, h: 88, wall: "#c5d3b1", roof: "roofB" },
+      { x: 388, y: 420, w: 160, h: 86, wall: "#d7d0c3", roof: "roofC" },
+      { x: 734, y: 444, w: 106, h: 74, wall: "#d0a66f", roof: "roofD" }
+    ]
+  },
+  rightsLaw: {
+    map: [
+      "##############################",
+      "#............................#",
+      "#....TT.................TT...#",
+      "#...........########.........#",
+      "#...........########.........#",
+      "#...........########.........#",
+      "#............................#",
+      "#.............::::...........#",
+      "#....####.....::::.....####..#",
+      "#....####::::::::::::::####..#",
+      "#....####.....::::.....####..#",
+      "#.............::::...........#",
+      "#............................#",
+      "#..######.....::::...........#",
+      "#..######.....::::....######.#",
+      "#..######.....::::....######.#",
+      "#.....................######.#",
+      "#............................#",
+      "##############################"
+    ],
+    buildings: [
+      { x: 350, y: 112, w: 154, h: 92, wall: "#d7d0c3", roof: "roofC" },
+      { x: 112, y: 284, w: 112, h: 78, wall: "#d9c6a0", roof: "roofA" },
+      { x: 648, y: 282, w: 116, h: 78, wall: "#c5d3b1", roof: "roofB" },
+      { x: 690, y: 448, w: 126, h: 78, wall: "#c2c8ca", roof: "roofD" }
+    ]
+  },
+  democracy: {
+    map: [
+      "##############################",
+      "#............~~..............#",
+      "#...........~~~~.............#",
+      "#....######.~~~~....######...#",
+      "#....######.~~~~....######...#",
+      "#....######.~~~~....######...#",
+      "#............~~..............#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
+      "#...........::::::...........#",
+      "#...........::::::...........#",
+      "#.....TT....::::::.....TT....#",
+      "#...........::::::...........#",
+      "#............................#",
+      "#.................########...#",
+      "#.................########...#",
+      "#.......................####.#",
+      "#............................#",
+      "##############################"
+    ],
+    buildings: [
+      { x: 104, y: 104, w: 138, h: 92, wall: "#d8b36a", roof: "roofA" },
+      { x: 636, y: 104, w: 138, h: 92, wall: "#c5d3b1", roof: "roofB" },
+      { x: 532, y: 458, w: 188, h: 64, wall: "#d7d0c3", roof: "roofC" },
+      { x: 732, y: 450, w: 108, h: 70, wall: "#d0a66f", roof: "roofD" }
+    ]
+  },
+  participation: {
+    map: [
+      "##############################",
+      "#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#",
+      "#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#",
+      "#~~~~====================~~~~#",
+      "#~~..=..................=~~~~#",
+      "#~~..=....TT............=~~~~#",
+      "#~~..=..................=~~~~#",
+      "#~~..=,,,,,,,,,,,,,,,,,,=~~~~#",
+      "#~~..=,,,,,,,,,,,,,,,,,,=~~~~#",
+      "#~~~~=..................=~~~~#",
+      "#~~~~=..........####....=~~~~#",
+      "#~~~~=..........####....=~~~~#",
+      "#~~~~=..................=~~~~#",
+      "#~~~~=..................=~~~~#",
+      "#~~~~=............####..=~~~~#",
+      "#~~~~=............####..=~~~~#",
+      "#~~~~====================~~~~#",
+      "#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#",
+      "##############################"
+    ],
+    buildings: [
+      { x: 124, y: 100, w: 120, h: 82, wall: "#d9c6a0", roof: "roofA" },
+      { x: 438, y: 334, w: 126, h: 80, wall: "#c5d3b1", roof: "roofB" },
+      { x: 170, y: 444, w: 138, h: 82, wall: "#d7d0c3", roof: "roofC" },
+      { x: 592, y: 454, w: 112, h: 70, wall: "#d0a66f", roof: "roofD" }
+    ],
+    harbor: true
+  },
+  actionWorkshop: {
+    map: [
+      "##############################",
+      "#............................#",
+      "#..TT....................TT..#",
+      "#........####......####......#",
+      "#........####......####......#",
+      "#........####......####......#",
+      "#............................#",
+      "#......,,,,,,,,,,,,,,,,......#",
+      "#......,,,,,,,,,,,,,,,,......#",
+      "#......,,,,,,::::,,,,,,......#",
+      "#............::::............#",
+      "#.....TT.....::::......TT....#",
+      "#............::::............#",
+      "#..######....::::............#",
+      "#..######....::::....######..#",
+      "#..######....::::....######..#",
+      "#....................######..#",
+      "#............................#",
+      "##############################"
+    ],
+    buildings: [
+      { x: 258, y: 104, w: 120, h: 86, wall: "#d9c6a0", roof: "roofA" },
+      { x: 552, y: 104, w: 120, h: 86, wall: "#c5d3b1", roof: "roofB" },
+      { x: 86, y: 438, w: 140, h: 84, wall: "#d7d0c3", roof: "roofC" },
+      { x: 680, y: 442, w: 136, h: 84, wall: "#d0a66f", roof: "roofD" }
+    ]
+  },
+  examHall: {
+    map: [
+      "##############################",
+      "#............................#",
+      "#....TT.................TT...#",
+      "#...........########.........#",
+      "#...........########.........#",
+      "#...........########.........#",
+      "#............................#",
+      "#............::::............#",
+      "#............::::............#",
+      "#......::::::::::::::::......#",
+      "#......::::::::::::::::......#",
+      "#............::::............#",
+      "#............::::............#",
+      "#..####......::::......####..#",
+      "#..####......::::......####..#",
+      "#..####......::::......####..#",
+      "#............................#",
+      "#............................#",
+      "##############################"
+    ],
+    buildings: [
+      { x: 350, y: 86, w: 176, h: 104, wall: "#d7d0c3", roof: "roofC" },
+      { x: 84, y: 434, w: 112, h: 84, wall: "#c5d3b1", roof: "roofA" },
+      { x: 682, y: 434, w: 116, h: 84, wall: "#c5d3b1", roof: "roofB" },
+      { x: 408, y: 470, w: 120, h: 58, wall: "#d0a66f", roof: "roofD" }
+    ]
+  }
+};
 
 const npcs = [
   {
@@ -832,6 +1019,14 @@ function currentLocation() {
   return WORLD[state.currentLocation];
 }
 
+function currentLayout() {
+  return WORLD_LAYOUTS[state.currentLocation] || WORLD_LAYOUTS.village;
+}
+
+function currentMap() {
+  return currentLayout().map || baseMap;
+}
+
 function getQuestLocationId(questId) {
   return Object.keys(WORLD).find((id) => WORLD[id].questIds.includes(questId));
 }
@@ -1040,7 +1235,19 @@ function sellItem(id) {
 function tileAtPixel(x, y) {
   const col = Math.floor(x / LOGICAL_TILE);
   const row = Math.floor(y / LOGICAL_TILE);
-  return map[row]?.[col] || "#";
+  return currentMap()[row]?.[col] || "#";
+}
+
+function rectsOverlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function isBuildingBlocked(x, y, w, h) {
+  const playerRect = { x, y, w, h };
+  return (currentLayout().buildings || []).some((building) => {
+    const solid = { x: building.x - 6, y: building.y - 28, w: building.w + 12, h: building.h + 34 };
+    return rectsOverlap(playerRect, solid);
+  });
 }
 
 function isBlocked(x, y, w, h) {
@@ -1050,10 +1257,11 @@ function isBlocked(x, y, w, h) {
     [x + 2, y + h - 2],
     [x + w - 2, y + h - 2]
   ];
-  return points.some(([px, py]) => "#~=T".includes(tileAtPixel(px, py)) || isHarborWater(px, py));
+  return isBuildingBlocked(x, y, w, h) || points.some(([px, py]) => "#~=T".includes(tileAtPixel(px, py)) || isHarborWater(px, py));
 }
 
 function isHarborWater(x, y) {
+  if (!currentLayout().harbor) return false;
   const inWater = x >= 704 && x <= 864 && y >= 192 && y <= 352;
   const onDock = x >= 704 && x <= 850 && y >= 274 && y <= 318;
   return inWater && !onDock;
@@ -1512,6 +1720,7 @@ function movePlayer() {
 }
 
 function updateCamera() {
+  const map = currentMap();
   const worldW = map[0].length * LOGICAL_TILE;
   const worldH = map.length * LOGICAL_TILE;
   const targetX = state.player.x + state.player.w / 2 - VIEW_W / 2;
@@ -1589,6 +1798,21 @@ function drawTile(ch, x, y) {
     rect(x, y + 28, LOGICAL_TILE, 2, "#653d31");
     rect(x + 5, y + 4, 2, 24, "#5c362d");
     rect(x + 25, y + 4, 2, 24, "#5c362d");
+    return;
+  }
+  if (ch === "," || ch === ":") {
+    const base = ch === "," ? (visual.road || "#a8a79d") : "#8f9290";
+    rect(x, y, LOGICAL_TILE, LOGICAL_TILE, base);
+    rect(x, y + 20, LOGICAL_TILE, 12, "rgba(40, 34, 30, .12)");
+    for (let sx = x + 2; sx < x + LOGICAL_TILE; sx += 11) {
+      rect(sx, y + 3, 8, 2, "rgba(255,255,255,.14)");
+      rect(sx + 2, y + 17, 7, 2, "rgba(60,50,45,.18)");
+      rect(sx - 3, y + 29, 9, 2, "rgba(255,255,255,.10)");
+    }
+    if (ch === ":") {
+      rect(x + 2, y + 2, LOGICAL_TILE - 4, LOGICAL_TILE - 4, "rgba(245,240,223,.09)");
+      rect(x + 4, y + 15, LOGICAL_TILE - 8, 2, "rgba(40,35,35,.18)");
+    }
     return;
   }
   rect(x, y, LOGICAL_TILE, LOGICAL_TILE, visual.sky || "#63a858");
@@ -1935,6 +2159,7 @@ function drawProp(prop) {
 }
 
 function drawStonePlaza() {
+  if (state.currentLocation !== "village") return;
   const visual = locColors();
   for (let y = 192; y < 352; y += 16) {
     for (let x = 32; x < 704; x += 32) {
@@ -2004,35 +2229,58 @@ function drawKiosk(x, y, label) {
 }
 
 function drawFineDetails() {
-  drawBoat(738, 356);
-  drawMarketStall(130, 424, "#b94e48", "Gear");
-  drawMarketStall(248, 424, "#466d9f", "Books");
-  drawRegionLandmarks();
-  for (let x = 70; x < 350; x += 28) {
-    rect(x, 384, 16, 5, "#6d4939");
-    rect(x + 3, 376, 4, 16, "#4b3128");
+  const id = state.currentLocation;
+  if (id === "village") {
+    drawBoat(738, 356);
+    drawMarketStall(130, 424, "#b94e48", "Gear");
+    drawMarketStall(248, 424, "#466d9f", "Books");
+    for (let x = 70; x < 350; x += 28) {
+      rect(x, 384, 16, 5, "#6d4939");
+      rect(x + 3, 376, 4, 16, "#4b3128");
+    }
   }
-  for (let i = 0; i < 20; i += 1) {
+  if (id === "modernBritain") {
+    drawKiosk(520, 236, "NEWS");
+    drawMarketStall(92, 396, "#466d9f", "Cafe");
+    drawMarketStall(668, 388, "#b94e48", "Press");
+  }
+  if (id === "participation") {
+    drawBoat(700, 418);
+    drawBoat(58, 84);
+    drawMarketStall(242, 396, "#6fbf73", "Leaflets");
+  }
+  if (id === "actionWorkshop") {
+    drawMarketStall(330, 300, "#b98231", "Tools");
+    drawKiosk(584, 304, "DATA");
+  }
+  drawRegionLandmarks();
+  for (let i = 0; i < 34; i += 1) {
     const x = 40 + Math.floor(hashNoise(i, 14, 1) * 850);
     const y = 46 + Math.floor(hashNoise(i, 21, 2) * 520);
-    if (isHarborWater(x, y) || "#~=".includes(tileAtPixel(x, y))) continue;
-    rect(x, y, 2, 7, "#2f7b42");
-    rect(x + 2, y + 1, 3, 3, "#78c86d");
+    const tile = tileAtPixel(x, y);
+    if (isHarborWater(x, y) || "#~=,:".includes(tile)) continue;
+    rect(x, y, 2, 7, id === "rightsLaw" || id === "examHall" ? "#56635a" : "#2f7b42");
+    rect(x + 2, y + 1, 3, 3, id === "democracy" ? "#e6d3a4" : "#78c86d");
   }
-  rect(548, 92, 38, 8, "#e6d3a4");
-  rect(552, 100, 30, 23, "#b98252");
-  rect(558, 105, 18, 3, "#704633");
-  rect(558, 113, 18, 3, "#704633");
+  if (id === "village") {
+    rect(548, 92, 38, 8, "#e6d3a4");
+    rect(552, 100, 30, 23, "#b98252");
+    rect(558, 105, 18, 3, "#704633");
+    rect(558, 113, 18, 3, "#704633");
+  }
 }
 
 function drawRegionLandmarks() {
   const id = state.currentLocation;
   if (id === "modernBritain") {
-    drawKiosk(542, 82, "NEWS");
     rect(74, 354, 42, 34, "#8f4f44");
     rect(78, 358, 34, 4, "#e6d3a4");
     rect(82, 366, 26, 2, "#5da9e9");
     rect(82, 374, 20, 2, "#6fbf73");
+    for (let y = 78; y < 460; y += 42) {
+      rect(470, y, 8, 20, "#263036");
+      rect(466, y, 16, 4, "#f2c14e");
+    }
     return;
   }
   if (id === "rightsLaw") {
@@ -2040,6 +2288,8 @@ function drawRegionLandmarks() {
     rect(532, 78, 64, 6, "#665a7d");
     for (let i = 0; i < 4; i += 1) rect(542 + i * 11, 87, 5, 26, "#8d867d");
     rect(548, 72, 32, 5, "#f2c14e");
+    rect(292, 242, 328, 5, "#d7d0c3");
+    rect(292, 308, 328, 5, "#6f685f");
     return;
   }
   if (id === "democracy") {
@@ -2049,6 +2299,8 @@ function drawRegionLandmarks() {
     rect(552, 44, 22, 5, "#f2c14e");
     rect(544, 86, 8, 20, "#513b35");
     rect(574, 86, 8, 20, "#513b35");
+    rect(334, 284, 260, 6, "#e6d3a4");
+    for (let x = 350; x < 580; x += 34) rect(x, 270, 8, 28, "#d8b36a");
     return;
   }
   if (id === "participation") {
@@ -2058,6 +2310,10 @@ function drawRegionLandmarks() {
     rect(538, 108, 34, 3, "#f5f0df");
     rect(596, 82, 7, 42, "#4b3128");
     rect(603, 84, 28, 18, "#e36b5d");
+    for (let y = 100; y < 500; y += 34) {
+      rect(162, y, 12, 4, "#c07458");
+      rect(756, y + 8, 12, 4, "#c07458");
+    }
     return;
   }
   if (id === "actionWorkshop") {
@@ -2067,6 +2323,8 @@ function drawRegionLandmarks() {
     rect(541, 94, 14, 2, "#466d9f");
     rect(567, 94, 14, 2, "#6fbf73");
     rect(552, 112, 22, 5, "#f2c14e");
+    rect(398, 294, 118, 58, "#263036");
+    for (let i = 0; i < 4; i += 1) rect(410 + i * 24, 308, 15, 30, ["#5da9e9", "#6fbf73", "#f2c14e", "#e36b5d"][i]);
     return;
   }
   if (id === "examHall") {
@@ -2077,6 +2335,9 @@ function drawRegionLandmarks() {
     rect(556, 94, 16, 24, "#2d2521");
     rect(540, 78, 6, 6, "#f2c14e");
     rect(586, 78, 6, 6, "#f2c14e");
+    rect(292, 314, 330, 6, "#d7d0c3");
+    rect(306, 330, 302, 4, "#5c5470");
+    for (let x = 310; x < 610; x += 48) rect(x, 286, 18, 18, "#f2c14e");
   }
 }
 
@@ -2106,7 +2367,7 @@ function drawWorld() {
 }
 
 function drawGroundLayer() {
-  map.forEach((row, r) => {
+  currentMap().forEach((row, r) => {
     [...row].forEach((ch, c) => drawTile(ch, c * LOGICAL_TILE, r * LOGICAL_TILE));
   });
 }
@@ -2116,10 +2377,17 @@ function drawPathLayer() {
 }
 
 function drawBuildingLayer(visual) {
-  drawBuilding(86, 116, 112, 72, "#d9c6a0", visual.roofA || "#8f4f44", regionBuildingLabel(0));
-  drawBuilding(612, 116, 104, 72, "#c5d3b1", visual.roofB || "#4b6f88", regionBuildingLabel(1));
-  drawBuilding(396, 430, 136, 72, "#d7d0c3", visual.roofC || "#665a7d", regionBuildingLabel(2));
-  drawBuilding(740, 466, 92, 56, "#d0a66f", visual.roofD || "#4f7b55", regionBuildingLabel(3));
+  (currentLayout().buildings || WORLD_LAYOUTS.village.buildings).forEach((building, index) => {
+    drawBuilding(
+      building.x,
+      building.y,
+      building.w,
+      building.h,
+      building.wall,
+      visual[building.roof] || visual.roofA || "#8f4f44",
+      regionBuildingLabel(index)
+    );
+  });
 }
 
 function drawPropLayer() {

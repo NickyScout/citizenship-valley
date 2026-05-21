@@ -49,17 +49,13 @@ const state = {
 
 const camera = { x: 0, y: 0 };
 
-const PORTRAITS = {
-  talk: "assets/portraits/greeting.jpg",
-  quest: "assets/portraits/prompt.jpg",
-  question: "assets/portraits/thinking.jpg",
-  correct: "assets/portraits/correct.jpg",
-  reward: "assets/portraits/approved.jpg",
-  wrong: "assets/portraits/wrong.jpg",
-  unsure: "assets/portraits/unsure.jpg",
-  gate: "assets/portraits/surprised.jpg",
-  stern: "assets/portraits/stern.jpg"
-};
+const FEMALE_NPC_NAMES = new Set([
+  "Ada", "Priya", "Mina", "Grace", "Farah", "June", "Amina", "Rae", "Tess", "Mira", "Nia"
+]);
+
+const SKIN_TONES = ["#f2b785", "#c98b5d", "#8c5d45", "#e0a06d", "#b77452", "#6f4638"];
+const HAIR_COLORS = ["#2b1a14", "#5b3525", "#7a4b28", "#d8a23a", "#1f2f3a", "#6a594d"];
+const JACKET_COLORS = ["#8f4f44", "#466d9f", "#4f7b55", "#b98231", "#665a7d", "#2f4f5f", "#d88c5a"];
 
 function serializeGame() {
   return {
@@ -1083,19 +1079,123 @@ function npcForTitle(title) {
   return npcs.find((npc) => npc.name === title || title.includes(npc.name));
 }
 
-function portraitFor(title, mood = "talk") {
-  const npc = npcForTitle(title);
-  const image = PORTRAITS[mood] || PORTRAITS.talk;
-  const role = npc?.intro || "A helpful citizenship guide.";
-  return { image, role };
+function hashText(text = "") {
+  return [...text].reduce((hash, ch) => ((hash << 5) - hash + ch.charCodeAt(0)) | 0, 17);
+}
+
+function avatarRole(npc) {
+  const text = `${npc?.id || ""} ${npc?.name || ""} ${npc?.intro || ""}`.toLowerCase();
+  if (text.includes("mayor") || text.includes("councillor") || text.includes("council")) return "council";
+  if (text.includes("campaign") || text.includes("petition") || text.includes("party")) return "campaign";
+  if (text.includes("library") || text.includes("archive") || text.includes("source") || text.includes("scribe")) return "book";
+  if (text.includes("justice") || text.includes("court") || text.includes("law") || text.includes("rights") || text.includes("advocate")) return "law";
+  if (text.includes("police") || text.includes("sergeant")) return "police";
+  if (text.includes("data") || text.includes("statistic") || text.includes("survey")) return "data";
+  if (text.includes("media") || text.includes("editor") || text.includes("moderator") || text.includes("signal")) return "media";
+  if (text.includes("election") || text.includes("returning") || text.includes("mp") || text.includes("parliament")) return "democracy";
+  if (text.includes("timekeeper") || text.includes("timed")) return "time";
+  if (text.includes("charity") || text.includes("aid") || text.includes("volunteer")) return "care";
+  if (text.includes("exam")) return "exam";
+  return "citizen";
+}
+
+function avatarSpec(npc) {
+  const id = npc?.id || npc?.name || "guide";
+  const hash = Math.abs(hashText(id));
+  const firstName = (npc?.name || "").split(" ").at(-1);
+  const feminine = FEMALE_NPC_NAMES.has(firstName) || /priya|amina|mira|nia|june|grace|farah|mina|tess|rae/i.test(id);
+  return {
+    feminine,
+    role: avatarRole(npc),
+    skin: SKIN_TONES[hash % SKIN_TONES.length],
+    hair: HAIR_COLORS[Math.floor(hash / 3) % HAIR_COLORS.length],
+    jacket: npc?.color || JACKET_COLORS[Math.floor(hash / 7) % JACKET_COLORS.length],
+    shirt: ["#f5f0df", "#1d2427", "#e6d3a4", "#d7e8f3"][Math.floor(hash / 11) % 4],
+    bgA: ["#20363b", "#28304a", "#2f3d2f", "#3a2f42"][Math.floor(hash / 13) % 4],
+    bgB: ["#5da9e9", "#f2c14e", "#6fbf73", "#d88c5a"][Math.floor(hash / 17) % 4]
+  };
+}
+
+function moodMouth(mood) {
+  if (mood === "wrong" || mood === "stern") return `<path d="M92 126 Q106 118 120 126" fill="none" stroke="#5b2f2b" stroke-width="5" stroke-linecap="round"/>`;
+  if (mood === "reward" || mood === "correct") return `<path d="M91 121 Q106 137 122 121" fill="none" stroke="#5b2f2b" stroke-width="5" stroke-linecap="round"/><rect x="99" y="123" width="15" height="4" fill="#fff7e0"/>`;
+  if (mood === "question" || mood === "unsure") return `<ellipse cx="106" cy="125" rx="7" ry="4" fill="#5b2f2b"/>`;
+  return `<path d="M94 123 Q106 130 118 123" fill="none" stroke="#5b2f2b" stroke-width="4" stroke-linecap="round"/>`;
+}
+
+function roleAccessory(role) {
+  const common = `stroke="#f5f0df" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"`;
+  const dark = `stroke="#263036" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"`;
+  if (role === "book") return `<rect x="142" y="126" width="34" height="26" rx="3" fill="#5da9e9" stroke="#f5f0df" stroke-width="3"/><path d="M159 128 L159 151" ${common}/><path d="M148 136 H155 M164 136 H171 M148 144 H155 M164 144 H171" ${dark}/>`;
+  if (role === "law") return `<rect x="143" y="145" width="34" height="7" fill="#d8a23a"/><path d="M150 139 H170 M160 111 V145 M148 119 H172" ${common}/><path d="M150 119 L143 133 H157 Z M170 119 L163 133 H177 Z" fill="#d8a23a"/>`;
+  if (role === "campaign") return `<path d="M143 124 L176 113 V144 L143 135 Z" fill="#e36b5d" stroke="#f5f0df" stroke-width="3"/><rect x="137" y="129" width="8" height="18" fill="#263036"/><path d="M176 120 Q187 128 176 137" ${common}/>`;
+  if (role === "council") return `<circle cx="160" cy="132" r="19" fill="#f2c14e" stroke="#f5f0df" stroke-width="3"/><path d="M151 132 L158 139 L171 123" fill="none" stroke="#263036" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (role === "police") return `<path d="M145 118 L160 111 L175 118 V137 Q160 150 145 137 Z" fill="#31405a" stroke="#f5f0df" stroke-width="3"/><path d="M153 128 H167" ${common}/>`;
+  if (role === "data") return `<rect x="143" y="119" width="34" height="32" rx="4" fill="#263036" stroke="#f5f0df" stroke-width="3"/><rect x="150" y="138" width="5" height="8" fill="#6fbf73"/><rect x="159" y="129" width="5" height="17" fill="#f2c14e"/><rect x="168" y="123" width="5" height="23" fill="#5da9e9"/>`;
+  if (role === "media") return `<rect x="145" y="121" width="31" height="22" rx="3" fill="#f5f0df"/><circle cx="154" cy="132" r="5" fill="#5da9e9"/><path d="M166 121 V113 M173 121 L181 116 M174 128 H185" ${common}/>`;
+  if (role === "democracy") return `<rect x="144" y="123" width="33" height="28" fill="#f5f0df" stroke="#263036" stroke-width="3"/><path d="M151 129 H169 M151 137 H164" ${dark}/><path d="M159 113 L169 123 H149 Z" fill="#f2c14e"/>`;
+  if (role === "time") return `<circle cx="160" cy="132" r="18" fill="#f5f0df" stroke="#263036" stroke-width="4"/><path d="M160 132 V120 M160 132 L169 138" ${dark}/>`;
+  if (role === "care") return `<path d="M160 149 C130 128 148 107 160 122 C172 107 190 128 160 149 Z" fill="#e36b5d" stroke="#f5f0df" stroke-width="3"/>`;
+  if (role === "exam") return `<rect x="145" y="117" width="30" height="36" rx="2" fill="#f5f0df" stroke="#263036" stroke-width="3"/><path d="M151 127 H169 M151 136 H169 M151 145 H162" ${dark}/><circle cx="171" cy="146" r="9" fill="#6fbf73"/>`;
+  return `<circle cx="160" cy="132" r="17" fill="#6fbf73" stroke="#f5f0df" stroke-width="3"/><path d="M152 132 H168 M160 124 V140" ${common}/>`;
+}
+
+function renderNpcPortrait(title, mood = "talk") {
+  const npc = npcForTitle(title) || activeNpc || null;
+  const spec = avatarSpec(npc);
+  const hair = spec.feminine
+    ? `<path d="M70 76 Q75 37 108 35 Q143 39 145 79 L137 112 Q128 62 106 61 Q84 62 77 112 Z" fill="${spec.hair}"/>`
+    : `<path d="M70 75 Q76 39 108 36 Q138 39 145 75 Q126 57 105 59 Q86 59 70 75 Z" fill="${spec.hair}"/>`;
+  const extraHair = spec.feminine
+    ? `<rect x="70" y="78" width="14" height="48" rx="7" fill="${spec.hair}"/><rect x="131" y="78" width="14" height="48" rx="7" fill="${spec.hair}"/>`
+    : `<path d="M77 67 Q88 45 105 56 Q120 43 138 67 L132 77 Q106 61 81 77 Z" fill="${spec.hair}"/>`;
+  const brows = mood === "wrong" || mood === "stern"
+    ? `<path d="M83 91 L97 87 M116 87 L130 91" stroke="#2b1a14" stroke-width="5" stroke-linecap="round"/>`
+    : `<path d="M83 87 H97 M116 87 H130" stroke="#2b1a14" stroke-width="4" stroke-linecap="round"/>`;
+  const spark = mood === "reward" || mood === "correct"
+    ? `<path d="M42 43 L48 58 L63 64 L48 70 L42 85 L36 70 L21 64 L36 58 Z" fill="#f2c14e"/><circle cx="176" cy="63" r="7" fill="#f2c14e"/>`
+    : "";
+  const question = mood === "question" || mood === "unsure"
+    ? `<text x="167" y="70" fill="#5da9e9" font-size="42" font-family="Georgia" font-weight="700">?</text>`
+    : "";
+  const svg = `
+    <svg viewBox="0 0 216 216" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title}">
+      <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+          <stop stop-color="${spec.bgA}"/>
+          <stop offset="1" stop-color="${spec.bgB}"/>
+        </linearGradient>
+      </defs>
+      <rect width="216" height="216" rx="18" fill="url(#bg)"/>
+      <circle cx="108" cy="98" r="74" fill="rgba(255,255,255,.12)"/>
+      ${spark}${question}
+      <path d="M49 202 Q61 151 108 151 Q155 151 167 202 Z" fill="${spec.jacket}"/>
+      <path d="M79 202 L91 157 H125 L137 202 Z" fill="${spec.shirt}"/>
+      <rect x="95" y="136" width="26" height="28" rx="9" fill="${spec.skin}"/>
+      ${hair}${extraHair}
+      <circle cx="72" cy="98" r="9" fill="${spec.skin}"/>
+      <circle cx="144" cy="98" r="9" fill="${spec.skin}"/>
+      <rect x="72" y="58" width="72" height="91" rx="34" fill="${spec.skin}"/>
+      <path d="M78 76 Q105 52 140 77 Q128 60 106 60 Q86 60 78 76 Z" fill="${spec.hair}"/>
+      ${brows}
+      <circle cx="90" cy="100" r="6" fill="#f5f0df"/>
+      <circle cx="124" cy="100" r="6" fill="#f5f0df"/>
+      <circle cx="91" cy="101" r="3" fill="#263036"/>
+      <circle cx="125" cy="101" r="3" fill="#263036"/>
+      <path d="M106 104 L101 116 H111" fill="none" stroke="#8c5d45" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      ${moodMouth(mood)}
+      <path d="M66 187 Q84 169 103 180 M150 187 Q132 169 113 180" fill="none" stroke="#263036" stroke-width="7" stroke-linecap="round"/>
+      ${roleAccessory(spec.role)}
+    </svg>
+  `;
+  return svg;
 }
 
 function renderNpcWindow(title, body, hint, controls = "", mood = "talk") {
-  const portrait = portraitFor(title, mood);
   return `
     <div class="npc-window npc-window-${mood}">
       <div class="npc-portrait-frame">
-        <img class="npc-portrait" src="${portrait.image}" alt="${title} portrait">
+        <div class="npc-portrait">${renderNpcPortrait(title, mood)}</div>
       </div>
       <div class="npc-copy">
         <h2>${title}</h2>

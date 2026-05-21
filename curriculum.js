@@ -182,11 +182,10 @@ window.GCSE_CURRICULUM = {
 
 window.GCSE_CURRICULUM_INDEX = Object.fromEntries(
   Object.values(window.GCSE_CURRICULUM.sections)
-    .flatMap((section) => section.topics)
-    .map((topic) => {
+    .flatMap((section) => section.topics.map((topic) => {
       if (Array.isArray(topic)) {
         return [topic[0], { npc: topic[1], asks: topic[2], correctAnswer: topic[3], note: section.focus }];
       }
       return [topic.questId, topic];
-    })
+    }))
 );

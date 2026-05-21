@@ -27,7 +27,7 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
 - `curriculum.js` - editable GCSE topic map grouped by location, with NPC prompts and longer correct-answer explanations.
 - `CURRICULUM_MAP.md` - broader course/world planning notes.
 - `README.md` - short project overview and play instructions.
-- `assets/portraits/` - sticker-style NPC portrait emotion assets used in dialogue windows.
+- NPC portraits are generated as inline SVG avatars in `game.js`; there is no portrait image folder at the moment.
 - `assets/tiles/`, `assets/characters/`, `assets/buildings/`, `assets/props/` - reserved asset structure for future PNG art.
 - `staticwebapp.config.json` - Azure Static Web Apps config.
 - `.github/workflows/azure-static-web-apps.yml` - intended GitHub Actions deploy workflow.
@@ -80,14 +80,14 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
   - NPCs that were overlapping building collision tiles were moved to reachable nearby positions.
 - NPC dialogue upgrade:
   - central square dialogue/modal window
-  - portrait image inside every NPC interaction flow
-  - different portrait mood for talking, quest prompts, questions, wrong answers, rewards, and gates
+  - unique inline SVG avatar inside every NPC interaction flow
+  - faces are generated from NPC id, role, colour, and inferred gender
+  - expression changes for talking, quest prompts, questions, wrong answers, rewards, and gates
 - Curriculum content extraction:
   - `curriculum.js` now stores sections, topics, NPC prompts, and longer correct-answer explanations.
 
 ## 5. Current TODO List
 
-- Replace shared emotion portraits with NPC-specific portrait variants. The current portraits are reused by mood rather than generated per character.
 - Move more hardcoded world/quest/NPC data out of `game.js` into structured data files.
 - Add automated tests for:
   - quest completion flow
@@ -108,7 +108,7 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
 - The GitHub Actions workflow exists but Azure SWA CLI reports: `missing property "jobs.build_and_deploy_job"`. Manual deploy still works. The workflow may also need the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN`.
 - Root `.git` is not reliable in this workspace. Use `publish/` for Git operations unless the repository setup is repaired.
 - Browser cache can show stale deployed assets; use `Ctrl+F5` when checking the public site.
-- Dialogue portraits are currently generic emotion stickers, not unique visual identities for each NPC.
+- NPC avatars are procedural SVGs, not hand-painted or generated raster portraits. They are unique and role-aware but still visually simple.
 - The dev travel menu is intentionally still visible for testing and should be hidden before a polished release.
 
 ## 7. Commands to Build, Run, Lint and Test
@@ -132,8 +132,6 @@ Prepare a deploy folder:
 
 ```powershell
 Copy-Item -Path index.html,styles.css,game.js,curriculum.js,staticwebapp.config.json -Destination dist -Force
-New-Item -ItemType Directory -Force -Path dist\assets\portraits | Out-Null
-Copy-Item -Path assets\portraits\*.jpg -Destination dist\assets\portraits -Force
 ```
 
 Manual Azure Static Web Apps deploy:
@@ -163,7 +161,6 @@ Useful ad hoc checks:
 ```powershell
 Invoke-WebRequest -Uri https://lemon-meadow-063d62b03.7.azurestaticapps.net/game.js -UseBasicParsing
 Invoke-WebRequest -Uri https://lemon-meadow-063d62b03.7.azurestaticapps.net/curriculum.js -UseBasicParsing
-Invoke-WebRequest -Uri https://lemon-meadow-063d62b03.7.azurestaticapps.net/assets/portraits/greeting.jpg -UseBasicParsing
 ```
 
 ## 8. Environment Variables Needed
@@ -197,18 +194,18 @@ Do not store or print the SWA deployment token.
 - Keep the developer travel menu visible during prototyping to speed testing across regions.
 - Use data-driven curriculum where possible. `curriculum.js` is the first step; more quest/world data should eventually move out of `game.js`.
 - Use a central square NPC dialogue window for every interaction type so questions, quest text, travel gates, and feedback feel consistent.
-- Use mood-based portrait assets now, with a future path to NPC-specific portraits.
+- Use procedural SVG portraits now. This keeps each NPC visually distinct without managing many raster files, and mood changes are handled by drawing different mouths/brows/accessories.
 - Preserve pixel-art feel in canvas rendering, but prepare for future PNG assets under `assets/`.
 - Keep travel gates gated by quest completion plus three correct answers, reinforcing mastery before progression.
 - Avoid adding a framework until the static JS file becomes too difficult to maintain.
 
 ## 10. Next Recommended Task
 
-Create NPC-specific portrait mapping and content data cleanup together:
+Move character and content data out of `game.js`:
 
-1. Add a `characters.js` or `data/npcs.js` file with each NPC's role, portrait set, quest IDs, and default dialogue.
-2. Update `portraitFor()` so it selects portraits by NPC and mood instead of only by mood.
-3. Move regional NPC definitions and quest definitions out of `game.js` in small, testable steps.
-4. Add an automated placement check that fails if an NPC is on a blocked tile.
+1. Add a `characters.js` or `data/npcs.js` file with each NPC's role, gender, avatar parameters, quest IDs, and default dialogue.
+2. Move regional NPC definitions and quest definitions out of `game.js` in small, testable steps.
+3. Add an automated placement check that fails if an NPC is on a blocked tile.
+4. Add a small visual test page or debug mode for reviewing all generated NPC portraits together.
 
 This will make future curriculum and art updates much safer, because the next agent will not need to edit a very large `game.js` for every content change.

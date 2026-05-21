@@ -346,7 +346,7 @@ kbd {
 
 .npc-window {
   display: grid;
-  grid-template-rows: minmax(190px, 46%) 1fr;
+  grid-template-rows: clamp(210px, 38%, 280px) minmax(0, 1fr);
   gap: 12px;
   width: 100%;
   height: 100%;
@@ -360,21 +360,23 @@ kbd {
   min-height: 0;
   display: grid;
   place-items: center;
-  background: #111719;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(245, 240, 223, .16), transparent 42%),
+    #111719;
   border: 1px solid rgba(245, 240, 223, .35);
   overflow: hidden;
 }
 
 .npc-portrait {
-  width: 100%;
-  height: 100%;
+  width: min(100%, 250px);
+  aspect-ratio: 1;
   display: grid;
   place-items: center;
 }
 
 .npc-portrait svg {
   width: 100%;
-  height: 100%;
+  height: auto;
   display: block;
 }
 

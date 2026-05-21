@@ -1159,7 +1159,7 @@ function renderNpcPortrait(title, mood = "talk") {
     ? `<text x="167" y="70" fill="#5da9e9" font-size="42" font-family="Georgia" font-weight="700">?</text>`
     : "";
   const svg = `
-    <svg viewBox="0 0 216 216" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title}">
+    <svg viewBox="0 0 216 216" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${title}">
       <defs>
         <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
           <stop stop-color="${spec.bgA}"/>

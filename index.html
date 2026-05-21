@@ -12,6 +12,15 @@
         <canvas id="game" width="1280" height="768"></canvas>
         <div id="dialogue" class="dialogue hidden" aria-live="polite"></div>
         <div id="choicePanel" class="choice-panel hidden"></div>
+        <div id="touchControls" class="touch-controls" aria-label="Touch controls">
+          <div class="touch-dpad" aria-label="Move">
+            <button type="button" class="touch-button touch-up" data-touch-key="w" aria-label="Move up">▲</button>
+            <button type="button" class="touch-button touch-left" data-touch-key="a" aria-label="Move left">◀</button>
+            <button type="button" class="touch-button touch-right" data-touch-key="d" aria-label="Move right">▶</button>
+            <button type="button" class="touch-button touch-down" data-touch-key="s" aria-label="Move down">▼</button>
+          </div>
+          <button type="button" class="touch-action" data-touch-action="interact" aria-label="Talk or inspect">E</button>
+        </div>
       </section>
 
       <aside class="hud" aria-label="Player progress">
@@ -78,6 +87,7 @@
         <div class="controls">
           <h2>Controls</h2>
           <p><kbd>WASD</kbd> or <kbd>Arrows</kbd> move</p>
+          <p>Touch buttons also work on mobile.</p>
           <p><kbd>E</kbd> talk / inspect</p>
           <p><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> answer</p>
           <p><kbd>R</kbd> reset saved progress</p>

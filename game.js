@@ -15,6 +15,7 @@ const journalText = document.getElementById("journalText");
 const resetButton = document.getElementById("resetButton");
 const devLocationSelect = document.getElementById("devLocationSelect");
 const devTravelButton = document.getElementById("devTravelButton");
+const touchControls = document.getElementById("touchControls");
 
 const TILE = 48;
 const LOGICAL_TILE = 32;
@@ -2520,6 +2521,32 @@ inventoryList.addEventListener("click", (event) => {
   if (action === "use") useItem(item);
   if (action === "sell") sellItem(item);
 });
+
+function releaseTouchKey(event) {
+  const key = event.currentTarget.dataset.touchKey;
+  if (key) keys.delete(key);
+  event.currentTarget.classList.remove("is-active");
+}
+
+if (touchControls) {
+  touchControls.querySelectorAll("[data-touch-key]").forEach((button) => {
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      button.setPointerCapture?.(event.pointerId);
+      keys.add(button.dataset.touchKey);
+      button.classList.add("is-active");
+    });
+    button.addEventListener("pointerup", releaseTouchKey);
+    button.addEventListener("pointercancel", releaseTouchKey);
+    button.addEventListener("pointerleave", releaseTouchKey);
+    button.addEventListener("lostpointercapture", releaseTouchKey);
+    button.addEventListener("contextmenu", (event) => event.preventDefault());
+  });
+  touchControls.querySelector("[data-touch-action]")?.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    interact();
+  });
+}
 
 resetButton.addEventListener("click", () => {
   if (window.confirm("Start a new game and delete saved progress?")) {

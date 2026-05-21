@@ -427,6 +427,83 @@ kbd {
   cursor: default;
 }
 
+.touch-controls {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 18px;
+  pointer-events: none;
+  user-select: none;
+  touch-action: none;
+  z-index: 3;
+}
+
+.touch-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 54px);
+  grid-template-rows: repeat(3, 54px);
+  gap: 7px;
+}
+
+.touch-button,
+.touch-action {
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  background: rgba(17, 23, 25, .78);
+  border: 2px solid rgba(245, 240, 223, .45);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .32);
+  font: 900 1.25rem ui-monospace, SFMono-Regular, Consolas, monospace;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.touch-button {
+  width: 54px;
+  height: 54px;
+}
+
+.touch-action {
+  width: 82px;
+  height: 82px;
+  border-color: rgba(242, 193, 78, .7);
+  background: rgba(77, 44, 43, .86);
+  font-size: 1.45rem;
+}
+
+.touch-button:active,
+.touch-button.is-active,
+.touch-action:active {
+  color: #241b12;
+  background: rgba(242, 193, 78, .9);
+  border-color: #fff1a8;
+}
+
+.touch-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.touch-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.touch-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.touch-down {
+  grid-column: 2;
+  grid-row: 3;
+}
+
 .hidden {
   display: none;
 }
@@ -438,5 +515,41 @@ kbd {
 
   .hud {
     min-height: 0;
+  }
+}
+
+@media (min-width: 981px) and (hover: hover) and (pointer: fine) {
+  .touch-controls {
+    opacity: .36;
+    transition: opacity .18s ease;
+  }
+
+  .stage:hover .touch-controls,
+  .touch-controls:focus-within {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .touch-controls {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .touch-dpad {
+    grid-template-columns: repeat(3, 46px);
+    grid-template-rows: repeat(3, 46px);
+    gap: 6px;
+  }
+
+  .touch-button {
+    width: 46px;
+    height: 46px;
+  }
+
+  .touch-action {
+    width: 68px;
+    height: 68px;
   }
 }

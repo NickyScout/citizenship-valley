@@ -274,7 +274,7 @@ const npcs = [
     id: "sam",
     name: "Sam the Librarian",
     x: 664,
-    y: 188,
+    y: 220,
     color: "#5da9e9",
     badge: "Rights Badge",
     reward: { item: "libertyCoat", coins: 16 },
@@ -297,8 +297,8 @@ const npcs = [
   {
     id: "rowan",
     name: "Justice Rowan",
-    x: 462,
-    y: 396,
+    x: 356,
+    y: 430,
     color: "#b089d6",
     badge: "Rule of Law Badge",
     reward: { item: "debateBlade", coins: 18 },
@@ -321,8 +321,8 @@ const npcs = [
   {
     id: "noor",
     name: "Councillor Noor",
-    x: 758,
-    y: 404,
+    x: 704,
+    y: 384,
     color: "#f2c14e",
     badge: "Active Citizen Badge",
     reward: { items: ["justiceQuill", "civicGem"], coins: 25 },
@@ -590,9 +590,9 @@ const locationBlueprints = [
     npcs: [
       ["editorVale", "Editor Vale", 132, 218, "#e36b5d", "Free press, public interest, and media influence."],
       ["historianIona", "Historian Iona", 372, 292, "#b089d6", "Identity, nations of the UK, and shared values."],
-      ["aidMina", "Aid Worker Mina", 664, 188, "#6fbf73", "NGOs, humanitarian crises, and global responsibility."],
-      ["dataOmar", "Data Clerk Omar", 464, 464, "#5da9e9", "Migration, statistics, and community change."],
-      ["elderGrace", "Community Elder Grace", 758, 404, "#f2c14e", "Diversity, respect, and community cohesion."]
+      ["aidMina", "Aid Worker Mina", 664, 220, "#6fbf73", "NGOs, humanitarian crises, and global responsibility."],
+      ["dataOmar", "Data Clerk Omar", 356, 430, "#5da9e9", "Migration, statistics, and community change."],
+      ["elderGrace", "Community Elder Grace", 704, 384, "#f2c14e", "Diversity, respect, and community cohesion."]
     ],
     topics: [
       ["identity", "Identity Web", "historianIona", "elderGrace", "Ask Grace what can shape a person's identity.", "Identity can be shaped by family, community, nation, language, culture, faith, migration, values, and personal experience.", "Which set best describes identity influences?", ["Family, culture, values, nation, community", "Only hair colour", "Only exam grades"]],
@@ -618,9 +618,9 @@ const locationBlueprints = [
     npcs: [
       ["advocateFarah", "Advocate Farah", 132, 218, "#466d9f", "Human rights, equality, and discrimination."],
       ["sergeantBlake", "Sergeant Blake", 372, 292, "#31405a", "Police powers, safeguards, and accountability."],
-      ["mediatorChen", "Mediator Chen", 664, 188, "#d88c5a", "Civil disputes and legal solutions."],
-      ["youthEllis", "Youth Worker Ellis", 464, 464, "#6fbf73", "Youth justice and rehabilitation."],
-      ["justiceRowan2", "Justice Rowan", 758, 404, "#b089d6", "Courts, rule of law, and fair trials."]
+      ["mediatorChen", "Mediator Chen", 664, 220, "#d88c5a", "Civil disputes and legal solutions."],
+      ["youthEllis", "Youth Worker Ellis", 356, 430, "#6fbf73", "Youth justice and rehabilitation."],
+      ["justiceRowan2", "Justice Rowan", 704, 384, "#b089d6", "Courts, rule of law, and fair trials."]
     ],
     topics: [
       ["ruleLaw", "Rule of Law Seal", "justiceRowan2", "advocateFarah", "Ask Farah why power must be limited by law.", "The rule of law means everyone is subject to law, including people in power, and laws should be applied fairly.", "Which statement best fits rule of law?", ["No one is above the law", "Power has no limits", "Only citizens obey law"]],
@@ -646,9 +646,9 @@ const locationBlueprints = [
     npcs: [
       ["speakerLark", "Speaker Lark", 132, 218, "#d8b36a", "Parliament and scrutiny."],
       ["mpRivers", "MP Rivers", 372, 292, "#5da9e9", "Representation and constituencies."],
-      ["managerSol", "Campaign Manager Sol", 664, 188, "#e36b5d", "Parties and manifestos."],
-      ["officerJune", "Returning Officer June", 464, 464, "#6fbf73", "Elections and voting systems."],
-      ["heraldEwan", "Devolution Herald Ewan", 758, 404, "#b089d6", "Devolution and levels of government."]
+      ["managerSol", "Campaign Manager Sol", 664, 220, "#e36b5d", "Parties and manifestos."],
+      ["officerJune", "Returning Officer June", 356, 430, "#6fbf73", "Elections and voting systems."],
+      ["heraldEwan", "Devolution Herald Ewan", 704, 384, "#b089d6", "Devolution and levels of government."]
     ],
     topics: [
       ["parliament", "Bill Trail", "speakerLark", "mpRivers", "Ask Rivers how MPs represent people.", "Parliament debates, scrutinises, passes laws, and holds government to account.", "Parliament can hold government to account by...", ["Scrutiny and questions", "Arresting voters", "Running every school"]],
@@ -674,9 +674,9 @@ const locationBlueprints = [
     npcs: [
       ["campaignPriya2", "Priya the Campaigner", 132, 218, "#6fbf73", "Campaign strategy and public voice."],
       ["unionMorgan", "Union Rep Morgan", 372, 292, "#d88c5a", "Trade unions and collective action."],
-      ["charityAmina", "Charity Lead Amina", 664, 188, "#5da9e9", "Volunteering and charities."],
-      ["lobbyistPax", "Lobbyist Pax", 464, 464, "#b089d6", "Lobbying and pressure groups."],
-      ["moderatorRae", "Digital Moderator Rae", 758, 404, "#f2c14e", "Social media and online participation."]
+      ["charityAmina", "Charity Lead Amina", 664, 220, "#5da9e9", "Volunteering and charities."],
+      ["lobbyistPax", "Lobbyist Pax", 356, 430, "#b089d6", "Lobbying and pressure groups."],
+      ["moderatorRae", "Digital Moderator Rae", 704, 384, "#f2c14e", "Social media and online participation."]
     ],
     topics: [
       ["petition", "Petition Pier", "campaignPriya2", "lobbyistPax", "Ask Pax what target a petition needs.", "A petition needs a clear demand, evidence, public support, and the right decision-maker.", "A strong petition needs...", ["Clear aim, evidence, and target", "No audience", "Only decoration"]],
@@ -702,9 +702,9 @@ const locationBlueprints = [
     npcs: [
       ["plannerNoor2", "Councillor Noor", 132, 218, "#f2c14e", "Planning active citizenship projects."],
       ["surveyorTess", "Surveyor Tess", 372, 292, "#5da9e9", "Surveys and interviews."],
-      ["statJules", "Statistician Jules", 664, 188, "#6fbf73", "Data, charts, and impact."],
-      ["organiserKai", "Organiser Kai", 464, 464, "#e36b5d", "Action methods and events."],
-      ["examinerMira", "Examiner Mira", 758, 404, "#b089d6", "Evaluation and exam write-up."]
+      ["statJules", "Statistician Jules", 664, 220, "#6fbf73", "Data, charts, and impact."],
+      ["organiserKai", "Organiser Kai", 356, 430, "#e36b5d", "Action methods and events."],
+      ["examinerMira", "Examiner Mira", 704, 384, "#b089d6", "Evaluation and exam write-up."]
     ],
     topics: [
       ["issue", "Choose The Issue", "plannerNoor2", "surveyorTess", "Ask Tess how to choose a real issue.", "A good issue is specific, researchable, linked to citizenship, and important to a community.", "A good active citizenship issue should be...", ["Specific, researchable, and relevant", "Impossible to investigate", "Only a joke"]],
@@ -730,9 +730,9 @@ const locationBlueprints = [
     npcs: [
       ["examMira2", "Examiner Mira", 132, 218, "#b089d6", "Command words and mark schemes."],
       ["timeAsh", "Timekeeper Ash", 372, 292, "#d88c5a", "Timed practice."],
-      ["sourceNia", "Source Keeper Nia", 664, 188, "#5da9e9", "Source reliability and usefulness."],
-      ["coachLeon", "Debate Coach Leon", 464, 464, "#6fbf73", "Balanced arguments."],
-      ["scribePip", "Paragraph Scribe Pip", 758, 404, "#f2c14e", "PEEL paragraphs and evidence."]
+      ["sourceNia", "Source Keeper Nia", 664, 220, "#5da9e9", "Source reliability and usefulness."],
+      ["coachLeon", "Debate Coach Leon", 356, 430, "#6fbf73", "Balanced arguments."],
+      ["scribePip", "Paragraph Scribe Pip", 704, 384, "#f2c14e", "PEEL paragraphs and evidence."]
     ],
     topics: [
       ["commandWords", "Command Word Corridor", "examMira2", "scribePip", "Ask Pip how explain differs from identify.", "Identify means name something; explain means give a developed reason or link.", "Explain questions need...", ["Developed reasons", "One-word labels only", "No links"]],

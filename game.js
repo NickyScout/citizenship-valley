@@ -1450,6 +1450,10 @@ function drawTile(ch, x, y) {
 
 function drawBuilding(x, y, w, h, wall, roof, label) {
   rect(x + 5, y + h - 2, w + 10, 9, "rgba(0, 0, 0, .32)");
+  rect(x - 7, y + h + 5, w + 16, 5, "rgba(0, 0, 0, .18)");
+  rect(x + w - 20, y - 42, 12, 22, "#5b3434");
+  rect(x + w - 18, y - 48, 8, 6, "#7d4840");
+  rect(x + w - 18, y - 39, 8, 2, "#2d2521");
   rect(x - 10, y - 22, w + 20, 20, "#4d2c2b");
   rect(x - 5, y - 17, w + 10, 18, roof);
   rect(x - 8, y - 20, w + 16, 4, "#2d2521");
@@ -1458,8 +1462,15 @@ function drawBuilding(x, y, w, h, wall, roof, label) {
     rect(tx + 5, y - 7, 12, 4, "#9a5a4d");
     rect(tx + 1, y - 12, 3, 2, "#c18470");
   }
+  rect(x - 7, y - 1, w + 14, 3, "#2d2521");
+  rect(x - 2, y + 1, w + 4, 3, "rgba(255,255,255,.18)");
   rect(x, y, w, h, wall);
   drawPixelPattern(x + 3, y + 4, w - 6, h - 26, ["rgba(255,255,255,.16)", "rgba(80,60,45,.14)"], 14, x + y);
+  for (let by = y + 8; by < y + h - 25; by += 12) {
+    for (let bx = x + 6 + ((by / 12) % 2 ? 8 : 0); bx < x + w - 8; bx += 18) {
+      rect(bx, by, 8, 1, "rgba(82,64,52,.18)");
+    }
+  }
   rect(x, y + h - 20, w, 20, "#9a9284");
   for (let sx = x + 4; sx < x + w - 4; sx += 18) {
     rect(sx, y + h - 18, 14, 2, "#6f685f");
@@ -1468,12 +1479,15 @@ function drawBuilding(x, y, w, h, wall, roof, label) {
   rect(x + 8, y + 8, 24, 24, "#5b3434");
   rect(x + 12, y + 12, 16, 16, "#9f504b");
   rect(x + 14, y + 14, 12, 3, "#d17870");
+  rect(x + 7, y + 6, 26, 4, "#3f2c2a");
+  rect(x + 10, y + 31, 20, 3, "#6d4939");
   rect(x + w - 34, y + 10, 24, 22, "#513b35");
   rect(x + w - 30, y + 14, 16, 14, "#d0a56d");
   rect(x + w - 28, y + 16, 12, 3, "#f1c986");
   rect(x + w - 22, y + 14, 2, 14, "#513b35");
   rect(x + w - 30, y + 20, 16, 2, "#513b35");
   rect(x + w / 2 - 11, y + h - 28, 22, 28, "#49342d");
+  rect(x + w / 2 - 13, y + h - 30, 26, 4, "#2d2521");
   rect(x + w / 2 - 7, y + h - 24, 14, 19, "#805344");
   rect(x + w / 2 - 5, y + h - 22, 10, 3, "#a96e55");
   rect(x + w / 2 + 4, y + h - 15, 3, 3, "#f2c14e");
@@ -1491,30 +1505,83 @@ function drawBuilding(x, y, w, h, wall, roof, label) {
   ctx.font = "10px Georgia";
   ctx.textAlign = "center";
   ctx.fillText(label, x + w / 2, signY + 9);
+  drawBuildingOrnaments(x, y, w, h, label);
 }
 
 function drawPerson(person) {
-  const hairColors = ["#4b2d2b", "#2d2521", "#7b4b38", "#31405a", "#5d4037"];
-  const hair = hairColors[Math.floor(hashNoise(person.x, person.y, 4) * hairColors.length)];
-  rect(person.x - 5, person.y + 36, 34, 8, "rgba(0, 0, 0, .3)");
-  rect(person.x + 3, person.y + 13, 19, 24, person.color);
-  rect(person.x + 6, person.y + 16, 13, 4, "rgba(255,255,255,.2)");
-  rect(person.x - 1, person.y + 17, 5, 16, "#3a2b2b");
-  rect(person.x + 21, person.y + 17, 5, 16, "#3a2b2b");
-  rect(person.x + 4, person.y + 1, 17, 15, "#f0bf98");
-  rect(person.x + 2, person.y, 21, 7, hair);
-  rect(person.x + 2, person.y + 6, 4, 8, hair);
-  rect(person.x + 19, person.y + 6, 4, 8, hair);
-  rect(person.x + 7, person.y + 8, 2, 2, "#2d2521");
-  rect(person.x + 16, person.y + 8, 2, 2, "#2d2521");
-  rect(person.x + 10, person.y + 13, 5, 1, "#9b5b4d");
-  rect(person.x + 6, person.y + 37, 6, 7, "#202326");
-  rect(person.x + 16, person.y + 37, 6, 7, "#202326");
+  const style = npcStyle(person);
+  rect(person.x - 6, person.y + 37, 36, 8, "rgba(0, 0, 0, .32)");
+  rect(person.x + 2, person.y + 14, 22, 25, style.coat);
+  rect(person.x + 5, person.y + 16, 16, 20, person.color);
+  rect(person.x + 7, person.y + 19, 12, 4, "rgba(255,255,255,.22)");
+  rect(person.x + 4, person.y + 30, 19, 4, "#6d4939");
+  rect(person.x + 11, person.y + 31, 4, 4, style.trim);
+  rect(person.x - 2, person.y + 18, 6, 16, style.sleeve);
+  rect(person.x + 23, person.y + 18, 6, 16, style.sleeve);
+  rect(person.x - 1, person.y + 32, 5, 4, style.skin);
+  rect(person.x + 24, person.y + 32, 5, 4, style.skin);
+  rect(person.x + 5, person.y + 2, 18, 16, style.skin);
+  rect(person.x + 3, person.y, 22, 7, style.hair);
+  rect(person.x + 3, person.y + 6, 4, 9, style.hair);
+  rect(person.x + 21, person.y + 6, 4, 9, style.hair);
+  rect(person.x + 7, person.y + 9, 2, 2, "#202326");
+  rect(person.x + 17, person.y + 9, 2, 2, "#202326");
+  rect(person.x + 11, person.y + 14, 6, 1, "#8f4f44");
+  rect(person.x + 5, person.y + 39, 7, 7, "#202326");
+  rect(person.x + 17, person.y + 39, 7, 7, "#202326");
+  rect(person.x + 4, person.y + 45, 10, 3, "#5b392f");
+  rect(person.x + 16, person.y + 45, 10, 3, "#5b392f");
   drawNpcAccessory(person);
   if (!state.completed.has(person.id)) {
     rect(person.x + 8, person.y - 17, 9, 9, "#f2c14e");
     rect(person.x + 11, person.y - 6, 3, 3, "#f2c14e");
   }
+}
+
+function drawBuildingOrnaments(x, y, w, h, label) {
+  const lower = label.toLowerCase();
+  if (lower.includes("court") || lower.includes("rights") || lower.includes("parliament")) {
+    for (let i = 0; i < 4; i += 1) {
+      rect(x + 14 + i * 18, y + h - 45, 5, 25, "#eee1c0");
+      rect(x + 12 + i * 18, y + h - 47, 9, 3, "#b7aca0");
+    }
+    return;
+  }
+  if (lower.includes("library") || lower.includes("archive") || lower.includes("sources") || lower.includes("printworks")) {
+    rect(x + 38, y + 12, 28, 17, "#704633");
+    for (let i = 0; i < 3; i += 1) rect(x + 41 + i * 8, y + 15, 5, 11, ["#5da9e9", "#f2c14e", "#6fbf73"][i]);
+    return;
+  }
+  if (lower.includes("park") || lower.includes("garden") || lower.includes("volunteer")) {
+    rect(x + 8, y + h - 30, 17, 9, "#4e9b50");
+    rect(x + 10, y + h - 34, 4, 4, "#f05d5e");
+    rect(x + 18, y + h - 36, 4, 4, "#ffe066");
+    return;
+  }
+  if (lower.includes("election") || lower.includes("petition") || lower.includes("campaign")) {
+    rect(x + w - 10, y - 40, 4, 36, "#4b3128");
+    rect(x + w - 6, y - 38, 24, 13, "#e36b5d");
+    rect(x + w - 3, y - 34, 14, 2, "#f5f0df");
+  }
+}
+
+function npcStyle(person) {
+  const skins = ["#f0bf98", "#d8a079", "#b9785f", "#8f5b4a"];
+  const hairs = ["#4b2d2b", "#2d2521", "#7b4b38", "#31405a", "#d88c32"];
+  const name = person.name.toLowerCase();
+  let coat = "#263036";
+  if (name.includes("campaign") || name.includes("union") || name.includes("charity")) coat = "#1f3f2d";
+  if (name.includes("justice") || name.includes("advocate") || name.includes("examiner")) coat = "#3d334f";
+  if (name.includes("editor") || name.includes("librarian") || name.includes("source")) coat = "#2f4f5f";
+  if (name.includes("mayor") || name.includes("councillor") || name.includes("speaker")) coat = "#5a3f2c";
+  if (name.includes("officer") || name.includes("sergeant")) coat = "#1e2f4a";
+  return {
+    skin: skins[Math.floor(hashNoise(person.x, person.y, 8) * skins.length)],
+    hair: hairs[Math.floor(hashNoise(person.y, person.x, 6) * hairs.length)],
+    coat,
+    sleeve: "#3a2b2b",
+    trim: "#d3a74d"
+  };
 }
 
 function drawNpcAccessory(person) {

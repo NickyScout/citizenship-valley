@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Citizenship Valley</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="stage" aria-label="Citizenship Valley game">
+        <canvas id="game" width="1280" height="768"></canvas>
+        <div id="dialogue" class="dialogue hidden" aria-live="polite"></div>
+        <div id="choicePanel" class="choice-panel hidden"></div>
+      </section>
+
+      <aside class="hud" aria-label="Player progress">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <div>
+            <h1>Citizenship Valley</h1>
+            <p>GCSE revision RPG</p>
+          </div>
+        </div>
+
+        <div class="meter-group">
+          <div class="region">
+            <span>Region</span>
+            <strong id="regionText">Citizenship Village</strong>
+          </div>
+          <div class="wallet">
+            <span>Coins</span>
+            <strong id="coinText">0</strong>
+          </div>
+          <div class="meter-row">
+            <span>Knowledge</span>
+            <strong id="knowledgeText">0/100</strong>
+          </div>
+          <div class="meter"><span id="knowledgeBar"></span></div>
+        </div>
+
+        <div class="quest-card">
+          <h2>Current Quest</h2>
+          <p id="questText">Talk to the Mayor outside Town Hall.</p>
+        </div>
+
+        <div class="inventory">
+          <h2>Badges</h2>
+          <ul id="badgeList">
+            <li>None yet</li>
+          </ul>
+        </div>
+
+        <div class="equipment">
+          <h2>Equipment</h2>
+          <dl>
+            <div><dt>Outfit</dt><dd id="outfitText">School Jumper</dd></div>
+            <div><dt>Tool</dt><dd id="toolText">None</dd></div>
+          </dl>
+        </div>
+
+        <div class="inventory">
+          <h2>Inventory</h2>
+          <div id="inventoryList" class="inventory-list"></div>
+        </div>
+
+        <div class="log">
+          <h2>Journal</h2>
+          <p id="journalText">Earn items by helping villagers.</p>
+        </div>
+
+        <div class="dev-tools">
+          <h2>Dev Travel</h2>
+          <select id="devLocationSelect" aria-label="Switch test location"></select>
+          <button id="devTravelButton" class="reset-button" type="button">Switch Location</button>
+        </div>
+
+        <div class="controls">
+          <h2>Controls</h2>
+          <p><kbd>WASD</kbd> or <kbd>Arrows</kbd> move</p>
+          <p><kbd>E</kbd> talk / inspect</p>
+          <p><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> answer</p>
+          <p><kbd>R</kbd> reset saved progress</p>
+          <p>Use item buttons in the inventory.</p>
+          <button id="resetButton" class="reset-button" type="button">New Game</button>
+        </div>
+      </aside>
+    </main>
+
+    <script src="game.js"></script>
+  </body>
+</html>

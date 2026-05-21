@@ -117,6 +117,12 @@ function loadGame() {
       state.player.y = Number(saved.player.y) || 404;
       state.player.dir = saved.player.dir || "down";
     }
+    if (isBlocked(state.player.x, state.player.y, state.player.w, state.player.h)) {
+      const spawn = safeSpawnFor(locationId);
+      state.player.x = spawn.x;
+      state.player.y = spawn.y;
+      state.journal = "Saved position was blocked by the updated map, so you were moved to a safe starting spot.";
+    }
     updateHud();
     if (state.pendingGate) showGateQuestion();
     return true;
@@ -233,6 +239,7 @@ const baseMap = [
 const WORLD_LAYOUTS = {
   village: {
     map: baseMap,
+    spawn: { x: 210, y: 392 },
     buildings: [
       { x: 86, y: 116, w: 112, h: 72, wall: "#d9c6a0", roof: "roofA" },
       { x: 612, y: 116, w: 104, h: 72, wall: "#c5d3b1", roof: "roofB" },
@@ -262,6 +269,7 @@ const WORLD_LAYOUTS = {
       "#............................#",
       "##############################"
     ],
+    spawn: { x: 242, y: 394 },
     buildings: [
       { x: 72, y: 104, w: 128, h: 84, wall: "#d9c6a0", roof: "roofA" },
       { x: 646, y: 96, w: 118, h: 88, wall: "#c5d3b1", roof: "roofB" },
@@ -291,6 +299,7 @@ const WORLD_LAYOUTS = {
       "#............................#",
       "##############################"
     ],
+    spawn: { x: 330, y: 394 },
     buildings: [
       { x: 350, y: 112, w: 154, h: 92, wall: "#d7d0c3", roof: "roofC" },
       { x: 112, y: 284, w: 112, h: 78, wall: "#d9c6a0", roof: "roofA" },
@@ -320,6 +329,7 @@ const WORLD_LAYOUTS = {
       "#............................#",
       "##############################"
     ],
+    spawn: { x: 274, y: 394 },
     buildings: [
       { x: 104, y: 104, w: 138, h: 92, wall: "#d8b36a", roof: "roofA" },
       { x: 636, y: 104, w: 138, h: 92, wall: "#c5d3b1", roof: "roofB" },
@@ -349,6 +359,7 @@ const WORLD_LAYOUTS = {
       "#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#",
       "##############################"
     ],
+    spawn: { x: 330, y: 394 },
     buildings: [
       { x: 124, y: 100, w: 120, h: 82, wall: "#d9c6a0", roof: "roofA" },
       { x: 438, y: 334, w: 126, h: 80, wall: "#c5d3b1", roof: "roofB" },
@@ -379,6 +390,7 @@ const WORLD_LAYOUTS = {
       "#............................#",
       "##############################"
     ],
+    spawn: { x: 330, y: 394 },
     buildings: [
       { x: 258, y: 104, w: 120, h: 86, wall: "#d9c6a0", roof: "roofA" },
       { x: 552, y: 104, w: 120, h: 86, wall: "#c5d3b1", roof: "roofB" },
@@ -408,6 +420,7 @@ const WORLD_LAYOUTS = {
       "#............................#",
       "##############################"
     ],
+    spawn: { x: 274, y: 394 },
     buildings: [
       { x: 350, y: 86, w: 176, h: 104, wall: "#d7d0c3", roof: "roofC" },
       { x: 84, y: 434, w: 112, h: 84, wall: "#c5d3b1", roof: "roofA" },
@@ -1028,6 +1041,11 @@ function currentMap() {
   return currentLayout().map || baseMap;
 }
 
+function safeSpawnFor(locationId = state.currentLocation) {
+  const layout = WORLD_LAYOUTS[locationId] || WORLD_LAYOUTS.village;
+  return layout.spawn || WORLD_LAYOUTS.village.spawn || { x: 210, y: 392 };
+}
+
 function getQuestLocationId(questId) {
   return Object.keys(WORLD).find((id) => WORLD[id].questIds.includes(questId));
 }
@@ -1047,8 +1065,9 @@ function setLocation(locationId, options = {}) {
   hidePanel();
   hideDialogue();
   if (!options.preservePlayer) {
-    state.player.x = 144;
-    state.player.y = 404;
+    const spawn = safeSpawnFor(locationId);
+    state.player.x = spawn.x;
+    state.player.y = spawn.y;
   }
   if (!options.preserveText) {
     state.quest = `${location.name}: complete all regional quests.`;

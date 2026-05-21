@@ -49,6 +49,18 @@ const state = {
 
 const camera = { x: 0, y: 0 };
 
+const PORTRAITS = {
+  talk: "assets/portraits/greeting.jpg",
+  quest: "assets/portraits/prompt.jpg",
+  question: "assets/portraits/thinking.jpg",
+  correct: "assets/portraits/correct.jpg",
+  reward: "assets/portraits/approved.jpg",
+  wrong: "assets/portraits/wrong.jpg",
+  unsure: "assets/portraits/unsure.jpg",
+  gate: "assets/portraits/surprised.jpg",
+  stern: "assets/portraits/stern.jpg"
+};
+
 function serializeGame() {
   return {
     knowledge: state.knowledge,
@@ -801,6 +813,25 @@ locationBlueprints.forEach((location) => {
   });
 });
 
+function applyCurriculumGuide() {
+  const guide = window.GCSE_CURRICULUM_INDEX || {};
+  Object.entries(QUESTS).forEach(([id, quest]) => {
+    const topic = guide[id];
+    if (!topic) return;
+    const detail = `${topic.correctAnswer} ${topic.note || ""}`.trim();
+    quest.clue = detail;
+    quest.feedback = `Correct. ${detail}`;
+    quest.curriculum = {
+      npc: topic.npc,
+      asks: topic.asks,
+      correctAnswer: topic.correctAnswer,
+      note: topic.note || ""
+    };
+  });
+}
+
+applyCurriculumGuide();
+
 function currentLocation() {
   return WORLD[state.currentLocation];
 }
@@ -1048,8 +1079,36 @@ function findInteractable() {
   return null;
 }
 
-function showDialogue(title, body, hint = "Press E to continue.") {
-  dialogue.innerHTML = `<h2>${title}</h2><p>${body}</p><small>${hint}</small>`;
+function npcForTitle(title) {
+  return npcs.find((npc) => npc.name === title || title.includes(npc.name));
+}
+
+function portraitFor(title, mood = "talk") {
+  const npc = npcForTitle(title);
+  const image = PORTRAITS[mood] || PORTRAITS.talk;
+  const role = npc?.intro || "A helpful citizenship guide.";
+  return { image, role };
+}
+
+function renderNpcWindow(title, body, hint, controls = "", mood = "talk") {
+  const portrait = portraitFor(title, mood);
+  return `
+    <div class="npc-window npc-window-${mood}">
+      <div class="npc-portrait-frame">
+        <img class="npc-portrait" src="${portrait.image}" alt="${title} portrait">
+      </div>
+      <div class="npc-copy">
+        <h2>${title}</h2>
+        ${body ? `<p>${body}</p>` : ""}
+        ${controls ? `<div class="npc-actions">${controls}</div>` : ""}
+        ${hint ? `<small>${hint}</small>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function showDialogue(title, body, hint = "Press E to continue.", mood = "talk") {
+  dialogue.innerHTML = renderNpcWindow(title, body, hint, "", mood);
   dialogue.classList.remove("hidden");
 }
 
@@ -1061,14 +1120,15 @@ function hideDialogue() {
 function showQuestion(npc) {
   activeQuestion = npc;
   const check = npc.checks[activeCheckIndex];
-  choicePanel.innerHTML = `<h2>${check.question}</h2>` + check.answers
+  const controls = check.answers
     .map((answer, index) => `<button type="button" data-answer="${index}">${index + 1}. ${answer}</button>`)
     .join("");
+  choicePanel.innerHTML = renderNpcWindow(npc.name, check.question, "Choose 1, 2, or 3.", controls, "question");
   choicePanel.classList.remove("hidden");
 }
 
-function showPanel(html) {
-  choicePanel.innerHTML = html;
+function showPanel(html, title = activeNpc?.name || "Citizenship", mood = "talk") {
+  choicePanel.innerHTML = renderNpcWindow(title, "", "", html, mood);
   choicePanel.classList.remove("hidden");
 }
 
@@ -1105,7 +1165,7 @@ function showNpcMenu(npc) {
   buttons.push(`<button type="button" data-menu="trade" data-npc="${npc.id}">Trade / sell items</button>`);
   buttons.push(`<button type="button" data-menu="travel" data-npc="${npc.id}">Travel gate</button>`);
   buttons.push(`<button type="button" data-menu="close">Leave</button>`);
-  showPanel(`<h2>${npc.name}</h2>${buttons.join("")}`);
+  showPanel(buttons.join(""), npc.name, "talk");
 }
 
 function showQuestList(npc) {
@@ -1122,7 +1182,7 @@ function showQuestList(npc) {
     }
     return `<button type="button" data-menu="acceptQuest" data-quest="${id}">${quest.title}: ${quest.brief}</button>`;
   }).join("");
-  showPanel(`<h2>${npc.name}: Quests</h2>${rows}<button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`);
+  showPanel(`${rows}<button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`, `${npc.name}: Quests`, "quest");
 }
 
 function acceptQuest(id) {
@@ -1135,7 +1195,7 @@ function acceptQuest(id) {
   updateHud();
   saveGame();
   hidePanel();
-  showDialogue(npcById(quest.giver).name, quest.brief, `Find ${target.name} and choose the quest question.`);
+  showDialogue(npcById(quest.giver).name, quest.brief, `Find ${target.name} and choose the quest question.`, "quest");
 }
 
 function askQuestTarget(npc) {
@@ -1151,7 +1211,7 @@ function askQuestTarget(npc) {
   updateHud();
   saveGame();
   hidePanel();
-  showDialogue(npc.name, quest.clue, `Return to ${giver.name} and report back.`);
+  showDialogue(npc.name, quest.clue, `Return to ${giver.name} and report back.`, "question");
 }
 
 function showTurnInQuestion(npc) {
@@ -1160,9 +1220,9 @@ function showTurnInQuestion(npc) {
   const quest = QUESTS[active.id];
   if (quest.giver !== npc.id || active.stage !== "return") return;
   pendingQuestTurnIn = quest;
-  showPanel(`<h2>${quest.question}</h2>${quest.answers
+  showPanel(quest.answers
     .map((answer, index) => `<button type="button" data-quest-answer="${index}">${index + 1}. ${answer}</button>`)
-    .join("")}`);
+    .join(""), quest.question, "question");
 }
 
 function answerQuest(index) {
@@ -1172,7 +1232,7 @@ function answerQuest(index) {
   hidePanel();
   if (index !== quest.correct) {
     const giver = npcById(quest.giver);
-    showDialogue(giver.name, `Not quite. Remember: ${quest.clue}`, "Open the report option and try again.");
+    showDialogue(giver.name, `Not quite. Remember: ${quest.clue}`, "Open the report option and try again.", "wrong");
     return;
   }
   completeQuest(quest);
@@ -1191,24 +1251,24 @@ function completeQuest(quest) {
   state.journal = `${quest.title} complete. Reward: ${itemRewardText(reward)}.`;
   updateHud();
   saveGame();
-  showDialogue(npcById(quest.giver).name, `${quest.feedback} Reward: ${itemRewardText(reward)}.`, "Choose another quest or equip your rewards.");
+  showDialogue(npcById(quest.giver).name, `${quest.feedback} Reward: ${itemRewardText(reward)}.`, "Choose another quest or equip your rewards.", "reward");
 }
 
 function showTradeMenu(npc) {
   state.journal = `Stand near ${npc.name} and use Sell buttons in your inventory.`;
   updateHud();
-  showPanel(`<h2>${npc.name}: Trade</h2><button type="button" disabled>Use the Sell buttons in the inventory panel.</button><button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`);
+  showPanel(`<button type="button" disabled>Use the Sell buttons in the inventory panel.</button><button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`, `${npc.name}: Trade`, "talk");
 }
 
 function showTravelGate(npc) {
   const location = currentLocation();
   if (!location.next) {
-    showPanel(`<h2>${location.name}</h2><button type="button" disabled>You have reached the final region. Complete Exam Hall quests for mastery.</button><button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`);
+    showPanel(`<button type="button" disabled>You have reached the final region. Complete Exam Hall quests for mastery.</button><button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`, location.name, "reward");
     return;
   }
   const unfinished = location.questIds.filter((id) => !state.completedQuests.has(id));
   if (unfinished.length) {
-    showPanel(`<h2>${location.travel}</h2><button type="button" disabled>Finish ${unfinished.length} regional quest${unfinished.length === 1 ? "" : "s"} before travelling.</button><button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`);
+    showPanel(`<button type="button" disabled>Finish ${unfinished.length} regional quest${unfinished.length === 1 ? "" : "s"} before travelling.</button><button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`, location.travel, "stern");
     return;
   }
   state.pendingGate = { location: state.currentLocation, index: 0, npc: npc.id };
@@ -1221,9 +1281,9 @@ function showGateQuestion() {
   if (!gate) return;
   const location = WORLD[gate.location];
   const check = location.gateQuestions[gate.index];
-  showPanel(`<h2>${location.travel}: Question ${gate.index + 1}/3</h2>${check.answers
+  showPanel(check.answers
     .map((answer, index) => `<button type="button" data-gate-answer="${index}">${index + 1}. ${answer}</button>`)
-    .join("")}`);
+    .join(""), `${location.travel}: Question ${gate.index + 1}/3`, "gate");
 }
 
 function answerGate(index) {
@@ -1235,7 +1295,7 @@ function answerGate(index) {
     state.pendingGate = null;
     hidePanel();
     saveGame();
-    showDialogue("Travel Gate", `Not quite. Review ${location.name} quests, then try the travel gate again.`, "Press E to close.");
+    showDialogue("Travel Gate", `Not quite. Review ${location.name} quests, then try the travel gate again.`, "Press E to close.", "wrong");
     return;
   }
   if (gate.index < 2) {
@@ -1248,7 +1308,7 @@ function answerGate(index) {
   state.unlockedLocations.add(location.next);
   if (!state.badges.includes(location.badge)) addBadge(location.badge);
   setLocation(location.next);
-  showDialogue("New Region Unlocked", `${currentLocation().name} is now open.`, "Talk to local NPCs to start the next set of quests.");
+  showDialogue("New Region Unlocked", `${currentLocation().name} is now open.`, "Talk to local NPCs to start the next set of quests.", "reward");
 }
 
 function closeQuestion() {
@@ -1271,7 +1331,8 @@ function completeNpc(npc) {
   showDialogue(
     npc.name,
     `${npc.feedback} You earned the ${npc.badge}, ${itemNames}, and ${npc.reward.coins} coins.`,
-    "Equip, use, or sell items from your inventory."
+    "Equip, use, or sell items from your inventory.",
+    "reward"
   );
 }
 
@@ -1290,7 +1351,7 @@ function answer(index) {
     return;
   }
   closeQuestion();
-  showDialogue(npc.name, `Almost. ${npc.feedback}`, "Press E to try again.");
+  showDialogue(npc.name, `Almost. ${npc.feedback}`, "Press E to try again.", "wrong");
 }
 
 function interact() {
@@ -1319,7 +1380,7 @@ function interact() {
 
 function showFloatingMessage(text) {
   messageTimer = 110;
-  dialogue.innerHTML = `<h2>Hint</h2><p>${text}</p><small>Walk up to a villager or sign.</small>`;
+  dialogue.innerHTML = renderNpcWindow("Hint", text, "Walk up to a villager or sign.", "", "unsure");
   dialogue.classList.remove("hidden");
 }
 
@@ -2069,7 +2130,7 @@ choicePanel.addEventListener("click", (event) => {
     if (action === "back" && npc) showNpcMenu(npc);
     if (action === "talk" && npc) {
       hidePanel();
-      showDialogue(npc.name, npc.intro, "Press E to close.");
+      showDialogue(npc.name, npc.intro, "Press E to close.", "talk");
     }
     if (action === "quests" && npc) showQuestList(npc);
     if (action === "askQuest" && npc) askQuestTarget(npc);

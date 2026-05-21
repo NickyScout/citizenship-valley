@@ -304,23 +304,29 @@ kbd {
 
 .dialogue {
   position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 18px;
-  min-height: 112px;
-  padding: 16px;
+  left: 50%;
+  top: 50%;
+  width: min(590px, calc(100% - 36px));
+  max-height: calc(100% - 36px);
+  aspect-ratio: 1;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
 }
 
-.dialogue h2 {
+.dialogue h2,
+.choice-panel h2 {
   margin: 0 0 8px;
 }
 
-.dialogue p {
+.dialogue p,
+.choice-panel p {
   color: var(--ink);
   line-height: 1.45;
 }
 
-.dialogue small {
+.dialogue small,
+.choice-panel small {
   display: block;
   margin-top: 10px;
   color: var(--muted);
@@ -328,10 +334,66 @@ kbd {
 
 .choice-panel {
   position: absolute;
-  right: 18px;
-  bottom: 148px;
-  width: min(520px, calc(100% - 36px));
-  padding: 14px;
+  left: 50%;
+  top: 50%;
+  width: min(590px, calc(100% - 36px));
+  max-height: calc(100% - 36px);
+  aspect-ratio: 1;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+}
+
+.npc-window {
+  display: grid;
+  grid-template-rows: minmax(190px, 46%) 1fr;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  padding: 18px;
+  background:
+    linear-gradient(180deg, rgba(242, 193, 78, .08), transparent 40%),
+    rgba(29, 36, 39, .98);
+}
+
+.npc-portrait-frame {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  background: #111719;
+  border: 1px solid rgba(245, 240, 223, .35);
+  overflow: hidden;
+}
+
+.npc-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background:
+    linear-gradient(45deg, #d9d9d9 25%, transparent 25% 75%, #d9d9d9 75%),
+    linear-gradient(45deg, #d9d9d9 25%, #f5f5f5 25% 75%, #d9d9d9 75%);
+  background-position: 0 0, 8px 8px;
+  background-size: 16px 16px;
+}
+
+.npc-copy {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.npc-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.npc-window-wrong {
+  border-color: rgba(227, 107, 93, .8);
+}
+
+.npc-window-reward,
+.npc-window-correct {
+  border-color: rgba(111, 191, 115, .8);
 }
 
 .choice-panel button {

@@ -1883,7 +1883,7 @@ function renderReviewList() {
   return entries.map((entry) => `
     <button type="button" data-review-entry="${entry.id}">
       <strong>${escapeHtml(entry.title)}</strong>
-      <small>${escapeHtml(entry.region)}${entry.kind === "study" ? ` • ${entry.done}/${entry.total}` : ""}</small>
+      <small>${escapeHtml(entry.region)}${entry.kind === "study" ? ` - ${entry.done}/${entry.total}` : ""}</small>
     </button>
   `).join("");
 }
@@ -1898,7 +1898,7 @@ function renderStudyJournalDetail(entry) {
   return `
     <div class="review-detail">
       <strong>${escapeHtml(entry.title)}</strong>
-      <small>${escapeHtml(entry.region)} • ${entry.done}/${entry.total} complete</small>
+      <small>${escapeHtml(entry.region)} - ${entry.done}/${entry.total} complete</small>
       <p>${escapeHtml(entry.question)}</p>
       <small>Completed Notes</small>
       <ul class="exam-practice-plan">${completed}</ul>
@@ -1929,7 +1929,7 @@ function showReviewJournal(selectedEntryId = null) {
     || entries.at(-1);
   const buttons = entries.map((entry) => `
     <button type="button" data-review-entry="${entry.id}">
-      ${entry.id === selected.id ? "✓ " : ""}${escapeHtml(entry.region)}: ${escapeHtml(entry.title)}${entry.kind === "study" ? ` (${entry.done}/${entry.total})` : ""}
+      ${entry.id === selected.id ? "[Selected] " : ""}${escapeHtml(entry.region)}: ${escapeHtml(entry.title)}${entry.kind === "study" ? ` (${entry.done}/${entry.total})` : ""}
     </button>
   `).join("");
   const html = `

@@ -374,6 +374,16 @@ dd {
   list-style: none;
 }
 
+.exam-practice-plan li {
+  margin: 0 0 6px;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.exam-practice-plan li strong {
+  color: var(--gold);
+}
+
 .dev-tools select {
   width: 100%;
   min-height: 34px;

@@ -837,6 +837,151 @@ const STUDY_STATIONS = {
   ]
 };
 
+const STUDY_CHALLENGES = {
+  townHallInterior: {
+    councilChamber: {
+      question: "Which step should normally happen before a council votes on a local policy?",
+      answers: ["Consultation and debate", "Ignoring residents", "A criminal trial"],
+      correct: 0,
+      journal: "Council decisions are strongest when evidence, consultation, debate, and accountability appear in the answer.",
+      success: "Correct: councils should usually consult and debate before making a decision.",
+      incorrect: "Not quite. Councils usually gather views and debate evidence before they vote."
+    },
+    decisionLadder: {
+      question: "Which order best matches democratic decision-making?",
+      answers: ["Issue -> evidence -> consultation -> vote -> review", "Vote -> rumours -> ignore feedback", "Decision -> no review -> no explanation"],
+      correct: 0,
+      journal: "Sequence matters in citizenship answers because it shows how democratic choices move from issue to accountability.",
+      success: "Correct: a strong answer tracks the issue from evidence and consultation to review.",
+      incorrect: "Not quite. Put the issue and evidence first, then consultation, voting, and later review."
+    },
+    roleCards: {
+      question: "Who mainly represents local residents in council debates?",
+      answers: ["Councillors", "Judges", "Private companies"],
+      correct: 0,
+      journal: "Councillors represent residents, while other groups such as campaigners and residents themselves add pressure and evidence.",
+      success: "Correct: councillors are elected to represent local residents.",
+      incorrect: "Not quite. In local democracy, elected councillors are the main representatives in debates and scrutiny."
+    },
+    serviceDesk: {
+      question: "Which set is most closely linked to local council decisions?",
+      answers: ["Parks, housing, waste, and local facilities", "Declaring war and issuing passports", "Running every court case"],
+      correct: 0,
+      journal: "Local government answers improve when they link decisions to real services such as parks, housing, waste, and community facilities.",
+      success: "Correct: councils are closely connected to everyday local services.",
+      incorrect: "Not quite. Think about the everyday services people use in their community, such as parks, waste collection, or housing."
+    }
+  },
+  libraryInterior: {
+    revisionShelves: {
+      question: "Which term means power holders must explain and justify what they do?",
+      answers: ["Accountability", "Apathy", "Censorship"],
+      correct: 0,
+      journal: "Use precise vocabulary in GCSE answers. Accountability means decision-makers must explain and justify their actions.",
+      success: "Correct: accountability is about being answerable for decisions and actions.",
+      incorrect: "Not quite. Accountability is the term for explaining, justifying, and being challenged about decisions."
+    },
+    flashcardDesk: {
+      question: "What makes a flashcard useful for revision?",
+      answers: ["A definition plus one clear example", "A random slogan only", "A blank card"],
+      correct: 0,
+      journal: "Fast revision works best when a term is linked to a definition and one clear example you can reuse in an answer.",
+      success: "Correct: a definition plus an example gives you something exam-ready to recall.",
+      incorrect: "Not quite. Flashcards are strongest when they pair a definition with one clear example."
+    },
+    sourceTable: {
+      question: "What usually makes a source only partly useful?",
+      answers: ["It may be persuasive or selective", "It exists at all", "It is written in English"],
+      correct: 0,
+      journal: "Source usefulness answers should mention both what the source gives you and what limits its value, such as bias or selective purpose.",
+      success: "Correct: persuasive sources can still help, but they are often limited by bias or selectivity.",
+      incorrect: "Not quite. A source is often limited because its purpose may be persuasive, selective, or incomplete."
+    },
+    misinformationCorner: {
+      question: "Which habit is most responsible before sharing a claim online?",
+      answers: ["Checking evidence and source reliability", "Sharing it because it is dramatic", "Ignoring where it came from"],
+      correct: 0,
+      journal: "Responsible digital citizenship means checking evidence, origin, and reliability before sharing claims.",
+      success: "Correct: evidence checking and source reliability matter before sharing information.",
+      incorrect: "Not quite. Responsible sharing means checking evidence, source, and reliability first."
+    }
+  },
+  courtInterior: {
+    mockTrial: {
+      question: "What best supports a fair trial?",
+      answers: ["Evidence, procedure, and impartial judgement", "Only speed", "Only public opinion"],
+      correct: 0,
+      journal: "Fair trial answers should link justice to evidence, procedure, representation, and impartial judgement.",
+      success: "Correct: fairness depends on evidence, procedure, and impartial judgement.",
+      incorrect: "Not quite. Fair trials depend on evidence, lawful procedure, and an impartial decision-maker."
+    },
+    rightsBench: {
+      question: "Why can some rights be limited in a democracy?",
+      answers: ["To protect safety and the rights of others", "Because rights never matter", "Because governments should avoid all rules"],
+      correct: 0,
+      journal: "Evaluation answers on rights should show balance: rights matter, but some limits exist to protect safety and other people.",
+      success: "Correct: limits may exist to protect public safety and the rights of others.",
+      incorrect: "Not quite. Rights are important, but some can be limited to protect safety or other people's rights."
+    },
+    verdictBuilder: {
+      question: "What makes an evaluation judgement strong?",
+      answers: ["It follows evidence from both sides", "It ignores counter-arguments", "It is only emotional"],
+      correct: 0,
+      journal: "A strong verdict comes after weighing both sides and then justifying a final judgement with evidence.",
+      success: "Correct: evaluation should weigh both sides before reaching a conclusion.",
+      incorrect: "Not quite. Strong evaluation uses evidence from both sides before giving a final judgement."
+    },
+    mistakesBoard: {
+      question: "What is criminal law mainly about?",
+      answers: ["Offences against society", "Only private disputes", "School timetables"],
+      correct: 0,
+      journal: "Remember the exam distinction: criminal law deals mainly with offences against society, while civil law handles disputes and claims.",
+      success: "Correct: criminal law mainly concerns offences against society.",
+      incorrect: "Not quite. Criminal law mainly deals with offences against society rather than private disputes."
+    }
+  },
+  parkInterior: {
+    noticeboard: {
+      question: "Which action best targets a local decision-maker?",
+      answers: ["Contacting a councillor about a local issue", "Ignoring the issue", "Waiting without evidence"],
+      correct: 0,
+      journal: "Participation answers are stronger when the method clearly matches the decision-maker who can act on the issue.",
+      success: "Correct: contacting a councillor can directly target the person linked to the local issue.",
+      incorrect: "Not quite. Choose the method that reaches the decision-maker who can actually act on the issue."
+    },
+    campaignPlanner: {
+      question: "What should a campaign plan always name clearly?",
+      answers: ["Aim, target, method, and audience", "Only a slogan", "Only the poster colour"],
+      correct: 0,
+      journal: "A campaign plan should clearly state the issue, the target, the audience, and the action method.",
+      success: "Correct: a usable campaign plan needs a clear aim, target, method, and audience.",
+      incorrect: "Not quite. A proper campaign plan needs a clear aim, target, method, and audience."
+    },
+    impactMeter: {
+      question: "What is the best evidence that a campaign had impact?",
+      answers: ["Measured change such as signatures or an official response", "Only saying it felt successful", "No evidence at all"],
+      correct: 0,
+      journal: "Impact should be judged with evidence of change, reach, or response rather than vague claims of success.",
+      success: "Correct: impact is strongest when you can show evidence of change or response.",
+      incorrect: "Not quite. Impact needs evidence, such as signatures, responses, turnout, or policy review."
+    },
+    reflectionBench: {
+      question: "What should a strong evaluation include at the end?",
+      answers: ["Specific improvements for next time", "Only praise", "No conclusion"],
+      correct: 0,
+      journal: "Evaluation should include strengths, weaknesses, evidence, and realistic improvements for next time.",
+      success: "Correct: improvement points are a key part of strong evaluation.",
+      incorrect: "Not quite. Strong evaluation finishes with realistic improvements as well as strengths and limits."
+    }
+  }
+};
+
+Object.entries(STUDY_STATIONS).forEach(([locationId, stations]) => {
+  stations.forEach((station) => {
+    Object.assign(station, STUDY_CHALLENGES[locationId]?.[station.id] || {});
+  });
+});
+
 const npcs = [
   {
     id: "mayor",
@@ -1684,6 +1829,7 @@ function reviewEntries() {
         const quest = QUESTS[questId];
         return {
           id: questId,
+          kind: "quest",
           title: quest.title,
           region: location.shortName || location.name,
           question: quest.curriculum?.asks || quest.question,
@@ -1693,39 +1839,101 @@ function reviewEntries() {
   });
 }
 
+function studyJournalEntries() {
+  return Object.keys(INTERIOR_LOCATIONS).map((locationId) => {
+    const location = WORLD[locationId];
+    const stations = currentStudyStations(locationId);
+    const completedStations = stations.filter((station) => state.completedStudyStations.has(studyStationKey(locationId, station.id)));
+    const remainingStations = stations.filter((station) => !state.completedStudyStations.has(studyStationKey(locationId, station.id)));
+    return {
+      id: `study:${locationId}`,
+      kind: "study",
+      locationId,
+      title: `${location.shortName} Progress`,
+      region: "Building Journal",
+      question: `${completedStations.length}/${stations.length} stations complete`,
+      answer: completedStations.length
+        ? completedStations.map((station) => `${station.label}: ${station.journal}`).join(" ")
+        : `No ${location.shortName.toLowerCase()} stations logged yet.`,
+      completedStations,
+      remainingStations,
+      total: stations.length,
+      done: completedStations.length
+    };
+  });
+}
+
+function journalEntries() {
+  return [...studyJournalEntries(), ...reviewEntries()];
+}
+
 function renderReviewList() {
-  const entries = reviewEntries();
+  const studyEntries = studyJournalEntries()
+    .filter((entry) => entry.done > 0 || entry.locationId === state.currentLocation)
+    .sort((left, right) => {
+      if (left.locationId === state.currentLocation) return -1;
+      if (right.locationId === state.currentLocation) return 1;
+      return right.done - left.done;
+    });
+  const topicEntries = reviewEntries().slice(-2).reverse();
+  const entries = [...studyEntries, ...topicEntries].slice(0, 3);
   if (!entries.length) {
-    return "<p class=\"empty\">Complete quests to unlock revision notes.</p>";
+    return "<p class=\"empty\">Complete quests or building stations to unlock revision notes.</p>";
   }
-  const recent = entries.slice(-3).reverse();
-  return recent.map((entry) => `
-    <button type="button" data-review-quest="${entry.id}">
+  return entries.map((entry) => `
+    <button type="button" data-review-entry="${entry.id}">
       <strong>${escapeHtml(entry.title)}</strong>
-      <small>${escapeHtml(entry.region)}</small>
+      <small>${escapeHtml(entry.region)}${entry.kind === "study" ? ` • ${entry.done}/${entry.total}` : ""}</small>
     </button>
   `).join("");
 }
 
-function showReviewJournal(selectedQuestId = null) {
-  const entries = reviewEntries();
+function renderStudyJournalDetail(entry) {
+  const completed = entry.completedStations.length
+    ? entry.completedStations.map((station) => `<li><strong>${escapeHtml(station.label)}</strong>: ${escapeHtml(station.journal)}</li>`).join("")
+    : `<li>No stations completed yet.</li>`;
+  const remaining = entry.remainingStations.length
+    ? `<small>Still To Do</small><p>${escapeHtml(entry.remainingStations.map((station) => station.label).join(", "))}</p>`
+    : `<small>Status</small><p>All stations complete in this building.</p>`;
+  return `
+    <div class="review-detail">
+      <strong>${escapeHtml(entry.title)}</strong>
+      <small>${escapeHtml(entry.region)} • ${entry.done}/${entry.total} complete</small>
+      <p>${escapeHtml(entry.question)}</p>
+      <small>Completed Notes</small>
+      <ul class="exam-practice-plan">${completed}</ul>
+      ${remaining}
+    </div>
+  `;
+}
+
+function renderQuestJournalDetail(entry) {
+  return `
+    <div class="review-detail">
+      <strong>${escapeHtml(entry.title)}</strong>
+      <small>${escapeHtml(entry.region)}</small>
+      <p>${escapeHtml(entry.question)}</p>
+      <p>${escapeHtml(entry.answer)}</p>
+    </div>
+  `;
+}
+
+function showReviewJournal(selectedEntryId = null) {
+  const entries = journalEntries();
   if (!entries.length) {
-    showPanel("<button type=\"button\" disabled>Complete quests to unlock revision notes.</button><button type=\"button\" data-menu=\"close\">Close</button>", "Revision Journal", "book");
+    showPanel("<button type=\"button\" disabled>Complete quests or building stations to unlock revision notes.</button><button type=\"button\" data-menu=\"close\">Close</button>", "Revision Journal", "book");
     return;
   }
-  const selected = entries.find((entry) => entry.id === selectedQuestId) || entries.at(-1);
+  const selected = entries.find((entry) => entry.id === selectedEntryId)
+    || entries.find((entry) => entry.kind === "study" && entry.locationId === state.currentLocation)
+    || entries.at(-1);
   const buttons = entries.map((entry) => `
-    <button type="button" data-review-quest="${entry.id}">
-      ${entry.id === selected.id ? "✓ " : ""}${escapeHtml(entry.region)}: ${escapeHtml(entry.title)}
+    <button type="button" data-review-entry="${entry.id}">
+      ${entry.id === selected.id ? "✓ " : ""}${escapeHtml(entry.region)}: ${escapeHtml(entry.title)}${entry.kind === "study" ? ` (${entry.done}/${entry.total})` : ""}
     </button>
   `).join("");
   const html = `
-    <div class="review-detail">
-      <strong>${escapeHtml(selected.title)}</strong>
-      <small>${escapeHtml(selected.region)}</small>
-      <p>${escapeHtml(selected.question)}</p>
-      <p>${escapeHtml(selected.answer)}</p>
-    </div>
+    ${selected.kind === "study" ? renderStudyJournalDetail(selected) : renderQuestJournalDetail(selected)}
     <div class="review-menu">${buttons}</div>
     <button type="button" data-menu="close">Close</button>
   `;
@@ -2070,6 +2278,9 @@ function showStudyStation(station) {
   const key = studyStationKey(state.currentLocation, station.id);
   const completed = state.completedStudyStations.has(key);
   const revise = station.revise.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const answers = completed
+    ? `<button type="button" disabled>Mini-question complete</button>`
+    : station.answers.map((answer, index) => `<button type="button" data-study-answer="${index}" data-study-station-id="${station.id}">${index + 1}. ${escapeHtml(answer)}</button>`).join("");
   const html = `
     <div class="exam-practice-card">
       <strong>${escapeHtml(station.summary)}</strong>
@@ -2085,11 +2296,30 @@ function showStudyStation(station) {
         <small>Model point</small>
         <p>${escapeHtml(station.example)}</p>
       </div>
+      <div>
+        <small>Mini Question</small>
+        <p>${escapeHtml(station.question)}</p>
+      </div>
+      <div>
+        <small>${completed ? "Journal note" : "Complete the check"}</small>
+        <p>${escapeHtml(completed ? station.journal : station.examTip)}</p>
+      </div>
     </div>
-    <button type="button" data-study-station="${station.id}"${completed ? " disabled" : ""}>${completed ? "Revision logged" : "Log this revision station"}</button>
+    ${answers}
     <button type="button" data-menu="close">Close</button>
   `;
   showPanel(html, station.label, "question");
+}
+
+function answerStudyStation(stationId, index) {
+  const station = currentStudyStations().find((item) => item.id === stationId);
+  if (!station) return;
+  if (index !== station.correct) {
+    hidePanel();
+    showDialogue(station.label, station.incorrect, "Press E and try the station again.", "wrong");
+    return;
+  }
+  completeStudyStation(stationId);
 }
 
 function completeStudyStation(stationId) {
@@ -2102,7 +2332,7 @@ function completeStudyStation(stationId) {
   }
   state.completedStudyStations.add(key);
   addKnowledge(station.reward || 3);
-  state.journal = `${currentLocation().name}: ${station.label} logged. Knowledge +${station.reward || 3}.`;
+  state.journal = `${currentLocation().name}: ${station.label} logged. ${station.success}`;
   const location = currentLocation();
   const allDone = currentStudyStations().every((item) => state.completedStudyStations.has(studyStationKey(state.currentLocation, item.id)));
   if (allDone && location.badge && !state.badges.includes(location.badge)) {
@@ -2850,6 +3080,21 @@ function drawStudyStations() {
     rect(station.x + 10, station.y - 22, 12, 12, "#f5f0df");
     rect(station.x + 8, station.y + 26, 5, 12, "#5b3b31");
     rect(station.x + 19, station.y + 26, 5, 12, "#5b3b31");
+    if (station.id.includes("source") || station.id.includes("revision") || station.id.includes("flashcard") || station.id.includes("misinformation")) {
+      rect(station.x + 5, station.y + 13, 8, 8, "#f5f0df");
+      rect(station.x + 14, station.y + 13, 8, 8, "#5da9e9");
+      rect(station.x + 23, station.y + 13, 8, 8, "#f2c14e");
+    } else if (station.id.includes("trial") || station.id.includes("rights") || station.id.includes("verdict") || station.id.includes("mistakes")) {
+      rect(station.x + 8, station.y + 13, 20, 4, "#d7d0c3");
+      rect(station.x + 16, station.y + 9, 4, 16, "#f2c14e");
+    } else if (station.id.includes("campaign") || station.id.includes("impact") || station.id.includes("notice") || station.id.includes("reflection")) {
+      rect(station.x + 8, station.y + 11, 4, 14, "#4b3128");
+      rect(station.x + 12, station.y + 11, 18, 10, "#e36b5d");
+      rect(station.x + 15, station.y + 14, 11, 2, "#f5f0df");
+    } else {
+      rect(station.x + 9, station.y + 12, 18, 10, "#d8a23a");
+      rect(station.x + 15, station.y + 9, 6, 16, "#5a3f2c");
+    }
     ctx.fillStyle = "#f5f0df";
     ctx.font = "10px Georgia";
     ctx.textAlign = "center";
@@ -2872,12 +3117,28 @@ function drawInteriorDecor() {
   if (!isInteriorLocation()) return;
   const id = state.currentLocation;
   if (id === "townHallInterior") {
-    rect(280, 70, 400, 26, "#5a3f2c");
-    rect(304, 86, 352, 8, "#e6d3a4");
+    rect(252, 68, 456, 26, "#5a3f2c");
+    rect(280, 86, 400, 8, "#e6d3a4");
+    rect(330, 114, 300, 28, "#8f4f44");
+    rect(352, 142, 256, 10, "#d7d0c3");
     rect(148, 248, 664, 6, "#d7d0c3");
     rect(200, 420, 560, 5, "#7d8078");
+    for (let x = 208; x < 752; x += 74) {
+      rect(x, 282, 42, 14, "#8f5b3f");
+      rect(x + 4, 296, 34, 12, "#b77752");
+      rect(x + 8, 308, 4, 16, "#4b3128");
+      rect(x + 30, 308, 4, 16, "#4b3128");
+    }
+    rect(182, 96, 34, 48, "#466d9f");
+    rect(182, 96, 6, 48, "#f5f0df");
+    rect(728, 96, 34, 48, "#e36b5d");
+    rect(756, 96, 6, 48, "#f5f0df");
+    rect(404, 186, 152, 18, "#665a7d");
+    rect(424, 204, 112, 6, "#f2c14e");
   }
   if (id === "libraryInterior") {
+    rect(224, 74, 480, 24, "#704633");
+    rect(260, 96, 408, 8, "#e6d3a4");
     for (let y = 84; y < 470; y += 92) {
       rect(76, y, 58, 62, "#704633");
       rect(826, y, 58, 62, "#704633");
@@ -2886,12 +3147,32 @@ function drawInteriorDecor() {
         rect(834, y + 8 + i * 10, 42, 6, ["#6fbf73", "#f2c14e", "#5da9e9", "#b089d6", "#e36b5d"][i]);
       }
     }
+    for (let x = 236; x < 700; x += 182) {
+      rect(x, 238, 118, 14, "#8f5b3f");
+      rect(x + 8, 252, 102, 10, "#c18455");
+      rect(x + 14, 262, 6, 18, "#4b3128");
+      rect(x + 92, 262, 6, 18, "#4b3128");
+      rect(x + 42, 218, 26, 20, "#f5f0df");
+      rect(x + 50, 224, 10, 8, "#5da9e9");
+    }
+    rect(452, 118, 56, 56, "#d7d0c3");
+    rect(462, 128, 36, 36, "#5da9e9");
+    rect(476, 140, 8, 8, "#6fbf73");
   }
   if (id === "courtInterior") {
     rect(226, 78, 508, 18, "#665a7d");
     for (let x = 254; x < 706; x += 46) rect(x, 96, 12, 140, "#d7d0c3");
     rect(278, 238, 404, 10, "#f2c14e");
+    rect(360, 130, 240, 26, "#5b3b31");
+    rect(388, 156, 184, 22, "#8f5b3f");
     rect(392, 452, 180, 24, "#5b3b31");
+    rect(168, 320, 120, 18, "#8f5b3f");
+    rect(170, 338, 116, 8, "#b77752");
+    rect(648, 320, 120, 18, "#8f5b3f");
+    rect(650, 338, 116, 8, "#b77752");
+    rect(448, 96, 64, 24, "#d7d0c3");
+    rect(478, 98, 4, 20, "#f2c14e");
+    rect(458, 104, 44, 4, "#f2c14e");
   }
   if (id === "parkInterior") {
     rect(128, 92, 704, 12, "#4e9b50");
@@ -2899,6 +3180,22 @@ function drawInteriorDecor() {
     for (let x = 146; x < 814; x += 88) {
       rect(x, 104, 18, 18, "#f05d5e");
       rect(x + 28, 430, 18, 18, "#ffe066");
+    }
+    rect(370, 120, 220, 12, "#8f5b3f");
+    rect(394, 132, 14, 84, "#4b3128");
+    rect(552, 132, 14, 84, "#4b3128");
+    rect(390, 216, 180, 12, "#8f5b3f");
+    rect(176, 240, 90, 64, "#e6d3a4");
+    rect(182, 246, 78, 8, "#b94e48");
+    rect(188, 264, 64, 4, "#4d2c2b");
+    rect(690, 240, 90, 64, "#e6d3a4");
+    rect(696, 246, 78, 8, "#466d9f");
+    rect(702, 264, 64, 4, "#4d2c2b");
+    for (let x = 234; x < 716; x += 144) {
+      rect(x, 352, 34, 18, "#8f5b3f");
+      rect(x + 4, 370, 26, 12, "#b77752");
+      rect(x + 8, 382, 4, 12, "#4b3128");
+      rect(x + 22, 382, 4, 12, "#4b3128");
     }
   }
 }
@@ -3313,9 +3610,9 @@ window.addEventListener("keyup", (event) => {
 });
 
 choicePanel.addEventListener("click", (event) => {
-  const reviewChoice = event.target.closest("button[data-review-quest]");
+  const reviewChoice = event.target.closest("button[data-review-entry]");
   if (reviewChoice) {
-    showReviewJournal(reviewChoice.dataset.reviewQuest);
+    showReviewJournal(reviewChoice.dataset.reviewEntry);
     return;
   }
   const examPractice = event.target.closest("button[data-exam-practice]");
@@ -3326,6 +3623,11 @@ choicePanel.addEventListener("click", (event) => {
   const studyStation = event.target.closest("button[data-study-station]");
   if (studyStation) {
     completeStudyStation(studyStation.dataset.studyStation);
+    return;
+  }
+  const studyAnswer = event.target.closest("button[data-study-answer][data-study-station-id]");
+  if (studyAnswer) {
+    answerStudyStation(studyAnswer.dataset.studyStationId, Number(studyAnswer.dataset.studyAnswer));
     return;
   }
   const gateAnswer = event.target.closest("button[data-gate-answer]");
@@ -3370,9 +3672,9 @@ inventoryList.addEventListener("click", (event) => {
 });
 
 reviewList?.addEventListener("click", (event) => {
-  const button = event.target.closest("button[data-review-quest]");
+  const button = event.target.closest("button[data-review-entry]");
   if (!button) return;
-  showReviewJournal(button.dataset.reviewQuest);
+  showReviewJournal(button.dataset.reviewEntry);
 });
 
 reviewButton?.addEventListener("click", () => showReviewJournal());

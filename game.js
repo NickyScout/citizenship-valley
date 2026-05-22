@@ -41,6 +41,7 @@ const state = {
   badges: [],
   completed: new Set(),
   completedQuests: new Set(),
+  examPracticeCompleted: new Set(),
   currentLocation: "village",
   unlockedLocations: new Set(["village"]),
   pendingGate: null,
@@ -69,6 +70,7 @@ function serializeGame() {
     badges: state.badges,
     completed: [...state.completed],
     completedQuests: [...state.completedQuests],
+    examPracticeCompleted: [...state.examPracticeCompleted],
     currentLocation: state.currentLocation,
     unlockedLocations: [...state.unlockedLocations],
     pendingGate: state.pendingGate,
@@ -107,6 +109,7 @@ function loadGame() {
     state.badges = Array.isArray(saved.badges) ? saved.badges : [];
     state.completed = new Set(Array.isArray(saved.completed) ? saved.completed : []);
     state.completedQuests = new Set(Array.isArray(saved.completedQuests) ? saved.completedQuests : []);
+    state.examPracticeCompleted = new Set(Array.isArray(saved.examPracticeCompleted) ? saved.examPracticeCompleted : []);
     state.unlockedLocations = new Set(Array.isArray(saved.unlockedLocations) ? saved.unlockedLocations : ["village"]);
     state.pendingGate = saved.pendingGate || null;
     state.activeQuest = saved.activeQuest && QUESTS[saved.activeQuest.id] ? saved.activeQuest : null;
@@ -144,6 +147,7 @@ function resetGame() {
   state.badges = [];
   state.completed = new Set();
   state.completedQuests = new Set();
+  state.examPracticeCompleted = new Set();
   state.unlockedLocations = new Set(["village"]);
   state.activeQuest = null;
   state.pendingGate = null;
@@ -425,12 +429,86 @@ const WORLD_LAYOUTS = {
     spawn: { x: 274, y: 394 },
     buildings: [
       { x: 350, y: 86, w: 176, h: 104, wall: "#d7d0c3", roof: "roofC" },
+      { x: 84, y: 254, w: 120, h: 80, wall: "#c5d3b1", roof: "roofA" },
+      { x: 682, y: 254, w: 120, h: 80, wall: "#c5d3b1", roof: "roofB" },
       { x: 84, y: 434, w: 112, h: 84, wall: "#c5d3b1", roof: "roofA" },
-      { x: 682, y: 434, w: 116, h: 84, wall: "#c5d3b1", roof: "roofB" },
-      { x: 408, y: 470, w: 120, h: 58, wall: "#d0a66f", roof: "roofD" }
+      { x: 682, y: 434, w: 116, h: 84, wall: "#c5d3b1", roof: "roofB" }
     ]
   }
 };
+
+const EXAM_PRACTICE_ROOMS = [
+  {
+    id: "identify",
+    label: "Identify",
+    title: "Identify Room",
+    x: 426,
+    y: 222,
+    question: "Identify one way citizens can take part in democracy between general elections.",
+    plan: [
+      "Name one clear method of participation.",
+      "Keep the answer short; this command word does not need a long explanation.",
+      "Use precise citizenship vocabulary."
+    ],
+    model: "Citizens can contact their MP or local councillor between elections."
+  },
+  {
+    id: "describe",
+    label: "Describe",
+    title: "Describe Room",
+    x: 132,
+    y: 354,
+    question: "Describe two responsibilities that support rights in the UK.",
+    plan: [
+      "Give two distinct responsibilities.",
+      "Add a little detail to each one.",
+      "Link each responsibility to living fairly with other people."
+    ],
+    model: "One responsibility is obeying the law, because shared rules help protect everyone's rights. Another is respecting other people's freedom of expression, even when we disagree with them."
+  },
+  {
+    id: "explain",
+    label: "Explain",
+    title: "Explain Room",
+    x: 728,
+    y: 354,
+    question: "Explain why a free press can be important in a democracy.",
+    plan: [
+      "Make a clear point about information or accountability.",
+      "Develop the point with a reason.",
+      "Use an example such as investigations, debate, or checking power."
+    ],
+    model: "A free press is important because it helps citizens find out what people in power are doing. This supports accountability, as journalists can investigate decisions and give voters evidence to use when judging representatives."
+  },
+  {
+    id: "evaluate",
+    label: "Evaluate",
+    title: "Evaluate Room",
+    x: 128,
+    y: 552,
+    question: "Evaluate whether peaceful protest is an effective way for citizens to create change.",
+    plan: [
+      "Give one reason protest can be effective.",
+      "Give one limitation or counter-argument.",
+      "Reach a justified judgement based on evidence and context."
+    ],
+    model: "Peaceful protest can be effective because it raises public awareness and puts pressure on decision-makers. However, it may not lead to change if it lacks clear aims or public support. Overall, it is strongest when combined with evidence, petitions, media work, and contact with representatives."
+  },
+  {
+    id: "sourceUsefulness",
+    label: "Sources",
+    title: "Source Usefulness Lab",
+    x: 728,
+    y: 552,
+    question: "A campaign leaflet says: 'Most young people want more local youth services.' Explain how useful this source is for investigating a local issue.",
+    plan: [
+      "Use content: what information does the source give?",
+      "Use origin and purpose: who made it and why?",
+      "Judge limits: what extra evidence would you need?"
+    ],
+    model: "The leaflet is partly useful because it shows a campaign claim about youth services and may reveal what supporters believe. Its usefulness is limited because a leaflet is designed to persuade, so it may be selective or biased. I would also need survey data, council information, and views from young people who do not support the campaign."
+  }
+];
 
 const npcs = [
   {
@@ -1367,6 +1445,10 @@ function rectsNear(a, b, distance = 42) {
 function findInteractable() {
   const npc = npcs.find((person) => rectsNear(state.player, person));
   if (npc) return { type: "npc", item: npc };
+  if (state.currentLocation === "examHall") {
+    const room = EXAM_PRACTICE_ROOMS.find((item) => rectsNear(state.player, { ...item, w: 24, h: 20 }, 44));
+    if (room) return { type: "examRoom", item: room };
+  }
   const sign = signs.find((item) => rectsNear(state.player, { ...item, w: 20, h: 20 }, 38));
   if (sign) return { type: "sign", item: sign };
   return null;
@@ -1542,6 +1624,42 @@ function itemRewardText(reward) {
   const items = reward.items || (reward.item ? [reward.item] : []);
   const names = items.map((id) => ITEMS[id].name);
   return [...names, `${reward.coins} coins`].join(", ");
+}
+
+function showExamPracticeRoom(room) {
+  const completed = state.examPracticeCompleted.has(room.id);
+  const plan = room.plan.map((step, index) => `<li>${index + 1}. ${escapeHtml(step)}</li>`).join("");
+  const html = `
+    <div class="exam-practice-card">
+      <strong>${escapeHtml(room.question)}</strong>
+      <div>
+        <small>Plan</small>
+        <ul class="exam-practice-plan">${plan}</ul>
+      </div>
+      <div>
+        <small>Model answer</small>
+        <p>${escapeHtml(room.model)}</p>
+      </div>
+    </div>
+    <button type="button" data-exam-practice="${room.id}"${completed ? " disabled" : ""}>${completed ? "Practice complete" : "Mark practice done"}</button>
+    <button type="button" data-menu="close">Close</button>
+  `;
+  showPanel(html, room.title, "question");
+}
+
+function completeExamPractice(roomId) {
+  const room = EXAM_PRACTICE_ROOMS.find((item) => item.id === roomId);
+  if (!room || state.examPracticeCompleted.has(room.id)) return;
+  state.examPracticeCompleted.add(room.id);
+  addKnowledge(4);
+  state.journal = `${room.label} practice complete. Knowledge +4.`;
+  if (state.examPracticeCompleted.size === EXAM_PRACTICE_ROOMS.length && !state.badges.includes("Exam Practice Badge")) {
+    addBadge("Exam Practice Badge");
+    state.journal = "All Exam Hall practice rooms complete. Exam Practice Badge earned.";
+  }
+  updateHud();
+  saveGame();
+  showExamPracticeRoom(room);
 }
 
 function showNpcMenu(npc) {
@@ -1770,6 +1888,10 @@ function interact() {
   }
   if (found.type === "sign") {
     showDialogue(found.item.title, found.item.body, "Press E to close.");
+    return;
+  }
+  if (found.type === "examRoom") {
+    showExamPracticeRoom(found.item);
     return;
   }
   showNpcMenu(found.item);
@@ -2204,6 +2326,20 @@ function drawSigns() {
     rect(sign.x + 2, sign.y + 3, 18, 2, "#e1b675");
     rect(sign.x + 3, sign.y + 9, 13, 2, "#704633");
   });
+  drawExamPracticeRooms();
+}
+
+function drawExamPracticeRooms() {
+  if (state.currentLocation !== "examHall") return;
+  EXAM_PRACTICE_ROOMS.forEach((room) => {
+    const done = state.examPracticeCompleted.has(room.id);
+    rect(room.x - 2, room.y + 16, 28, 5, "rgba(0,0,0,.26)");
+    rect(room.x, room.y, 24, 18, done ? "#6fbf73" : "#f2c14e");
+    rect(room.x + 2, room.y + 2, 20, 14, "#2d2521");
+    rect(room.x + 5, room.y + 5, 14, 2, done ? "#6fbf73" : "#f2c14e");
+    rect(room.x + 5, room.y + 10, 10, 2, "#f5f0df");
+    if (done) rect(room.x + 16, room.y + 10, 3, 3, "#f5f0df");
+  });
 }
 
 function drawProp(prop) {
@@ -2502,7 +2638,7 @@ function regionBuildingLabel(index) {
     democracy: ["Parliament", "Party Hall", "Election", "Devolve"],
     participation: ["Petitions", "Signal Hub", "Union Hall", "Volunteer"],
     actionWorkshop: ["Research", "Survey Lab", "Planning", "Impact"],
-    examHall: ["Command", "Sources", "Paragraphs", "Final Gate"]
+    examHall: ["Identify", "Describe", "Explain", "Evaluate", "Sources"]
   };
   return (labels[state.currentLocation] || labels.village)[index];
 }
@@ -2572,6 +2708,11 @@ choicePanel.addEventListener("click", (event) => {
   const reviewChoice = event.target.closest("button[data-review-quest]");
   if (reviewChoice) {
     showReviewJournal(reviewChoice.dataset.reviewQuest);
+    return;
+  }
+  const examPractice = event.target.closest("button[data-exam-practice]");
+  if (examPractice) {
+    completeExamPractice(examPractice.dataset.examPractice);
     return;
   }
   const gateAnswer = event.target.closest("button[data-gate-answer]");

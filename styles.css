@@ -330,6 +330,37 @@ dd {
   gap: 0;
 }
 
+.exam-practice-card {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: #141c1f;
+  border: 1px solid rgba(77, 90, 89, .8);
+}
+
+.exam-practice-card strong {
+  color: var(--gold);
+  line-height: 1.35;
+}
+
+.exam-practice-card p {
+  margin: 0;
+}
+
+.exam-practice-card small {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: .78rem;
+  text-transform: uppercase;
+}
+
+.exam-practice-plan {
+  gap: 5px;
+  padding-left: 0;
+  list-style: none;
+}
+
 .dev-tools select {
   width: 100%;
   min-height: 34px;

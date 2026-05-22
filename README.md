@@ -43,6 +43,7 @@ Current implementation:
 - Every region must be cleared before the travel gate opens.
 - The travel gate asks three questions from the current region.
 - A wrong gate answer blocks travel until the player tries again.
+- Exam Hall includes five practice rooms for identify, describe, explain, evaluate, and source usefulness questions.
 
 ## RPG Systems
 

@@ -11,6 +11,24 @@ const regionText = document.getElementById("regionText");
 const outfitText = document.getElementById("outfitText");
 const toolText = document.getElementById("toolText");
 const inventoryList = document.getElementById("inventoryList");
+const inventoryOpenButton = document.getElementById("inventoryOpenButton");
+const inventoryPanel = document.getElementById("inventoryPanel");
+const inventoryPanelBody = document.getElementById("inventoryPanelBody");
+const inventoryCloseButton = document.getElementById("inventoryCloseButton");
+const progressOpenButton = document.getElementById("progressOpenButton");
+const progressPanel = document.getElementById("progressPanel");
+const progressPanelBody = document.getElementById("progressPanelBody");
+const progressCloseButton = document.getElementById("progressCloseButton");
+const characterOpenButton = document.getElementById("characterOpenButton");
+const characterPanel = document.getElementById("characterPanel");
+const characterPanelBody = document.getElementById("characterPanelBody");
+const characterCloseButton = document.getElementById("characterCloseButton");
+const focusText = document.getElementById("focusText");
+const focusBar = document.getElementById("focusBar");
+const xpText = document.getElementById("xpText");
+const xpBar = document.getElementById("xpBar");
+const examReadinessText = document.getElementById("examReadinessText");
+const examReadinessBar = document.getElementById("examReadinessBar");
 const journalText = document.getElementById("journalText");
 const reviewList = document.getElementById("reviewList");
 const reviewButton = document.getElementById("reviewButton");
@@ -25,6 +43,7 @@ const RENDER_SCALE = TILE / LOGICAL_TILE;
 const VIEW_W = canvas.width / RENDER_SCALE;
 const VIEW_H = canvas.height / RENDER_SCALE;
 const SAVE_KEY = "citizenshipValleySaveV1";
+const SAVE_VERSION = 3;
 const keys = new Set();
 let activeNpc = null;
 let activeQuestion = null;
@@ -32,23 +51,189 @@ let activeCheckIndex = 0;
 let pendingQuestTurnIn = null;
 let messageTimer = 0;
 let saveReady = false;
+let gameStarted = false;
+let currentProgressTab = "story";
+
+const ACCENT_COLORS = {
+  ember: "#e36b5d",
+  ocean: "#5da9e9",
+  forest: "#6fbf73",
+  amber: "#f2c14e"
+};
+
+const STAT_KEYS = ["knowledge", "rhetoric", "empathy", "integrity"];
+const STAT_LABELS = {
+  knowledge: "Knowledge",
+  rhetoric: "Rhetoric",
+  empathy: "Empathy",
+  integrity: "Integrity"
+};
+const MAX_LEVEL = 10;
+
+const PROFILE_PRESETS = [
+  { id: "boySchool", label: "Schoolboy", gender: "boy", outfit: "schoolJumper", accent: "ember" },
+  { id: "boyCampaign", label: "Campaigner", gender: "boy", outfit: "campaignBoots", accent: "forest" },
+  { id: "boyCouncil", label: "Councillor", gender: "boy", outfit: "councilCloak", accent: "amber" },
+  { id: "boyLiberty", label: "Advocate", gender: "boy", outfit: "libertyCoat", accent: "ocean" },
+  { id: "girlSchool", label: "Schoolgirl", gender: "girl", outfit: "schoolJumper", accent: "ocean" },
+  { id: "girlCampaign", label: "Organiser", gender: "girl", outfit: "campaignBoots", accent: "forest" },
+  { id: "girlCouncil", label: "Speaker", gender: "girl", outfit: "councilCloak", accent: "amber" },
+  { id: "girlLiberty", label: "Rights Lead", gender: "girl", outfit: "libertyCoat", accent: "ember" }
+];
+
+const ACHIEVEMENTS = [
+  { id: "packedBag", name: "Packed Bag", description: "Start with the backpack, notebook, tea, and Citizen Scroll." },
+  { id: "firstStep", name: "First Step", description: "Complete your first regional quest." },
+  { id: "questTrio", name: "Helpful Citizen", description: "Complete three regional quests." },
+  { id: "regionalRegular", name: "Regional Regular", description: "Unlock three travel regions." },
+  { id: "buildingReader", name: "Building Reader", description: "Complete one building study station." },
+  { id: "studyScholar", name: "Study Scholar", description: "Complete ten building study stations." },
+  { id: "practicePlanner", name: "Practice Planner", description: "Complete one Exam Hall practice room." },
+  { id: "badgeCollector", name: "Badge Collector", description: "Earn your first badge." },
+  { id: "toolBearer", name: "Tool Bearer", description: "Equip a tool in your hand." },
+  { id: "wellPrepared", name: "Well Prepared", description: "Reach 25 knowledge." },
+  { id: "civicSaver", name: "Civic Saver", description: "Hold 50 coins at once." },
+  { id: "fullPractice", name: "Practice Champion", description: "Complete all Exam Hall practice rooms." }
+];
+
+function defaultProfile() {
+  return { name: "Citizen", presetId: "boySchool", gender: "boy", outfit: "schoolJumper", accent: "ember" };
+}
+
+function defaultStats() {
+  return { knowledge: 0, rhetoric: 0, empathy: 0, integrity: 0, focus: 100, xp: 0, level: 1, statPoints: 0, spark: 0 };
+}
+
+function defaultStarterInventory() {
+  return ["schoolBackpack", "notebook", "revisionTea", "citizenScroll"];
+}
+
+function sanitiseProfile(input) {
+  const base = defaultProfile();
+  if (!input || typeof input !== "object") return base;
+  const preset = PROFILE_PRESETS.find((entry) => entry.id === input.presetId) || PROFILE_PRESETS[0];
+  const rawName = typeof input.name === "string" ? input.name : base.name;
+  const safeName = rawName.replace(/[<>"'`]/g, "").trim().slice(0, 16) || base.name;
+  const gender = input.gender === "girl" || input.gender === "boy" ? input.gender : preset.gender;
+  const outfit = ITEMS[input.outfit]?.type === "outfit" ? input.outfit : preset.outfit;
+  const accent = ACCENT_COLORS[input.accent] ? input.accent : preset.accent;
+  return { name: safeName, presetId: preset.id, gender, outfit, accent };
+}
+
+function sanitiseStats(input) {
+  const base = defaultStats();
+  if (!input || typeof input !== "object") return base;
+  Object.keys(base).forEach((key) => {
+    if (Number.isFinite(input[key])) base[key] = input[key];
+  });
+  STAT_KEYS.forEach((key) => { base[key] = clamp(base[key], 0, 100); });
+  base.focus = clamp(base.focus, 0, 100);
+  base.level = clamp(Math.floor(base.level), 1, MAX_LEVEL);
+  base.xp = Math.max(0, Math.floor(base.xp));
+  base.statPoints = Math.max(0, Math.floor(base.statPoints));
+  base.spark = Math.max(0, Math.floor(base.spark));
+  return base;
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, Number(value) || 0));
+}
+
+function xpForNextLevel(level = state.stats.level) {
+  if (level >= MAX_LEVEL) return 0;
+  return 20 + (level - 1) * 12;
+}
+
+function collectedSparks() {
+  return Math.max(state.stats?.spark || 0, state.badges.length);
+}
+
+function examChance() {
+  const stats = state.stats || defaultStats();
+  return Math.round(clamp(
+    35
+    + stats.knowledge * 0.6
+    + stats.rhetoric * 0.4
+    + stats.empathy * 0.2
+    + stats.integrity * 0.3
+    + collectedSparks() * 1.5,
+    0,
+    95
+  ));
+}
+
+function awardStats(reward = {}) {
+  state.stats = sanitiseStats(state.stats);
+  STAT_KEYS.forEach((key) => {
+    if (Number.isFinite(reward[key])) {
+      state.stats[key] = clamp(state.stats[key] + reward[key], 0, 100);
+    }
+  });
+  if (Number.isFinite(reward.focus)) {
+    state.stats.focus = clamp(state.stats.focus + reward.focus, 0, 100);
+  }
+  if (Number.isFinite(reward.spark)) {
+    state.stats.spark = Math.max(0, state.stats.spark + reward.spark);
+  }
+  if (Number.isFinite(reward.xp) && state.stats.level < MAX_LEVEL) {
+    state.stats.xp += Math.max(0, reward.xp);
+    while (state.stats.level < MAX_LEVEL && state.stats.xp >= xpForNextLevel(state.stats.level)) {
+      state.stats.xp -= xpForNextLevel(state.stats.level);
+      state.stats.level += 1;
+      state.stats.statPoints += 1;
+    }
+    if (state.stats.level >= MAX_LEVEL) state.stats.xp = 0;
+  }
+}
+
+function statRewardForRegion(locationId) {
+  const rewards = {
+    village: { empathy: 1, integrity: 1, xp: 10 },
+    modernBritain: { integrity: 2, empathy: 1, xp: 12 },
+    rightsLaw: { integrity: 2, empathy: 1, xp: 12 },
+    democracy: { rhetoric: 2, integrity: 1, xp: 12 },
+    participation: { empathy: 2, rhetoric: 1, xp: 12 },
+    actionWorkshop: { rhetoric: 2, knowledge: 1, xp: 12 },
+    examHall: { knowledge: 2, integrity: 1, xp: 14 },
+    townHallInterior: { empathy: 1, integrity: 1, xp: 6 },
+    libraryInterior: { knowledge: 1, integrity: 1, xp: 6 },
+    courtInterior: { integrity: 2, xp: 6 },
+    parkInterior: { rhetoric: 1, empathy: 1, xp: 6 }
+  };
+  return rewards[locationId] || { knowledge: 1, xp: 6 };
+}
+
+function allocateStat(stat) {
+  if (!STAT_KEYS.includes(stat) || state.stats.statPoints <= 0 || state.stats[stat] >= 100) return;
+  state.stats[stat] = clamp(state.stats[stat] + 1, 0, 100);
+  state.stats.statPoints -= 1;
+  if (stat === "knowledge") state.knowledge = Math.max(state.knowledge, state.stats.knowledge);
+  state.journal = `${STAT_LABELS[stat]} increased. Exam Readiness is now ${examChance()}%.`;
+  updateHud();
+  saveGame();
+}
 
 const state = {
   knowledge: 0,
-  coins: 12,
-  inventory: ["revisionTea"],
+  coins: 30,
+  inventory: defaultStarterInventory(),
   equipped: { outfit: "schoolJumper", tool: null },
   badges: [],
   completed: new Set(),
   completedQuests: new Set(),
   completedStudyStations: new Set(),
   examPracticeCompleted: new Set(),
+  achievements: new Set(),
   currentLocation: "village",
   unlockedLocations: new Set(["village"]),
   pendingGate: null,
+  lastDoorReturn: null,
   activeQuest: null,
   quest: "Talk to the Mayor outside Town Hall.",
   journal: "Earn items by helping villagers.",
+  profile: defaultProfile(),
+  stats: defaultStats(),
+  saveVersion: SAVE_VERSION,
   player: { x: 144, y: 404, w: 22, h: 32, dir: "down", step: 0 }
 };
 
@@ -64,6 +249,7 @@ const JACKET_COLORS = ["#8f4f44", "#466d9f", "#4f7b55", "#b98231", "#665a7d", "#
 
 function serializeGame() {
   return {
+    saveVersion: SAVE_VERSION,
     knowledge: state.knowledge,
     coins: state.coins,
     inventory: state.inventory,
@@ -73,18 +259,54 @@ function serializeGame() {
     completedQuests: [...state.completedQuests],
     completedStudyStations: [...state.completedStudyStations],
     examPracticeCompleted: [...state.examPracticeCompleted],
+    achievements: [...state.achievements],
     currentLocation: state.currentLocation,
     unlockedLocations: [...state.unlockedLocations],
     pendingGate: state.pendingGate,
+    lastDoorReturn: state.lastDoorReturn,
     activeQuest: state.activeQuest,
     quest: state.quest,
     journal: state.journal,
+    profile: state.profile,
+    stats: state.stats,
     player: {
       x: state.player.x,
       y: state.player.y,
       dir: state.player.dir
     }
   };
+}
+
+function migrateSave(raw) {
+  const data = raw && typeof raw === "object" ? { ...raw } : {};
+  if (!Number.isFinite(data.saveVersion) || data.saveVersion < 2) {
+    data.profile = sanitiseProfile(data.profile);
+    data.stats = sanitiseStats(data.stats);
+    if (!Array.isArray(data.inventory) || !data.inventory.length) {
+      data.inventory = defaultStarterInventory();
+    } else if (!data.inventory.includes("citizenScroll")) {
+      data.inventory = [...data.inventory, "citizenScroll"];
+    }
+    data.saveVersion = 2;
+  }
+  if (data.saveVersion < 3) {
+    data.achievements = Array.isArray(data.achievements) ? data.achievements : [];
+    if (Array.isArray(data.inventory)) {
+      defaultStarterInventory().forEach((id) => {
+        if (!data.inventory.includes(id)) data.inventory.push(id);
+      });
+    }
+    data.saveVersion = 3;
+  }
+  return data;
+}
+
+function hasSavedGame() {
+  try {
+    return Boolean(localStorage.getItem(SAVE_KEY));
+  } catch (error) {
+    return false;
+  }
 }
 
 function saveGame() {
@@ -100,21 +322,39 @@ function loadGame() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
-    const saved = JSON.parse(raw);
+    const saved = migrateSave(JSON.parse(raw));
+    state.saveVersion = Number(saved.saveVersion) || SAVE_VERSION;
+    state.profile = sanitiseProfile(saved.profile);
+    state.stats = sanitiseStats(saved.stats);
+    state.equipped = state.equipped || { outfit: "schoolJumper", tool: null };
+    state.equipped.outfit = ITEMS[state.profile.outfit]?.type === "outfit" ? state.profile.outfit : "schoolJumper";
     state.knowledge = Number(saved.knowledge) || 0;
+    state.stats.knowledge = Math.max(state.stats.knowledge, state.knowledge);
     state.coins = Number(saved.coins) || 0;
     state.inventory = Array.isArray(saved.inventory) ? saved.inventory.filter((id) => ITEMS[id]) : [];
     state.equipped = {
       outfit: ITEMS[saved.equipped?.outfit] ? saved.equipped.outfit : "schoolJumper",
       tool: ITEMS[saved.equipped?.tool] ? saved.equipped.tool : null
     };
+    ensureEquipmentOwned();
     state.badges = Array.isArray(saved.badges) ? saved.badges : [];
     state.completed = new Set(Array.isArray(saved.completed) ? saved.completed : []);
     state.completedQuests = new Set(Array.isArray(saved.completedQuests) ? saved.completedQuests : []);
     state.completedStudyStations = new Set(Array.isArray(saved.completedStudyStations) ? saved.completedStudyStations : []);
     state.examPracticeCompleted = new Set(Array.isArray(saved.examPracticeCompleted) ? saved.examPracticeCompleted : []);
+    state.achievements = new Set(Array.isArray(saved.achievements) ? saved.achievements.filter((id) => ACHIEVEMENTS.some((achievement) => achievement.id === id)) : []);
     state.unlockedLocations = new Set(Array.isArray(saved.unlockedLocations) ? saved.unlockedLocations : ["village"]);
     state.pendingGate = saved.pendingGate || null;
+    state.lastDoorReturn = saved.lastDoorReturn && WORLD_LAYOUTS[saved.lastDoorReturn.from]
+      ? {
+        from: saved.lastDoorReturn.from,
+        label: saved.lastDoorReturn.label,
+        returnSpawn: {
+          x: Number(saved.lastDoorReturn.returnSpawn?.x) || 144,
+          y: Number(saved.lastDoorReturn.returnSpawn?.y) || 404
+        }
+      }
+      : null;
     state.activeQuest = saved.activeQuest && QUESTS[saved.activeQuest.id] ? saved.activeQuest : null;
     state.quest = saved.quest || "Continue your citizenship journey.";
     state.journal = saved.journal || "Progress loaded.";
@@ -141,22 +381,28 @@ function loadGame() {
   }
 }
 
-function resetGame() {
+function resetGame(options = {}) {
   localStorage.removeItem(SAVE_KEY);
+  const profile = sanitiseProfile(options.profile || state.profile);
+  state.profile = profile;
+  state.stats = defaultStats();
+  state.saveVersion = SAVE_VERSION;
   state.knowledge = 0;
-  state.coins = 12;
-  state.inventory = ["revisionTea"];
-  state.equipped = { outfit: "schoolJumper", tool: null };
+  state.coins = 30;
+  state.inventory = [...new Set([...defaultStarterInventory(), profile.outfit])];
+  state.equipped = { outfit: profile.outfit, tool: null };
   state.badges = [];
   state.completed = new Set();
   state.completedQuests = new Set();
   state.completedStudyStations = new Set();
   state.examPracticeCompleted = new Set();
+  state.achievements = new Set();
   state.unlockedLocations = new Set(["village"]);
   state.activeQuest = null;
   state.pendingGate = null;
+  state.lastDoorReturn = null;
   state.quest = "Citizenship Village: complete all regional quests.";
-  state.journal = "New game started.";
+  state.journal = `Welcome, ${profile.name}. The Citizen Scroll glows in your pack.`;
   setLocation("village");
   saveGame();
 }
@@ -213,6 +459,7 @@ const ITEMS = {
     type: "consumable",
     icon: "RT",
     value: 8,
+    color: "#8fcf9b",
     description: "Use for +5 knowledge."
   },
   civicGem: {
@@ -220,7 +467,32 @@ const ITEMS = {
     type: "treasure",
     icon: "CG",
     value: 30,
+    color: "#67d6c7",
     description: "A valuable reward from an active citizenship project."
+  },
+  schoolBackpack: {
+    name: "School Backpack",
+    type: "quest",
+    icon: "BP",
+    value: 0,
+    color: "#9a6a3a",
+    description: "A sturdy bag for carrying unequipped items."
+  },
+  notebook: {
+    name: "Notebook",
+    type: "quest",
+    icon: "NB",
+    value: 0,
+    color: "#d8c77a",
+    description: "A place for progress notes, clues, and future planning."
+  },
+  citizenScroll: {
+    name: "Citizen Scroll",
+    type: "quest",
+    icon: "CS",
+    value: 0,
+    color: "#f2c14e",
+    description: "A starter scroll. It hints at lost sparks of participation across the valley."
   }
 };
 
@@ -556,12 +828,93 @@ const EXAM_PRACTICE_ROOMS = [
   }
 ];
 
-const BUILDING_DOORS = [
-  { id: "townHallDoor", from: "village", target: "townHallInterior", label: "Town Hall", x: 130, y: 160, returnSpawn: { x: 134, y: 210 } },
-  { id: "libraryDoor", from: "village", target: "libraryInterior", label: "Library", x: 652, y: 160, returnSpawn: { x: 650, y: 210 } },
-  { id: "courtDoor", from: "village", target: "courtInterior", label: "Court", x: 452, y: 474, returnSpawn: { x: 454, y: 520 } },
-  { id: "parkDoor", from: "village", target: "parkInterior", label: "Park Hub", x: 774, y: 494, returnSpawn: { x: 774, y: 540 } }
-];
+const BUILDING_LABELS = {
+  village: ["Town Hall", "Library", "Court", "Park"],
+  modernBritain: ["City Hall", "Printworks", "Museum", "Garden"],
+  rightsLaw: ["Rights Aid", "Archive", "Court", "Police"],
+  democracy: ["Parliament", "Party Hall", "Election", "Devolve"],
+  participation: ["Petitions", "Signal Hub", "Union Hall", "Volunteer"],
+  actionWorkshop: ["Research", "Survey Lab", "Planning", "Impact"],
+  examHall: ["Identify", "Describe", "Explain", "Evaluate", "Sources"]
+};
+
+const BUILDING_DOOR_TARGETS = {
+  village: ["townHallInterior", "libraryInterior", "courtInterior", "parkInterior"],
+  modernBritain: ["townHallInterior", "libraryInterior", "libraryInterior", "parkInterior"],
+  rightsLaw: ["courtInterior", "libraryInterior", "courtInterior", "courtInterior"],
+  democracy: ["townHallInterior", "townHallInterior", "townHallInterior", "townHallInterior"],
+  participation: ["parkInterior", "parkInterior", "parkInterior", "parkInterior"],
+  actionWorkshop: ["libraryInterior", "libraryInterior", "parkInterior", "parkInterior"]
+};
+
+const BUILDING_DOOR_EXAM_ROOMS = {
+  examHall: ["identify", "describe", "explain", "evaluate", "sourceUsefulness"]
+};
+
+const BUILDING_DOOR_SIDE_OVERRIDES = {
+  villageDoor3: "left",
+  modernBritainDoor3: "left",
+  rightsLawDoor3: "left",
+  democracyDoor3: "right",
+  participationDoor2: "right",
+  participationDoor3: "right",
+  actionWorkshopDoor3: "left"
+};
+
+function placeBuildingDoor(building, side = "bottom") {
+  if (side === "left") {
+    return {
+      x: building.x - 8,
+      y: building.y + Math.round(building.h / 2) - 12,
+      returnSpawn: {
+        x: building.x - 34,
+        y: building.y + Math.round(building.h / 2) - 16
+      }
+    };
+  }
+  if (side === "right") {
+    return {
+      x: building.x + building.w - 16,
+      y: building.y + Math.round(building.h / 2) - 12,
+      returnSpawn: {
+        x: building.x + building.w + 10,
+        y: building.y + Math.round(building.h / 2) - 16
+      }
+    };
+  }
+  return {
+    x: Math.round(building.x + building.w / 2 - 12),
+    y: building.y + building.h - 28,
+    returnSpawn: {
+      x: Math.round(building.x + building.w / 2 - 8),
+      y: building.y + building.h + 22
+    }
+  };
+}
+
+function makeBuildingDoor(locationId, building, index) {
+  const id = `${locationId}Door${index}`;
+  const target = BUILDING_DOOR_TARGETS[locationId]?.[index];
+  const examRoomId = BUILDING_DOOR_EXAM_ROOMS[locationId]?.[index] || null;
+  const label = BUILDING_LABELS[locationId]?.[index];
+  if ((!target && !examRoomId) || !label) return null;
+  const placement = placeBuildingDoor(building, BUILDING_DOOR_SIDE_OVERRIDES[id] || "bottom");
+  return {
+    id,
+    from: locationId,
+    target,
+    examRoomId,
+    label,
+    x: placement.x,
+    y: placement.y,
+    returnSpawn: placement.returnSpawn
+  };
+}
+
+const BUILDING_DOORS = Object.keys(BUILDING_LABELS).flatMap((locationId) => {
+  const buildings = WORLD_LAYOUTS[locationId]?.buildings || [];
+  return buildings.map((building, index) => makeBuildingDoor(locationId, building, index)).filter(Boolean);
+});
 
 const INTERIOR_EXITS = {
   townHallInterior: { x: 454, y: 530, target: "village" },
@@ -986,8 +1339,8 @@ const npcs = [
   {
     id: "mayor",
     name: "Mayor Ada",
-    x: 132,
-    y: 218,
+    x: 168,
+    y: 242,
     color: "#d88c5a",
     badge: "Democracy Badge",
     reward: { item: "councilCloak", coins: 10 },
@@ -1034,8 +1387,8 @@ const npcs = [
   {
     id: "sam",
     name: "Sam the Librarian",
-    x: 664,
-    y: 220,
+    x: 688,
+    y: 244,
     color: "#5da9e9",
     badge: "Rights Badge",
     reward: { item: "libertyCoat", coins: 16 },
@@ -1400,9 +1753,9 @@ const locationBlueprints = [
     travel: "Underground to Rights & Law Quarter",
     visual: { sky: "#5f9aa8", water: "#276c83", road: "#b2aba2", roofA: "#8f4f44", roofB: "#3f6f7f", roofC: "#6f5c8f", roofD: "#4f7b55" },
     npcs: [
-      ["editorVale", "Editor Vale", 132, 218, "#e36b5d", "Free press, public interest, and media influence."],
+      ["editorVale", "Editor Vale", 168, 242, "#e36b5d", "Free press, public interest, and media influence."],
       ["historianIona", "Historian Iona", 372, 292, "#b089d6", "Identity, nations of the UK, and shared values."],
-      ["aidMina", "Aid Worker Mina", 664, 220, "#6fbf73", "NGOs, humanitarian crises, and global responsibility."],
+      ["aidMina", "Aid Worker Mina", 640, 232, "#6fbf73", "NGOs, humanitarian crises, and global responsibility."],
       ["dataOmar", "Data Clerk Omar", 356, 430, "#5da9e9", "Migration, statistics, and community change."],
       ["elderGrace", "Community Elder Grace", 704, 384, "#f2c14e", "Diversity, respect, and community cohesion."]
     ],
@@ -1432,7 +1785,7 @@ const locationBlueprints = [
       ["sergeantBlake", "Sergeant Blake", 372, 292, "#31405a", "Police powers, safeguards, and accountability."],
       ["mediatorChen", "Mediator Chen", 612, 220, "#d88c5a", "Civil disputes and legal solutions."],
       ["youthEllis", "Youth Worker Ellis", 356, 430, "#6fbf73", "Youth justice and rehabilitation."],
-      ["justiceRowan2", "Justice Rowan", 628, 384, "#b089d6", "Courts, rule of law, and fair trials."]
+      ["justiceRowan2", "Justice Rowan", 604, 360, "#b089d6", "Courts, rule of law, and fair trials."]
     ],
     topics: [
       ["ruleLaw", "Rule of Law Seal", "justiceRowan2", "advocateFarah", "Ask Farah why power must be limited by law.", "The rule of law means everyone is subject to law, including people in power, and laws should be applied fairly.", "Which statement best fits rule of law?", ["No one is above the law", "Power has no limits", "Only citizens obey law"]],
@@ -1456,9 +1809,9 @@ const locationBlueprints = [
     travel: "Campaign Ferry to Participation Harbour",
     visual: { sky: "#7b8653", water: "#315f78", road: "#b9b18f", roofA: "#8f4f44", roofB: "#b98231", roofC: "#4b6f88", roofD: "#665a7d" },
     npcs: [
-      ["speakerLark", "Speaker Lark", 132, 218, "#d8b36a", "Parliament and scrutiny."],
+      ["speakerLark", "Speaker Lark", 108, 242, "#d8b36a", "Parliament and scrutiny."],
       ["mpRivers", "MP Rivers", 372, 292, "#5da9e9", "Representation and constituencies."],
-      ["managerSol", "Campaign Manager Sol", 664, 220, "#e36b5d", "Parties and manifestos."],
+      ["managerSol", "Campaign Manager Sol", 640, 244, "#e36b5d", "Parties and manifestos."],
       ["officerJune", "Returning Officer June", 356, 430, "#6fbf73", "Elections and voting systems."],
       ["heraldEwan", "Devolution Herald Ewan", 704, 384, "#b089d6", "Devolution and levels of government."]
     ],
@@ -1487,7 +1840,7 @@ const locationBlueprints = [
       ["campaignPriya2", "Priya the Campaigner", 164, 250, "#6fbf73", "Campaign strategy and public voice."],
       ["unionMorgan", "Union Rep Morgan", 372, 292, "#d88c5a", "Trade unions and collective action."],
       ["charityAmina", "Charity Lead Amina", 664, 220, "#5da9e9", "Volunteering and charities."],
-      ["lobbyistPax", "Lobbyist Pax", 356, 430, "#b089d6", "Lobbying and pressure groups."],
+      ["lobbyistPax", "Lobbyist Pax", 356, 406, "#b089d6", "Lobbying and pressure groups."],
       ["moderatorRae", "Digital Moderator Rae", 704, 384, "#f2c14e", "Social media and online participation."]
     ],
     topics: [
@@ -1665,6 +2018,10 @@ function buildingDoorByTarget(locationId) {
   return BUILDING_DOORS.find((door) => door.target === locationId) || null;
 }
 
+function currentBuildingDoors(locationId = state.currentLocation) {
+  return BUILDING_DOORS.filter((door) => door.from === locationId);
+}
+
 function currentLayout() {
   return WORLD_LAYOUTS[state.currentLocation] || WORLD_LAYOUTS.village;
 }
@@ -1705,6 +2062,7 @@ function setLocation(locationId, options = {}) {
     state.quest = locationOrder.includes(locationId) ? `${location.name}: complete all regional quests.` : `${location.name}: revise the study stations inside.`;
     state.journal = `Arrived at ${location.name}.`;
   }
+  if (!isInteriorLocation(locationId)) state.lastDoorReturn = null;
   if (devLocationSelect && locationOrder.includes(locationId)) devLocationSelect.value = locationId;
   updateHud();
   if (!options.skipSave) saveGame();
@@ -1762,6 +2120,7 @@ const props = [
 
 function addKnowledge(amount) {
   state.knowledge = Math.min(100, state.knowledge + amount);
+  state.stats.knowledge = clamp((state.stats?.knowledge || 0) + amount, 0, 100);
   updateHud();
   saveGame();
 }
@@ -1774,10 +2133,29 @@ function addCoins(amount) {
 
 function addItem(id) {
   if (ITEMS[id]) {
+    const item = ITEMS[id];
+    if (["outfit", "tool", "quest"].includes(item.type) && state.inventory.includes(id)) {
+      updateHud();
+      saveGame();
+      return;
+    }
     state.inventory.push(id);
   }
   updateHud();
   saveGame();
+}
+
+function ensureEquipmentOwned() {
+  [state.equipped.outfit, state.equipped.tool].forEach((id) => {
+    if (id && ITEMS[id] && !state.inventory.includes(id)) {
+      state.inventory.push(id);
+    }
+  });
+  defaultStarterInventory().forEach((id) => {
+    if (ITEMS[id] && !state.inventory.includes(id)) {
+      state.inventory.push(id);
+    }
+  });
 }
 
 function removeItem(id) {
@@ -1795,7 +2173,29 @@ function addBadge(badge) {
   saveGame();
 }
 
+function unlockAchievement(id, condition) {
+  if (condition && ACHIEVEMENTS.some((achievement) => achievement.id === id)) {
+    state.achievements.add(id);
+  }
+}
+
+function syncAchievements() {
+  unlockAchievement("packedBag", defaultStarterInventory().every((id) => state.inventory.includes(id)));
+  unlockAchievement("firstStep", state.completedQuests.size >= 1);
+  unlockAchievement("questTrio", state.completedQuests.size >= 3);
+  unlockAchievement("regionalRegular", state.unlockedLocations.size >= 3);
+  unlockAchievement("buildingReader", state.completedStudyStations.size >= 1);
+  unlockAchievement("studyScholar", state.completedStudyStations.size >= 10);
+  unlockAchievement("practicePlanner", state.examPracticeCompleted.size >= 1);
+  unlockAchievement("badgeCollector", state.badges.length >= 1);
+  unlockAchievement("toolBearer", Boolean(state.equipped.tool));
+  unlockAchievement("wellPrepared", state.knowledge >= 25);
+  unlockAchievement("civicSaver", state.coins >= 50);
+  unlockAchievement("fullPractice", state.examPracticeCompleted.size >= EXAM_PRACTICE_ROOMS.length);
+}
+
 function updateHud() {
+  syncAchievements();
   regionText.textContent = currentLocation().name;
   coinText.textContent = state.coins;
   knowledgeText.textContent = `${state.knowledge}/100`;
@@ -1808,7 +2208,22 @@ function updateHud() {
     ? state.badges.map((badge) => `<li>${badge}</li>`).join("")
     : "<li>None yet</li>";
   inventoryList.innerHTML = renderInventory();
+  renderInventoryPanel();
   if (reviewList) reviewList.innerHTML = renderReviewList();
+  renderProgressPanel();
+  renderCharacterPanel();
+  const nameSlot = document.getElementById("playerNameText");
+  if (nameSlot) nameSlot.textContent = state.profile?.name || "Citizen";
+  const levelSlot = document.getElementById("playerLevelText");
+  if (levelSlot) levelSlot.textContent = `Lvl ${state.stats?.level ?? 1}${state.stats?.statPoints ? ` · ${state.stats.statPoints} pts` : ""}`;
+  if (focusText) focusText.textContent = `${Math.round(state.stats.focus)}/100`;
+  if (focusBar) focusBar.style.width = `${clamp(state.stats.focus, 0, 100)}%`;
+  const nextXp = xpForNextLevel();
+  if (xpText) xpText.textContent = state.stats.level >= MAX_LEVEL ? "MAX" : `${state.stats.xp}/${nextXp}`;
+  if (xpBar) xpBar.style.width = state.stats.level >= MAX_LEVEL ? "100%" : `${nextXp ? clamp((state.stats.xp / nextXp) * 100, 0, 100) : 0}%`;
+  const readiness = examChance();
+  if (examReadinessText) examReadinessText.textContent = `${readiness}%`;
+  if (examReadinessBar) examReadinessBar.style.width = `${readiness}%`;
 }
 
 function escapeHtml(value) {
@@ -1941,46 +2356,284 @@ function showReviewJournal(selectedEntryId = null) {
 }
 
 function renderInventory() {
-  const counts = state.inventory.reduce((summary, id) => {
+  const bagIds = backpackItemCounts();
+  const ids = Object.keys(bagIds).slice(0, 4);
+  if (!ids.length) return "<p class=\"empty\">Your backpack is empty.</p>";
+  const rows = ids.map((id) => renderItemRow(id, bagIds[id], { compact: true })).join("");
+  const more = Object.keys(bagIds).length > ids.length ? `<p class="empty">+${Object.keys(bagIds).length - ids.length} more in Backpack</p>` : "";
+  return `${rows}${more}`;
+}
+
+function backpackItemCounts() {
+  return state.inventory.reduce((summary, id) => {
+    if (!ITEMS[id] || isEquippedItem(id)) return summary;
     summary[id] = (summary[id] || 0) + 1;
     return summary;
   }, {});
-  const ids = Object.keys(counts);
-  if (!ids.length) {
-    return "<p class=\"empty\">Your bag is empty.</p>";
+}
+
+function isEquippedItem(id) {
+  return state.equipped.outfit === id || state.equipped.tool === id;
+}
+
+function itemThumb(id) {
+  const item = ITEMS[id];
+  if (!item) return "";
+  const color = item.color || item.thumbnailColor || {
+    outfit: "#466d9f",
+    tool: "#d7dde0",
+    consumable: "#8fcf9b",
+    treasure: "#67d6c7",
+    quest: "#f2c14e"
+  }[item.type] || "#d3a74d";
+  return `
+    <span class="item-icon item-thumb item-thumb-${item.type} item-art item-art-${id}" style="--item-color:${color}" aria-label="${escapeHtml(item.name)} image" role="img">
+      <span class="art art-main"></span>
+      <span class="art art-a"></span>
+      <span class="art art-b"></span>
+      <span class="art art-c"></span>
+      <span class="item-code">${escapeHtml(item.icon)}</span>
+    </span>
+  `;
+}
+
+function renderItemActions(id, item, options = {}) {
+  const actions = [];
+  if (item.type === "outfit") {
+    actions.push(`<button type="button" data-action="equip" data-item="${id}">Wear</button>`);
   }
-  return ids.map((id) => {
-    const item = ITEMS[id];
-    const count = counts[id];
-    const equipped = state.equipped.outfit === id || state.equipped.tool === id;
-    const actions = [];
-    if (["outfit", "tool"].includes(item.type)) {
-      actions.push(`<button type="button" data-action="equip" data-item="${id}">${equipped ? "Equipped" : "Equip"}</button>`);
-    }
-    if (item.type === "consumable") {
-      actions.push(`<button type="button" data-action="use" data-item="${id}">Use</button>`);
-    }
-    if (!equipped && item.value > 0) {
-      actions.push(`<button type="button" data-action="sell" data-item="${id}">Sell ${item.value}c</button>`);
-    }
+  if (item.type === "tool") {
+    actions.push(`<button type="button" data-action="equip" data-item="${id}">Hold</button>`);
+  }
+  if (item.type === "consumable") {
+    actions.push(`<button type="button" data-action="use" data-item="${id}">Use</button>`);
+  }
+  if (!options.compact && item.value > 0 && !isEquippedItem(id)) {
+    actions.push(`<button type="button" data-action="sell" data-item="${id}">Sell ${item.value}c</button>`);
+  }
+  return actions.join("");
+}
+
+function renderItemRow(id, count, options = {}) {
+  const item = ITEMS[id];
+  if (!item) return "";
+  const countText = count > 1 ? ` x${count}` : "";
+  return `
+    <div class="item-row${options.compact ? " item-row-compact" : ""}">
+      ${itemThumb(id)}
+      <div>
+        <strong>${escapeHtml(item.name)}${countText}</strong>
+        <small>${escapeHtml(item.description)}</small>
+        <div class="item-actions">${renderItemActions(id, item, options)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderEquippedSlot(slot, id) {
+  const item = id ? ITEMS[id] : null;
+  const slotLabel = slot === "outfit" ? "Outfit" : "Hand";
+  if (!item) {
     return `
-      <div class="item-row">
-        <span class="item-icon">${item.icon}</span>
-        <div>
-          <strong>${item.name}${count > 1 ? ` x${count}` : ""}</strong>
-          <small>${item.description}</small>
-          <div class="item-actions">${actions.join("")}</div>
-        </div>
+      <div class="equipment-slot">
+        <span class="item-icon item-thumb item-thumb-empty">--</span>
+        <div><strong>${slotLabel}</strong><small>Nothing equipped.</small></div>
+      </div>
+    `;
+  }
+  const unequip = slot === "tool"
+    ? `<button type="button" data-action="unequip" data-slot="${slot}">Put away</button>`
+    : "";
+  return `
+    <div class="equipment-slot">
+      ${itemThumb(id)}
+      <div>
+        <strong>${slotLabel}: ${escapeHtml(item.name)}</strong>
+        <small>${escapeHtml(item.description)}</small>
+        <div class="item-actions">${unequip}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderInventoryPanel() {
+  if (!inventoryPanelBody) return;
+  const bagIds = backpackItemCounts();
+  const bagContent = Object.keys(bagIds).length
+    ? Object.keys(bagIds).map((id) => renderItemRow(id, bagIds[id])).join("")
+    : `<p class="empty">Your backpack is empty. Equipped outfit and hand items are shown above.</p>`;
+  inventoryPanelBody.innerHTML = `
+    <section class="equipped-panel" aria-label="Equipped items">
+      ${renderEquippedSlot("outfit", state.equipped.outfit)}
+      ${renderEquippedSlot("tool", state.equipped.tool)}
+    </section>
+    <section class="backpack-panel" aria-label="Backpack items">
+      <h3>Inside the backpack</h3>
+      <div class="inventory-list inventory-list-panel">${bagContent}</div>
+    </section>
+  `;
+}
+
+function progressTabButton(id, label) {
+  return `<button type="button" class="progress-tab${currentProgressTab === id ? " is-selected" : ""}" data-progress-tab="${id}">${label}</button>`;
+}
+
+function questRegionName(questId) {
+  const locationId = getQuestLocationId(questId);
+  return locationId && WORLD[locationId] ? (WORLD[locationId].shortName || WORLD[locationId].name) : "Valley";
+}
+
+function storyProgressSummary() {
+  const totalQuests = Object.keys(QUESTS).length || 1;
+  const completedQuests = state.completedQuests.size;
+  const completedPercent = Math.round((completedQuests / totalQuests) * 100);
+  const exploredRegions = [...state.unlockedLocations].filter((id) => locationOrder.includes(id)).length;
+  const current = currentLocation();
+  let act = "Act 1: Citizenship Village";
+  if (exploredRegions >= 6 || state.examPracticeCompleted.size > 0) act = "Act 7: Exam Hall Castle";
+  else if (exploredRegions >= 5) act = "Act 6: Action Workshop";
+  else if (exploredRegions >= 4) act = "Act 5: Participation Harbour";
+  else if (exploredRegions >= 3) act = "Act 4: Democracy Capital";
+  else if (exploredRegions >= 2) act = "Act 2-3: Regional Investigation";
+  return { totalQuests, completedQuests, completedPercent, exploredRegions, current, act };
+}
+
+function renderProgressStory() {
+  const summary = storyProgressSummary();
+  return `
+    <section class="progress-section">
+      <h3>${escapeHtml(summary.act)}</h3>
+      <div class="progress-stat-grid">
+        <div><strong>${summary.completedQuests}/${summary.totalQuests}</strong><small>Quests complete</small></div>
+        <div><strong>${summary.exploredRegions}/${locationOrder.length}</strong><small>Regions reached</small></div>
+        <div><strong>${state.achievements.size}/${ACHIEVEMENTS.length}</strong><small>Achievements</small></div>
+      </div>
+      <div class="progress-bar"><span style="width:${Math.min(100, summary.completedPercent)}%"></span></div>
+      <p>${escapeHtml(state.journal)}</p>
+      <p><strong>Current objective:</strong> ${escapeHtml(state.quest)}</p>
+      <p><strong>Current region:</strong> ${escapeHtml(summary.current.name)}</p>
+    </section>
+  `;
+}
+
+function renderProgressQuests() {
+  const active = state.activeQuest ? QUESTS[state.activeQuest.id] : null;
+  const activeHtml = active
+    ? `<div class="progress-card is-active"><strong>Active: ${escapeHtml(active.title)}</strong><small>${escapeHtml(questRegionName(state.activeQuest.id))} - ${escapeHtml(state.activeQuest.stage)}</small><p>${escapeHtml(active.brief)}</p></div>`
+    : `<div class="progress-card"><strong>No active quest</strong><small>Talk to NPCs to accept one.</small></div>`;
+  const regions = locationOrder.map((locationId) => {
+    const location = WORLD[locationId];
+    const quests = location.questIds || [];
+    if (!quests.length) return "";
+    const done = quests.filter((id) => state.completedQuests.has(id)).length;
+    const rows = quests.map((id) => {
+      const quest = QUESTS[id];
+      const status = state.completedQuests.has(id) ? "Done" : state.activeQuest?.id === id ? "Active" : "Open";
+      return `<li><span class="status-${status.toLowerCase()}">${status}</span> ${escapeHtml(quest.title)}</li>`;
+    }).join("");
+    return `<div class="progress-card"><strong>${escapeHtml(location.shortName || location.name)} (${done}/${quests.length})</strong><ul class="progress-list">${rows}</ul></div>`;
+  }).join("");
+  return `<section class="progress-section">${activeHtml}<div class="progress-card-grid">${regions}</div></section>`;
+}
+
+function renderProgressBuildings() {
+  const entries = studyJournalEntries();
+  const cards = entries.map((entry) => {
+    const completeList = entry.completedStations.length
+      ? entry.completedStations.map((station) => `<li>${escapeHtml(station.label)}</li>`).join("")
+      : `<li>No notes yet</li>`;
+    const remaining = entry.remainingStations.length
+      ? entry.remainingStations.map((station) => station.label).join(", ")
+      : "All stations complete";
+    const percent = entry.total ? Math.round((entry.done / entry.total) * 100) : 0;
+    return `
+      <div class="progress-card">
+        <strong>${escapeHtml(entry.title)}</strong>
+        <small>${entry.done}/${entry.total} complete</small>
+        <div class="progress-bar mini"><span style="width:${percent}%"></span></div>
+        <ul class="progress-list">${completeList}</ul>
+        <small>Next: ${escapeHtml(remaining)}</small>
       </div>
     `;
   }).join("");
+  return `<section class="progress-section"><div class="progress-card-grid">${cards}</div></section>`;
+}
+
+function renderProgressAchievements() {
+  const cards = ACHIEVEMENTS.map((achievement) => {
+    const unlocked = state.achievements.has(achievement.id);
+    return `
+      <div class="achievement-card${unlocked ? " is-unlocked" : ""}">
+        <span class="achievement-icon">${unlocked ? "✓" : "?"}</span>
+        <div><strong>${escapeHtml(achievement.name)}</strong><small>${escapeHtml(achievement.description)}</small></div>
+      </div>
+    `;
+  }).join("");
+  return `<section class="progress-section"><div class="achievement-grid">${cards}</div></section>`;
+}
+
+function renderProgressPanel() {
+  if (!progressPanelBody) return;
+  const content = currentProgressTab === "quests"
+    ? renderProgressQuests()
+    : currentProgressTab === "buildings"
+      ? renderProgressBuildings()
+      : currentProgressTab === "achievements"
+        ? renderProgressAchievements()
+        : renderProgressStory();
+  progressPanelBody.innerHTML = `
+    <nav class="progress-tabs" aria-label="Progress sections">
+      ${progressTabButton("story", "Story")}
+      ${progressTabButton("quests", "Quests")}
+      ${progressTabButton("buildings", "Buildings")}
+      ${progressTabButton("achievements", "Achievements")}
+    </nav>
+    ${content}
+  `;
+}
+
+function renderCharacterPanel() {
+  if (!characterPanelBody) return;
+  const nextXp = xpForNextLevel();
+  const statCards = STAT_KEYS.map((key) => {
+    const value = Math.round(state.stats[key]);
+    const disabled = state.stats.statPoints <= 0 || value >= 100 ? " disabled" : "";
+    return `
+      <div class="character-stat-card">
+        <div class="stat-card-header"><strong>${STAT_LABELS[key]}</strong><span>${value}/100</span></div>
+        <div class="progress-bar mini"><span style="width:${value}%"></span></div>
+        <button type="button" data-character-stat="${key}"${disabled}>+1</button>
+      </div>
+    `;
+  }).join("");
+  characterPanelBody.innerHTML = `
+    <section class="character-summary">
+      <div><strong>Level ${state.stats.level}</strong><small>${state.stats.level >= MAX_LEVEL ? "Maximum level" : `${state.stats.xp}/${nextXp} XP to next level`}</small></div>
+      <div><strong>${state.stats.statPoints}</strong><small>Unspent points</small></div>
+      <div><strong>${examChance()}%</strong><small>Exam Readiness</small></div>
+    </section>
+    <section class="character-stat-grid">${statCards}</section>
+    <section class="character-formula">
+      <strong>Readiness formula</strong>
+      <p>35 + Knowledge × 0.6 + Rhetoric × 0.4 + Empathy × 0.2 + Integrity × 0.3 + Sparks × 1.5, capped at 95%.</p>
+      <p>Sparks: ${collectedSparks()} · Focus: ${Math.round(state.stats.focus)}/100</p>
+    </section>
+  `;
 }
 
 function equipItem(id) {
   const item = ITEMS[id];
   if (!item || !state.inventory.includes(id) || !["outfit", "tool"].includes(item.type)) return;
   state.equipped[item.type] = id;
-  state.journal = `${item.name} equipped.`;
+  state.journal = item.type === "tool" ? `${item.name} is now in hand.` : `${item.name} equipped.`;
+  updateHud();
+  saveGame();
+}
+
+function unequipItem(slot) {
+  if (slot !== "tool") return;
+  state.equipped.tool = null;
+  state.journal = "Your hands are free.";
   updateHud();
   saveGame();
 }
@@ -1990,7 +2643,8 @@ function useItem(id) {
   if (!item || item.type !== "consumable" || !state.inventory.includes(id)) return;
   removeItem(id);
   addKnowledge(5);
-  state.journal = `${item.name} used. Knowledge +5.`;
+  awardStats({ focus: 15 });
+  state.journal = `${item.name} used. Knowledge +5, Focus +15.`;
   updateHud();
   saveGame();
 }
@@ -2060,12 +2714,10 @@ function rectsNear(a, b, distance = 42) {
 }
 
 function findInteractable() {
+  const door = currentBuildingDoors().find((item) => rectsNear(state.player, { ...item, w: 24, h: 24 }, 48));
+  if (door) return { type: "buildingDoor", item: door };
   const npc = npcs.find((person) => rectsNear(state.player, person));
   if (npc) return { type: "npc", item: npc };
-  if (state.currentLocation === "village") {
-    const door = BUILDING_DOORS.find((item) => rectsNear(state.player, { ...item, w: 24, h: 24 }, 48));
-    if (door) return { type: "buildingDoor", item: door };
-  }
   if (isInteriorLocation()) {
     const station = currentStudyStations().find((item) => rectsNear(state.player, { ...item, w: 28, h: 20 }, 64));
     if (station) return { type: "studyStation", item: station };
@@ -2332,6 +2984,7 @@ function completeStudyStation(stationId) {
   }
   state.completedStudyStations.add(key);
   addKnowledge(station.reward || 3);
+  awardStats({ ...statRewardForRegion(state.currentLocation), focus: -2 });
   state.journal = `${currentLocation().name}: ${station.label} logged. ${station.success}`;
   const location = currentLocation();
   const allDone = currentStudyStations().every((item) => state.completedStudyStations.has(studyStationKey(state.currentLocation, item.id)));
@@ -2346,6 +2999,20 @@ function completeStudyStation(stationId) {
 }
 
 function enterBuildingDoor(door) {
+  if (door.examRoomId) {
+    const room = EXAM_PRACTICE_ROOMS.find((item) => item.id === door.examRoomId);
+    if (!room) return;
+    state.journal = `${door.label} practice opened from the building entrance.`;
+    updateHud();
+    saveGame();
+    showExamPracticeRoom(room);
+    return;
+  }
+  state.lastDoorReturn = {
+    from: door.from,
+    label: door.label,
+    returnSpawn: { ...door.returnSpawn }
+  };
   setLocation(door.target, { preserveText: true });
   state.journal = `Entered ${door.label}. Explore the study stations and press E at the exit to leave.`;
   updateHud();
@@ -2353,12 +3020,12 @@ function enterBuildingDoor(door) {
 }
 
 function leaveInterior() {
-  const door = buildingDoorByTarget(state.currentLocation);
+  const door = state.lastDoorReturn || buildingDoorByTarget(state.currentLocation);
   if (!door) return;
   setLocation(door.from, { preserveText: true });
   state.player.x = door.returnSpawn.x;
   state.player.y = door.returnSpawn.y;
-  state.journal = `Left ${door.label}. You are back in Citizenship Village.`;
+  state.journal = `Left ${door.label}. You are back in ${WORLD[door.from].name}.`;
   updateHud();
   saveGame();
 }
@@ -2368,6 +3035,7 @@ function completeExamPractice(roomId) {
   if (!room || state.examPracticeCompleted.has(room.id)) return;
   state.examPracticeCompleted.add(room.id);
   addKnowledge(4);
+  awardStats({ integrity: 1, xp: 8, focus: -4 });
   state.journal = `${room.label} practice complete. Knowledge +4.`;
   if (state.examPracticeCompleted.size === EXAM_PRACTICE_ROOMS.length && !state.badges.includes("Exam Practice Badge")) {
     addBadge("Exam Practice Badge");
@@ -2470,11 +3138,14 @@ function answerQuest(index) {
 }
 
 function completeQuest(quest) {
+  const questId = state.activeQuest?.id;
+  const questLocationId = questId ? getQuestLocationId(questId) : state.currentLocation;
   const reward = quest.reward;
   addCoins(reward.coins);
   (reward.items || (reward.item ? [reward.item] : [])).forEach(addItem);
   addKnowledge(7);
-  state.completedQuests.add(state.activeQuest.id);
+  awardStats({ ...statRewardForRegion(questLocationId), focus: -3, spark: 1 });
+  if (questId) state.completedQuests.add(questId);
   state.activeQuest = null;
   const location = currentLocation();
   const unfinished = location.questIds.filter((id) => !state.completedQuests.has(id)).length;
@@ -2940,6 +3611,23 @@ function drawPlayer() {
   } else {
     drawHeroFront(p, outfit, bob, frame);
   }
+  drawHeroProfileMarkers(p, bob);
+}
+
+function drawHeroProfileMarkers(p, bob) {
+  const profile = state.profile || defaultProfile();
+  const accent = ACCENT_COLORS[profile.accent] || ACCENT_COLORS.ember;
+  if (profile.gender === "girl") {
+    rect(p.x + 2, p.y + 3, 26, 4, "#8a3a64");
+    rect(p.x + 6, p.y + 5, 18, 4, "#c25584");
+  }
+  if (p.dir === "left") {
+    rect(p.x + 5, p.y + 22 + bob, 5, 10, accent);
+  } else if (p.dir === "right") {
+    rect(p.x + 20, p.y + 22 + bob, 5, 10, accent);
+  } else {
+    rect(p.x + 13, p.y + 22 + bob, 4, 10, accent);
+  }
 }
 
 function drawHeroSide(p, outfit, bob, frame, side) {
@@ -3058,8 +3746,7 @@ function drawSigns() {
 }
 
 function drawBuildingDoors() {
-  if (state.currentLocation !== "village") return;
-  BUILDING_DOORS.forEach((door) => {
+  currentBuildingDoors().forEach((door) => {
     rect(door.x - 4, door.y + 18, 32, 8, "rgba(0,0,0,.24)");
     rect(door.x, door.y, 24, 20, "#f2c14e");
     rect(door.x + 2, door.y + 2, 20, 16, "#4d2c2b");
@@ -3536,16 +4223,7 @@ function drawUiWorldLayer() {
 }
 
 function regionBuildingLabel(index) {
-  const labels = {
-    village: ["Town Hall", "Library", "Court", "Park"],
-    modernBritain: ["City Hall", "Printworks", "Museum", "Garden"],
-    rightsLaw: ["Rights Aid", "Archive", "Court", "Police"],
-    democracy: ["Parliament", "Party Hall", "Election", "Devolve"],
-    participation: ["Petitions", "Signal Hub", "Union Hall", "Volunteer"],
-    actionWorkshop: ["Research", "Survey Lab", "Planning", "Impact"],
-    examHall: ["Identify", "Describe", "Explain", "Evaluate", "Sources"]
-  };
-  return (labels[state.currentLocation] || labels.village)[index];
+  return (BUILDING_LABELS[state.currentLocation] || BUILDING_LABELS.village)[index];
 }
 
 function draw() {
@@ -3584,16 +4262,44 @@ function loop() {
 
 window.addEventListener("keydown", (event) => {
   const key = inputKey(event);
+  const typing = ["input", "textarea", "select"].includes(event.target?.tagName?.toLowerCase());
   if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", " "].includes(key)) {
     event.preventDefault();
   }
-  if (key === "e") interact();
-  if (key === "r") {
+  if (key === "escape" && inventoryPanel && !inventoryPanel.classList.contains("hidden")) {
+    closeInventoryPanel();
+    return;
+  }
+  if (key === "escape" && progressPanel && !progressPanel.classList.contains("hidden")) {
+    closeProgressPanel();
+    return;
+  }
+  if (key === "escape" && characterPanel && !characterPanel.classList.contains("hidden")) {
+    closeCharacterPanel();
+    return;
+  }
+  if (key === "i" && !typing) {
+    event.preventDefault();
+    toggleInventoryPanel();
+    return;
+  }
+  if (key === "p" && !typing) {
+    event.preventDefault();
+    toggleProgressPanel();
+    return;
+  }
+  if (key === "c" && !typing) {
+    event.preventDefault();
+    toggleCharacterPanel();
+    return;
+  }
+  if (key === "e" && !typing) interact();
+  if (key === "r" && !typing) {
     if (window.confirm("Start a new game and delete saved progress?")) {
       resetGame();
     }
   }
-  if (["1", "2", "3"].includes(key)) {
+  if (["1", "2", "3"].includes(key) && !typing) {
     if (state.pendingGate) {
       answerGate(Number(key) - 1);
     } else if (pendingQuestTurnIn) {
@@ -3663,13 +4369,103 @@ choicePanel.addEventListener("click", (event) => {
 });
 
 inventoryList.addEventListener("click", (event) => {
+  handleInventoryAction(event);
+});
+
+inventoryPanelBody?.addEventListener("click", (event) => {
+  handleInventoryAction(event);
+});
+
+inventoryOpenButton?.addEventListener("click", () => openInventoryPanel());
+inventoryCloseButton?.addEventListener("click", () => closeInventoryPanel());
+inventoryPanel?.addEventListener("click", (event) => {
+  if (event.target === inventoryPanel) closeInventoryPanel();
+});
+
+progressOpenButton?.addEventListener("click", () => openProgressPanel("story"));
+progressCloseButton?.addEventListener("click", () => closeProgressPanel());
+progressPanel?.addEventListener("click", (event) => {
+  if (event.target === progressPanel) {
+    closeProgressPanel();
+    return;
+  }
+  const tabButton = event.target.closest("button[data-progress-tab]");
+  if (!tabButton) return;
+  currentProgressTab = tabButton.dataset.progressTab;
+  renderProgressPanel();
+});
+
+characterOpenButton?.addEventListener("click", () => openCharacterPanel());
+characterCloseButton?.addEventListener("click", () => closeCharacterPanel());
+characterPanel?.addEventListener("click", (event) => {
+  if (event.target === characterPanel) {
+    closeCharacterPanel();
+    return;
+  }
+  const statButton = event.target.closest("button[data-character-stat]");
+  if (!statButton) return;
+  allocateStat(statButton.dataset.characterStat);
+});
+
+function handleInventoryAction(event) {
   const button = event.target.closest("button[data-action][data-item]");
-  if (!button) return;
+  const unequipButton = event.target.closest("button[data-action='unequip'][data-slot]");
+  if (!button && !unequipButton) return;
+  if (unequipButton) {
+    unequipItem(unequipButton.dataset.slot);
+    return;
+  }
   const { action, item } = button.dataset;
   if (action === "equip") equipItem(item);
   if (action === "use") useItem(item);
   if (action === "sell") sellItem(item);
-});
+}
+
+function openInventoryPanel() {
+  renderInventoryPanel();
+  inventoryPanel?.classList.remove("hidden");
+}
+
+function closeInventoryPanel() {
+  inventoryPanel?.classList.add("hidden");
+}
+
+function toggleInventoryPanel() {
+  if (!inventoryPanel) return;
+  if (inventoryPanel.classList.contains("hidden")) openInventoryPanel();
+  else closeInventoryPanel();
+}
+
+function openProgressPanel(tab = currentProgressTab) {
+  currentProgressTab = tab;
+  renderProgressPanel();
+  progressPanel?.classList.remove("hidden");
+}
+
+function closeProgressPanel() {
+  progressPanel?.classList.add("hidden");
+}
+
+function toggleProgressPanel() {
+  if (!progressPanel) return;
+  if (progressPanel.classList.contains("hidden")) openProgressPanel();
+  else closeProgressPanel();
+}
+
+function openCharacterPanel() {
+  renderCharacterPanel();
+  characterPanel?.classList.remove("hidden");
+}
+
+function closeCharacterPanel() {
+  characterPanel?.classList.add("hidden");
+}
+
+function toggleCharacterPanel() {
+  if (!characterPanel) return;
+  if (characterPanel.classList.contains("hidden")) openCharacterPanel();
+  else closeCharacterPanel();
+}
 
 reviewList?.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-review-entry]");
@@ -3706,15 +4502,199 @@ if (touchControls) {
 }
 
 resetButton.addEventListener("click", () => {
-  if (window.confirm("Start a new game and delete saved progress?")) {
-    resetGame();
-  }
+  showTitleScreen({ restart: true });
 });
 
 setupDevTravel();
-saveReady = true;
-if (!loadGame()) {
-  saveGame();
+bootstrapApp();
+
+function bootstrapApp() {
+  const titleEl = document.getElementById("titleScreen");
+  const customEl = document.getElementById("customScreen");
+  if (!titleEl || !customEl) {
+    saveReady = true;
+    if (!loadGame()) saveGame();
+    updateHud();
+    if (!gameStarted) { gameStarted = true; loop(); }
+    return;
+  }
+  wireTitleScreen();
+  wireCustomScreen();
+  showTitleScreen({ restart: false });
 }
-updateHud();
-loop();
+
+function showTitleScreen({ restart }) {
+  const titleEl = document.getElementById("titleScreen");
+  const customEl = document.getElementById("customScreen");
+  if (!titleEl) return;
+  customEl?.classList.add("hidden");
+  titleEl.classList.remove("hidden");
+  const continueBtn = document.getElementById("titleContinueBtn");
+  if (continueBtn) {
+    const canContinue = !restart && hasSavedGame();
+    continueBtn.disabled = !canContinue;
+    continueBtn.classList.toggle("is-disabled", !canContinue);
+  }
+}
+
+function wireTitleScreen() {
+  document.getElementById("titleNewBtn")?.addEventListener("click", () => openCustomScreen());
+  document.getElementById("titleContinueBtn")?.addEventListener("click", () => {
+    if (!hasSavedGame()) return;
+    document.getElementById("titleScreen")?.classList.add("hidden");
+    startGameWithSave();
+  });
+  document.getElementById("titleCreditsBtn")?.addEventListener("click", () => {
+    const box = document.getElementById("titleCredits");
+    if (box) box.classList.toggle("hidden");
+  });
+}
+
+function openCustomScreen() {
+  const titleEl = document.getElementById("titleScreen");
+  const customEl = document.getElementById("customScreen");
+  if (!customEl) return;
+  titleEl?.classList.add("hidden");
+  const errorBox = document.getElementById("introError");
+  if (errorBox) { errorBox.textContent = ""; errorBox.classList.add("hidden"); }
+  try {
+    ensureCustomControls();
+    syncCustomControls();
+  } catch (err) {
+    console.error("[intro] render failed", err);
+    if (errorBox) {
+      errorBox.textContent = `Render error: ${err && err.message ? err.message : err}`;
+      errorBox.classList.remove("hidden");
+    }
+  }
+  customEl.classList.remove("hidden");
+  const nameInput = document.getElementById("customNameInput");
+  if (nameInput && !nameInput.value) nameInput.value = state.profile?.name || "Citizen";
+}
+
+function presetButtonHtml(preset) {
+  const outfit = ITEMS[preset.outfit] || ITEMS.schoolJumper;
+  const accent = ACCENT_COLORS[preset.accent] || ACCENT_COLORS.ember;
+  const isOn = preset.id === customSelection.presetId;
+  return `<button type="button" class="preset-card${isOn ? " is-selected" : ""}" data-preset="${preset.id}">`
+    + `<span class="preset-avatar" style="background:${outfit.color}">`
+    + `<span class="preset-accent" style="background:${accent}"></span>`
+    + `<span class="preset-hair preset-hair-${preset.gender}"></span>`
+    + `</span>`
+    + `<span class="preset-label">${preset.label}</span>`
+    + `<span class="preset-sub">${outfit.name}</span>`
+    + `</button>`;
+}
+
+function ensureCustomControls() {
+  const grid = document.getElementById("presetGrid");
+  if (!grid) { console.warn("[intro] presetGrid missing"); return; }
+  const row = document.getElementById("accentRow");
+  if (!row) { console.warn("[intro] accentRow missing"); return; }
+  if (!grid.querySelector("button[data-preset]")) {
+    grid.innerHTML = PROFILE_PRESETS.map(presetButtonHtml).join("");
+  }
+  if (!row.querySelector("button[data-accent]")) {
+    row.innerHTML = Object.entries(ACCENT_COLORS).map(([id, color]) => (
+      `<button type="button" class="swatch" data-accent="${id}" style="background:${color}" aria-label="${id} accent"></button>`
+    )).join("");
+  }
+  console.log("[intro] controls ready", grid.querySelectorAll("button[data-preset]").length, "presets");
+}
+
+function syncCustomControls() {
+  document.querySelectorAll("#presetGrid button[data-preset]").forEach((button) => {
+    button.classList.toggle("is-selected", button.dataset.preset === customSelection.presetId);
+  });
+  document.querySelectorAll("#accentRow button[data-accent]").forEach((button) => {
+    button.classList.toggle("is-selected", button.dataset.accent === customSelection.accent);
+  });
+}
+
+function handlePresetGridClick(event) {
+  const btn = event.target.closest("button[data-preset]");
+  if (!btn) return;
+  const preset = PROFILE_PRESETS.find((p) => p.id === btn.dataset.preset);
+  if (!preset) return;
+  console.log("[intro] preset clicked", preset.id);
+  customSelection.presetId = preset.id;
+  customSelection.gender = preset.gender;
+  customSelection.outfit = preset.outfit;
+  customSelection.accent = preset.accent;
+  syncCustomControls();
+}
+
+function handleAccentRowClick(event) {
+  const btn = event.target.closest("button[data-accent]");
+  if (!btn) return;
+  console.log("[intro] accent clicked", btn.dataset.accent);
+  customSelection.accent = btn.dataset.accent;
+  syncCustomControls();
+}
+
+const customSelection = {
+  presetId: "boySchool",
+  gender: "boy",
+  outfit: "schoolJumper",
+  accent: "ember"
+};
+
+function wireCustomScreen() {
+  const customEl = document.getElementById("customScreen");
+  customEl?.addEventListener("pointerdown", handleCustomScreenActivation, true);
+  customEl?.addEventListener("click", handleCustomScreenActivation, true);
+}
+
+function handleCustomScreenActivation(event) {
+  const customEl = document.getElementById("customScreen");
+  if (!customEl || customEl.classList.contains("hidden")) return;
+  if (!event.target.closest("#customScreen")) return;
+  const presetButton = event.target.closest("button[data-preset]");
+  if (presetButton) {
+    event.preventDefault();
+    handlePresetGridClick(event);
+    return;
+  }
+  const accentButton = event.target.closest("button[data-accent]");
+  if (accentButton) {
+    event.preventDefault();
+    handleAccentRowClick(event);
+    return;
+  }
+  if (event.target.closest("#customBackBtn")) {
+    event.preventDefault();
+    console.log("[intro] back clicked");
+    showTitleScreen({ restart: false });
+    return;
+  }
+  if (event.target.closest("#customStartBtn")) {
+    event.preventDefault();
+    console.log("[intro] start clicked", customSelection);
+    const nameInput = document.getElementById("customNameInput");
+    const profile = sanitiseProfile({
+      name: nameInput?.value,
+      presetId: customSelection.presetId,
+      gender: customSelection.gender,
+      outfit: customSelection.outfit,
+      accent: customSelection.accent
+    });
+    document.getElementById("customScreen")?.classList.add("hidden");
+    startGameNew(profile);
+  }
+}
+
+function startGameWithSave() {
+  saveReady = true;
+  if (!loadGame()) {
+    saveGame();
+  }
+  updateHud();
+  if (!gameStarted) { gameStarted = true; loop(); }
+}
+
+function startGameNew(profile) {
+  saveReady = true;
+  resetGame({ profile });
+  updateHud();
+  if (!gameStarted) { gameStarted = true; loop(); }
+}

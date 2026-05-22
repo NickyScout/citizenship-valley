@@ -12,6 +12,8 @@ const outfitText = document.getElementById("outfitText");
 const toolText = document.getElementById("toolText");
 const inventoryList = document.getElementById("inventoryList");
 const journalText = document.getElementById("journalText");
+const reviewList = document.getElementById("reviewList");
+const reviewButton = document.getElementById("reviewButton");
 const resetButton = document.getElementById("resetButton");
 const devLocationSelect = document.getElementById("devLocationSelect");
 const devTravelButton = document.getElementById("devTravelButton");
@@ -1174,6 +1176,73 @@ function updateHud() {
     ? state.badges.map((badge) => `<li>${badge}</li>`).join("")
     : "<li>None yet</li>";
   inventoryList.innerHTML = renderInventory();
+  if (reviewList) reviewList.innerHTML = renderReviewList();
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"]/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;"
+  }[character]));
+}
+
+function reviewEntries() {
+  return locationOrder.flatMap((locationId) => {
+    const location = WORLD[locationId];
+    return location.questIds
+      .filter((questId) => state.completedQuests.has(questId))
+      .map((questId) => {
+        const quest = QUESTS[questId];
+        return {
+          id: questId,
+          title: quest.title,
+          region: location.shortName || location.name,
+          question: quest.curriculum?.asks || quest.question,
+          answer: quest.curriculum?.correctAnswer || quest.clue
+        };
+      });
+  });
+}
+
+function renderReviewList() {
+  const entries = reviewEntries();
+  if (!entries.length) {
+    return "<p class=\"empty\">Complete quests to unlock revision notes.</p>";
+  }
+  const recent = entries.slice(-3).reverse();
+  return recent.map((entry) => `
+    <button type="button" data-review-quest="${entry.id}">
+      <strong>${escapeHtml(entry.title)}</strong>
+      <small>${escapeHtml(entry.region)}</small>
+    </button>
+  `).join("");
+}
+
+function showReviewJournal(selectedQuestId = null) {
+  const entries = reviewEntries();
+  if (!entries.length) {
+    showPanel("<button type=\"button\" disabled>Complete quests to unlock revision notes.</button><button type=\"button\" data-menu=\"close\">Close</button>", "Revision Journal", "book");
+    return;
+  }
+  const selected = entries.find((entry) => entry.id === selectedQuestId) || entries.at(-1);
+  const buttons = entries.map((entry) => `
+    <button type="button" data-review-quest="${entry.id}">
+      ${entry.id === selected.id ? "✓ " : ""}${escapeHtml(entry.region)}: ${escapeHtml(entry.title)}
+    </button>
+  `).join("");
+  const html = `
+    <div class="review-detail">
+      <strong>${escapeHtml(selected.title)}</strong>
+      <small>${escapeHtml(selected.region)}</small>
+      <p>${escapeHtml(selected.question)}</p>
+      <p>${escapeHtml(selected.answer)}</p>
+    </div>
+    <div class="review-menu">${buttons}</div>
+    <button type="button" data-menu="close">Close</button>
+  `;
+  showPanel(html, "Revision Journal", "book");
 }
 
 function renderInventory() {
@@ -2500,6 +2569,11 @@ window.addEventListener("keyup", (event) => {
 });
 
 choicePanel.addEventListener("click", (event) => {
+  const reviewChoice = event.target.closest("button[data-review-quest]");
+  if (reviewChoice) {
+    showReviewJournal(reviewChoice.dataset.reviewQuest);
+    return;
+  }
   const gateAnswer = event.target.closest("button[data-gate-answer]");
   if (gateAnswer) {
     answerGate(Number(gateAnswer.dataset.gateAnswer));
@@ -2540,6 +2614,14 @@ inventoryList.addEventListener("click", (event) => {
   if (action === "use") useItem(item);
   if (action === "sell") sellItem(item);
 });
+
+reviewList?.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-review-quest]");
+  if (!button) return;
+  showReviewJournal(button.dataset.reviewQuest);
+});
+
+reviewButton?.addEventListener("click", () => showReviewJournal());
 
 function releaseTouchKey(event) {
   const key = event.currentTarget.dataset.touchKey;

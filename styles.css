@@ -274,6 +274,62 @@ dd {
   line-height: 1.4;
 }
 
+.review-list {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.review-list button {
+  width: 100%;
+  padding: 8px;
+  color: var(--ink);
+  text-align: left;
+  background: #141c1f;
+  border: 1px solid rgba(77, 90, 89, .8);
+  font: 700 .85rem Georgia, "Times New Roman", serif;
+  cursor: pointer;
+}
+
+.review-list button:hover,
+.review-list button:focus-visible {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.review-list strong,
+.review-list small {
+  display: block;
+}
+
+.review-list small,
+.review-detail small {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.review-detail {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: #141c1f;
+  border: 1px solid rgba(77, 90, 89, .8);
+}
+
+.review-detail strong {
+  color: var(--gold);
+}
+
+.review-detail p {
+  margin: 0;
+}
+
+.review-menu {
+  display: grid;
+  gap: 0;
+}
+
 .dev-tools select {
   width: 100%;
   min-height: 34px;

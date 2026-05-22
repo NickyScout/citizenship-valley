@@ -41,6 +41,7 @@ const state = {
   badges: [],
   completed: new Set(),
   completedQuests: new Set(),
+  completedStudyStations: new Set(),
   examPracticeCompleted: new Set(),
   currentLocation: "village",
   unlockedLocations: new Set(["village"]),
@@ -70,6 +71,7 @@ function serializeGame() {
     badges: state.badges,
     completed: [...state.completed],
     completedQuests: [...state.completedQuests],
+    completedStudyStations: [...state.completedStudyStations],
     examPracticeCompleted: [...state.examPracticeCompleted],
     currentLocation: state.currentLocation,
     unlockedLocations: [...state.unlockedLocations],
@@ -109,6 +111,7 @@ function loadGame() {
     state.badges = Array.isArray(saved.badges) ? saved.badges : [];
     state.completed = new Set(Array.isArray(saved.completed) ? saved.completed : []);
     state.completedQuests = new Set(Array.isArray(saved.completedQuests) ? saved.completedQuests : []);
+    state.completedStudyStations = new Set(Array.isArray(saved.completedStudyStations) ? saved.completedStudyStations : []);
     state.examPracticeCompleted = new Set(Array.isArray(saved.examPracticeCompleted) ? saved.examPracticeCompleted : []);
     state.unlockedLocations = new Set(Array.isArray(saved.unlockedLocations) ? saved.unlockedLocations : ["village"]);
     state.pendingGate = saved.pendingGate || null;
@@ -147,6 +150,7 @@ function resetGame() {
   state.badges = [];
   state.completed = new Set();
   state.completedQuests = new Set();
+  state.completedStudyStations = new Set();
   state.examPracticeCompleted = new Set();
   state.unlockedLocations = new Set(["village"]);
   state.activeQuest = null;
@@ -239,6 +243,28 @@ const baseMap = [
   "#..#HME.....######.....PAR#..#",
   "#..####................####..#",
   "#............................#",
+  "##############################"
+];
+
+const studyInteriorMap = [
+  "##############################",
+  "#::::::::::::::::::::::::::::#",
+  "#::::::::::::::::::::::::::::#",
+  "#:::::::,,,,,,,,,,,,:::::::::#",
+  "#:::::::,,,,,,,,,,,,:::::::::#",
+  "#:::::::,,,,,,,,,,,,:::::::::#",
+  "#::::::::::::::::::::::::::::#",
+  "#::::::::::::,,,,::::::::::::#",
+  "#::::::::::::,,,,::::::::::::#",
+  "#::::::::::::,,,,::::::::::::#",
+  "#::::::::::::::::::::::::::::#",
+  "#:::::::,,,,,,,,,,,,:::::::::#",
+  "#:::::::,,,,,,,,,,,,:::::::::#",
+  "#:::::::,,,,,,,,,,,,:::::::::#",
+  "#::::::::::::::::::::::::::::#",
+  "#::::::::::::,,,,::::::::::::#",
+  "#::::::::::::,,,,::::::::::::#",
+  "#::::::::::::,,,,::::::::::::#",
   "##############################"
 ];
 
@@ -434,6 +460,26 @@ const WORLD_LAYOUTS = {
       { x: 84, y: 434, w: 112, h: 84, wall: "#c5d3b1", roof: "roofA" },
       { x: 682, y: 434, w: 116, h: 84, wall: "#c5d3b1", roof: "roofB" }
     ]
+  },
+  townHallInterior: {
+    map: studyInteriorMap,
+    spawn: { x: 468, y: 500 },
+    buildings: []
+  },
+  libraryInterior: {
+    map: studyInteriorMap,
+    spawn: { x: 468, y: 500 },
+    buildings: []
+  },
+  courtInterior: {
+    map: studyInteriorMap,
+    spawn: { x: 468, y: 500 },
+    buildings: []
+  },
+  parkInterior: {
+    map: studyInteriorMap,
+    spawn: { x: 468, y: 500 },
+    buildings: []
   }
 };
 
@@ -509,6 +555,287 @@ const EXAM_PRACTICE_ROOMS = [
     model: "The leaflet is partly useful because it shows a campaign claim about youth services and may reveal what supporters believe. Its usefulness is limited because a leaflet is designed to persuade, so it may be selective or biased. I would also need survey data, council information, and views from young people who do not support the campaign."
   }
 ];
+
+const BUILDING_DOORS = [
+  { id: "townHallDoor", from: "village", target: "townHallInterior", label: "Town Hall", x: 130, y: 160, returnSpawn: { x: 134, y: 210 } },
+  { id: "libraryDoor", from: "village", target: "libraryInterior", label: "Library", x: 652, y: 160, returnSpawn: { x: 650, y: 210 } },
+  { id: "courtDoor", from: "village", target: "courtInterior", label: "Court", x: 452, y: 474, returnSpawn: { x: 454, y: 520 } },
+  { id: "parkDoor", from: "village", target: "parkInterior", label: "Park Hub", x: 774, y: 494, returnSpawn: { x: 774, y: 540 } }
+];
+
+const INTERIOR_EXITS = {
+  townHallInterior: { x: 454, y: 530, target: "village" },
+  libraryInterior: { x: 454, y: 530, target: "village" },
+  courtInterior: { x: 454, y: 530, target: "village" },
+  parkInterior: { x: 454, y: 530, target: "village" }
+};
+
+const STUDY_STATIONS = {
+  townHallInterior: [
+    {
+      id: "councilChamber",
+      label: "Council Chamber",
+      x: 128,
+      y: 136,
+      accent: "#d88c5a",
+      summary: "Practise local democracy through short council decision scenarios.",
+      revise: [
+        "Local councils make decisions about services, budgets, safety, and community priorities.",
+        "Good citizenship answers mention consultation, debate, voting, and accountability.",
+        "Use local examples such as youth services, parks, transport, or recycling."
+      ],
+      examTip: "Explain questions work best when you show how a local issue leads to consultation, a decision, and accountability.",
+      example: "One way a council can respond is by consulting local residents, debating the evidence, and then voting on a policy such as funding youth services.",
+      reward: 3
+    },
+    {
+      id: "decisionLadder",
+      label: "Decision Ladder",
+      x: 640,
+      y: 136,
+      accent: "#f2c14e",
+      summary: "Memorise the order of a democratic decision from issue to review.",
+      revise: [
+        "Issue identified -> evidence gathered -> consultation -> debate -> vote -> review.",
+        "Democratic decisions should be transparent and open to challenge.",
+        "Review stages matter because policies can be improved after feedback."
+      ],
+      examTip: "When asked to describe decision-making, use sequence language such as first, then, after that, and finally.",
+      example: "First the council gathers evidence on the problem, then it consults residents, debates options, votes, and later reviews the impact.",
+      reward: 3
+    },
+    {
+      id: "roleCards",
+      label: "Role Cards",
+      x: 128,
+      y: 360,
+      accent: "#6fbf73",
+      summary: "Compare the roles of councillors, mayors, residents, and pressure groups.",
+      revise: [
+        "Councillors represent residents and scrutinise local decisions.",
+        "Residents provide views, evidence, and democratic pressure.",
+        "Pressure groups and campaigners raise awareness and try to influence priorities."
+      ],
+      examTip: "In describe answers, define each role briefly and link it to representation or participation.",
+      example: "A councillor represents local people in debates, while residents influence decisions through consultation and contacting representatives.",
+      reward: 3
+    },
+    {
+      id: "serviceDesk",
+      label: "Service Desk",
+      x: 640,
+      y: 360,
+      accent: "#5da9e9",
+      summary: "Link council decisions to real public services that appear in exam questions.",
+      revise: [
+        "Local government often covers housing, parks, waste, planning, and community facilities.",
+        "Answers improve when you connect services to citizens' needs and budgets.",
+        "Useful evaluation compares impact, cost, and fairness."
+      ],
+      examTip: "For evaluate questions, weigh benefits for the community against costs or limitations.",
+      example: "Funding a youth centre may reduce antisocial behaviour and support wellbeing, but councillors must judge whether it is affordable and fair.",
+      reward: 3
+    }
+  ],
+  libraryInterior: [
+    {
+      id: "revisionShelves",
+      label: "Revision Shelves",
+      x: 128,
+      y: 136,
+      accent: "#5da9e9",
+      summary: "Use a glossary wall to lock in key GCSE Citizenship terms.",
+      revise: [
+        "Focus on accountability, representation, rights, participation, and rule of law.",
+        "Definitions should be accurate and short enough to use under pressure.",
+        "Pair each term with one real example."
+      ],
+      examTip: "Identify questions reward precise terminology, so practise naming concepts cleanly.",
+      example: "Accountability means decision-makers must explain and justify what they do and can be challenged if they fail.",
+      reward: 3
+    },
+    {
+      id: "flashcardDesk",
+      label: "Flashcard Desk",
+      x: 640,
+      y: 136,
+      accent: "#f2c14e",
+      summary: "Turn definitions into quick active-recall revision.",
+      revise: [
+        "Front of card: term or command word. Back: definition plus one example.",
+        "Mix identify, describe, explain, and evaluate prompts.",
+        "Repeat weak cards more often than strong cards."
+      ],
+      examTip: "If a term is on a flashcard, you should be able to use it in one sentence without reading notes.",
+      example: "Representation means elected people act on behalf of citizens in councils or Parliament.",
+      reward: 3
+    },
+    {
+      id: "sourceTable",
+      label: "Source Table",
+      x: 128,
+      y: 360,
+      accent: "#e36b5d",
+      summary: "Practise source usefulness by checking content, origin, and purpose.",
+      revise: [
+        "Useful sources answer the question and provide relevant evidence.",
+        "Origin and purpose can increase or reduce usefulness.",
+        "A strong answer includes one limitation and one extra source needed."
+      ],
+      examTip: "Use the formula: useful because..., limited because..., I would also need....",
+      example: "A campaign leaflet is useful for showing what campaigners claim, but limited because it is persuasive and may be selective.",
+      reward: 3
+    },
+    {
+      id: "misinformationCorner",
+      label: "Misinformation Corner",
+      x: 640,
+      y: 360,
+      accent: "#6fbf73",
+      summary: "Learn how to test bias, reliability, and responsible sharing online.",
+      revise: [
+        "Ask who made the claim, what evidence is shown, and who benefits.",
+        "Reliable citizenship revision uses official data, balanced sources, and dates.",
+        "Citizens should avoid sharing claims they have not checked."
+      ],
+      examTip: "Reliability answers should refer to evidence, expertise, purpose, and corroboration.",
+      example: "A social post with no named source is less reliable than official statistics checked against another source.",
+      reward: 3
+    }
+  ],
+  courtInterior: [
+    {
+      id: "mockTrial",
+      label: "Mock Trial",
+      x: 128,
+      y: 136,
+      accent: "#b089d6",
+      summary: "Work through mini cases about fairness, evidence, and due process.",
+      revise: [
+        "Courts apply law using evidence and procedure rather than personal preference.",
+        "Fair trial ideas include evidence, legal representation, and an impartial decision.",
+        "Rule of law means nobody is above the law."
+      ],
+      examTip: "Explain answers on justice should connect fairness to evidence and equal treatment.",
+      example: "A fair hearing matters because courts must judge evidence carefully and apply the law equally to all people.",
+      reward: 3
+    },
+    {
+      id: "rightsBench",
+      label: "Rights Bench",
+      x: 640,
+      y: 136,
+      accent: "#f2c14e",
+      summary: "Compare rights with responsibilities and lawful limits.",
+      revise: [
+        "Rights protect freedom, dignity, and equal treatment.",
+        "Some rights may be limited to protect safety or the rights of others.",
+        "Strong answers mention balance, not absolute freedom in every case."
+      ],
+      examTip: "For evaluate questions, present both the right itself and the reason limits may exist.",
+      example: "Freedom of expression is important, but it can be limited when speech causes serious harm or threatens others' rights.",
+      reward: 3
+    },
+    {
+      id: "verdictBuilder",
+      label: "Verdict Builder",
+      x: 128,
+      y: 360,
+      accent: "#d88c5a",
+      summary: "Build balanced judgements from evidence, counter-arguments, and conclusions.",
+      revise: [
+        "Judgement should follow evidence, not come first.",
+        "A balanced verdict acknowledges strengths, limits, and competing rights.",
+        "Use linking phrases such as however, on the other hand, and overall."
+      ],
+      examTip: "Evaluate questions score better when the conclusion clearly follows from both sides of the argument.",
+      example: "Overall, the policy is justified if it protects public safety and still preserves the core right as far as possible.",
+      reward: 3
+    },
+    {
+      id: "mistakesBoard",
+      label: "Mistakes Board",
+      x: 640,
+      y: 360,
+      accent: "#5da9e9",
+      summary: "Catch common exam confusions before they cost marks.",
+      revise: [
+        "Civil law is mainly about disputes between people or organisations.",
+        "Criminal law is mainly about offences against society.",
+        "Rights, responsibilities, and moral rules are related but not identical."
+      ],
+      examTip: "If a question asks for legal knowledge, avoid drifting into vague moral opinion.",
+      example: "Criminal cases involve offences against society, while civil cases usually settle disputes or claims between parties.",
+      reward: 3
+    }
+  ],
+  parkInterior: [
+    {
+      id: "noticeboard",
+      label: "Noticeboard",
+      x: 128,
+      y: 136,
+      accent: "#6fbf73",
+      summary: "Compare real participation methods such as petitions, volunteering, and contacting representatives.",
+      revise: [
+        "Different methods suit different targets and issues.",
+        "Good action is informed, lawful, and aimed at a real decision-maker.",
+        "Participation can be formal or informal."
+      ],
+      examTip: "Describe answers improve when you name two methods and explain why each fits the issue.",
+      example: "A petition can show public support, while contacting a councillor targets the person who can act on the issue.",
+      reward: 3
+    },
+    {
+      id: "campaignPlanner",
+      label: "Campaign Planner",
+      x: 640,
+      y: 136,
+      accent: "#f2c14e",
+      summary: "Plan an active citizenship campaign with aims, audience, methods, and risks.",
+      revise: [
+        "A strong plan states the issue, the target, the audience, and the action method.",
+        "Campaigns need evidence and realistic timing.",
+        "Risks and limits should be anticipated early."
+      ],
+      examTip: "In project questions, always link methods to the people who have power to make the change.",
+      example: "If the issue is unsafe crossings, the target may be the local council and the method could be a petition backed by survey evidence.",
+      reward: 3
+    },
+    {
+      id: "impactMeter",
+      label: "Impact Meter",
+      x: 128,
+      y: 360,
+      accent: "#5da9e9",
+      summary: "Judge whether action worked by using evidence of change and reach.",
+      revise: [
+        "Impact can include awareness, response from decision-makers, turnout, policy change, or media coverage.",
+        "Aims must be clear before success can be measured.",
+        "Not all impact is immediate, so note short-term and longer-term outcomes."
+      ],
+      examTip: "Evaluation answers should name evidence, not just say the project was successful.",
+      example: "The campaign showed impact because 300 people signed the petition and the council agreed to review the issue.",
+      reward: 3
+    },
+    {
+      id: "reflectionBench",
+      label: "Reflection Bench",
+      x: 640,
+      y: 360,
+      accent: "#e36b5d",
+      summary: "Practise evaluation by identifying what to improve next time.",
+      revise: [
+        "Good evaluation includes strengths, weaknesses, evidence, and improvements.",
+        "Consider different viewpoints such as supporters, officials, and the wider public.",
+        "Improvement points should be realistic and specific."
+      ],
+      examTip: "The best evaluation conclusions are balanced and explain what should change next time.",
+      example: "Next time the group could collect more survey evidence earlier and target the council committee directly.",
+      reward: 3
+    }
+  ]
+};
 
 const npcs = [
   {
@@ -837,6 +1164,57 @@ npcs.forEach((npc) => {
 
 const locationOrder = ["village", "modernBritain", "rightsLaw", "democracy", "participation", "actionWorkshop", "examHall"];
 
+const INTERIOR_LOCATIONS = {
+  townHallInterior: {
+    name: "Town Hall Interior",
+    shortName: "Town Hall",
+    badge: "Council Revision Badge",
+    next: null,
+    travel: "Study complete",
+    studyReward: { coins: 10 },
+    visual: { sky: "#3d3b4a", water: "#2a4d5e", road: "#8f8576", roofA: "#8f4f44", roofB: "#4b6f88", roofC: "#665a7d", roofD: "#4f7b55" },
+    npcs: [],
+    questIds: [],
+    gateQuestions: []
+  },
+  libraryInterior: {
+    name: "Library Interior",
+    shortName: "Library",
+    badge: "Research Revision Badge",
+    next: null,
+    travel: "Study complete",
+    studyReward: { coins: 10 },
+    visual: { sky: "#314553", water: "#2a4d5e", road: "#848c8b", roofA: "#8f4f44", roofB: "#4b6f88", roofC: "#665a7d", roofD: "#4f7b55" },
+    npcs: [],
+    questIds: [],
+    gateQuestions: []
+  },
+  courtInterior: {
+    name: "Court Interior",
+    shortName: "Court",
+    badge: "Justice Revision Badge",
+    next: null,
+    travel: "Study complete",
+    studyReward: { coins: 10 },
+    visual: { sky: "#44414f", water: "#2a4d5e", road: "#938b86", roofA: "#8f4f44", roofB: "#4b6f88", roofC: "#665a7d", roofD: "#4f7b55" },
+    npcs: [],
+    questIds: [],
+    gateQuestions: []
+  },
+  parkInterior: {
+    name: "Park Action Hub",
+    shortName: "Park Hub",
+    badge: "Action Planning Badge",
+    next: null,
+    travel: "Study complete",
+    studyReward: { coins: 10 },
+    visual: { sky: "#355044", water: "#2a4d5e", road: "#8a8d78", roofA: "#8f4f44", roofB: "#4b6f88", roofC: "#665a7d", roofD: "#4f7b55" },
+    npcs: [],
+    questIds: [],
+    gateQuestions: []
+  }
+};
+
 const WORLD = {
   village: {
     name: "Citizenship Village",
@@ -1090,6 +1468,15 @@ locationBlueprints.forEach((location) => {
   });
 });
 
+Object.entries(INTERIOR_LOCATIONS).forEach(([locationId, location]) => {
+  WORLD[locationId] = {
+    ...location,
+    npcs: [],
+    questIds: [],
+    gateQuestions: []
+  };
+});
+
 function applyCurriculumGuide() {
   const guide = window.GCSE_CURRICULUM_INDEX || {};
   Object.entries(QUESTS).forEach(([id, quest]) => {
@@ -1111,6 +1498,26 @@ applyCurriculumGuide();
 
 function currentLocation() {
   return WORLD[state.currentLocation];
+}
+
+function isInteriorLocation(locationId = state.currentLocation) {
+  return Boolean(INTERIOR_LOCATIONS[locationId]);
+}
+
+function currentSigns() {
+  return signs.filter((item) => !item.location || item.location === state.currentLocation);
+}
+
+function currentStudyStations(locationId = state.currentLocation) {
+  return STUDY_STATIONS[locationId] || [];
+}
+
+function studyStationKey(locationId, stationId) {
+  return `${locationId}:${stationId}`;
+}
+
+function buildingDoorByTarget(locationId) {
+  return BUILDING_DOORS.find((door) => door.target === locationId) || null;
 }
 
 function currentLayout() {
@@ -1150,10 +1557,10 @@ function setLocation(locationId, options = {}) {
     state.player.y = spawn.y;
   }
   if (!options.preserveText) {
-    state.quest = `${location.name}: complete all regional quests.`;
+    state.quest = locationOrder.includes(locationId) ? `${location.name}: complete all regional quests.` : `${location.name}: revise the study stations inside.`;
     state.journal = `Arrived at ${location.name}.`;
   }
-  if (devLocationSelect) devLocationSelect.value = locationId;
+  if (devLocationSelect && locationOrder.includes(locationId)) devLocationSelect.value = locationId;
   updateHud();
   if (!options.skipSave) saveGame();
 }
@@ -1180,12 +1587,14 @@ function setupDevTravel() {
 
 const signs = [
   {
+    location: "village",
     x: 510,
     y: 336,
     title: "Noticeboard",
     body: "Revision tip: long answers often need explained points, evidence, and a balanced judgement."
   },
   {
+    location: "village",
     x: 232,
     y: 104,
     title: "River Charter",
@@ -1445,11 +1854,21 @@ function rectsNear(a, b, distance = 42) {
 function findInteractable() {
   const npc = npcs.find((person) => rectsNear(state.player, person));
   if (npc) return { type: "npc", item: npc };
+  if (state.currentLocation === "village") {
+    const door = BUILDING_DOORS.find((item) => rectsNear(state.player, { ...item, w: 24, h: 24 }, 48));
+    if (door) return { type: "buildingDoor", item: door };
+  }
+  if (isInteriorLocation()) {
+    const station = currentStudyStations().find((item) => rectsNear(state.player, { ...item, w: 28, h: 20 }, 64));
+    if (station) return { type: "studyStation", item: station };
+    const exit = INTERIOR_EXITS[state.currentLocation];
+    if (exit && rectsNear(state.player, { ...exit, w: 28, h: 20 }, 54)) return { type: "exitDoor", item: exit };
+  }
   if (state.currentLocation === "examHall") {
     const room = EXAM_PRACTICE_ROOMS.find((item) => rectsNear(state.player, { ...item, w: 24, h: 20 }, 78));
     if (room) return { type: "examRoom", item: room };
   }
-  const sign = signs.find((item) => rectsNear(state.player, { ...item, w: 20, h: 20 }, 38));
+  const sign = currentSigns().find((item) => rectsNear(state.player, { ...item, w: 20, h: 20 }, 38));
   if (sign) return { type: "sign", item: sign };
   return null;
 }
@@ -1645,6 +2064,73 @@ function showExamPracticeRoom(room) {
     <button type="button" data-menu="close">Close</button>
   `;
   showPanel(html, room.title, "question");
+}
+
+function showStudyStation(station) {
+  const key = studyStationKey(state.currentLocation, station.id);
+  const completed = state.completedStudyStations.has(key);
+  const revise = station.revise.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const html = `
+    <div class="exam-practice-card">
+      <strong>${escapeHtml(station.summary)}</strong>
+      <div>
+        <small>Revise</small>
+        <ul class="exam-practice-plan">${revise}</ul>
+      </div>
+      <div>
+        <small>Exam move</small>
+        <p>${escapeHtml(station.examTip)}</p>
+      </div>
+      <div>
+        <small>Model point</small>
+        <p>${escapeHtml(station.example)}</p>
+      </div>
+    </div>
+    <button type="button" data-study-station="${station.id}"${completed ? " disabled" : ""}>${completed ? "Revision logged" : "Log this revision station"}</button>
+    <button type="button" data-menu="close">Close</button>
+  `;
+  showPanel(html, station.label, "question");
+}
+
+function completeStudyStation(stationId) {
+  const station = currentStudyStations().find((item) => item.id === stationId);
+  if (!station) return;
+  const key = studyStationKey(state.currentLocation, station.id);
+  if (state.completedStudyStations.has(key)) {
+    showStudyStation(station);
+    return;
+  }
+  state.completedStudyStations.add(key);
+  addKnowledge(station.reward || 3);
+  state.journal = `${currentLocation().name}: ${station.label} logged. Knowledge +${station.reward || 3}.`;
+  const location = currentLocation();
+  const allDone = currentStudyStations().every((item) => state.completedStudyStations.has(studyStationKey(state.currentLocation, item.id)));
+  if (allDone && location.badge && !state.badges.includes(location.badge)) {
+    addBadge(location.badge);
+    if (location.studyReward?.coins) addCoins(location.studyReward.coins);
+    state.journal = `${location.name}: all study stations complete. ${location.badge} earned.`;
+  }
+  updateHud();
+  saveGame();
+  showStudyStation(station);
+}
+
+function enterBuildingDoor(door) {
+  setLocation(door.target, { preserveText: true });
+  state.journal = `Entered ${door.label}. Explore the study stations and press E at the exit to leave.`;
+  updateHud();
+  saveGame();
+}
+
+function leaveInterior() {
+  const door = buildingDoorByTarget(state.currentLocation);
+  if (!door) return;
+  setLocation(door.from, { preserveText: true });
+  state.player.x = door.returnSpawn.x;
+  state.player.y = door.returnSpawn.y;
+  state.journal = `Left ${door.label}. You are back in Citizenship Village.`;
+  updateHud();
+  saveGame();
 }
 
 function completeExamPractice(roomId) {
@@ -1888,6 +2374,18 @@ function interact() {
   }
   if (found.type === "sign") {
     showDialogue(found.item.title, found.item.body, "Press E to close.");
+    return;
+  }
+  if (found.type === "buildingDoor") {
+    enterBuildingDoor(found.item);
+    return;
+  }
+  if (found.type === "studyStation") {
+    showStudyStation(found.item);
+    return;
+  }
+  if (found.type === "exitDoor") {
+    leaveInterior();
     return;
   }
   if (found.type === "examRoom") {
@@ -2320,13 +2818,89 @@ function drawHeroHeldItemSide(x, y, side, bob) {
 }
 
 function drawSigns() {
-  signs.forEach((sign) => {
+  currentSigns().forEach((sign) => {
     rect(sign.x + 8, sign.y + 12, 5, 18, "#5d4037");
     rect(sign.x, sign.y, 22, 16, "#b98252");
     rect(sign.x + 2, sign.y + 3, 18, 2, "#e1b675");
     rect(sign.x + 3, sign.y + 9, 13, 2, "#704633");
   });
   drawExamPracticeRooms();
+}
+
+function drawBuildingDoors() {
+  if (state.currentLocation !== "village") return;
+  BUILDING_DOORS.forEach((door) => {
+    rect(door.x - 4, door.y + 18, 32, 8, "rgba(0,0,0,.24)");
+    rect(door.x, door.y, 24, 20, "#f2c14e");
+    rect(door.x + 2, door.y + 2, 20, 16, "#4d2c2b");
+    rect(door.x + 9, door.y + 8, 6, 8, "#c18455");
+    rect(door.x + 17, door.y + 9, 2, 2, "#f2c14e");
+  });
+}
+
+function drawStudyStations() {
+  if (!isInteriorLocation()) return;
+  currentStudyStations().forEach((station) => {
+    const done = state.completedStudyStations.has(studyStationKey(state.currentLocation, station.id));
+    const accent = done ? "#6fbf73" : station.accent;
+    rect(station.x - 16, station.y + 22, 64, 10, "rgba(0,0,0,.22)");
+    rect(station.x - 8, station.y + 8, 48, 18, accent);
+    rect(station.x - 4, station.y + 10, 40, 14, "#1d2427");
+    rect(station.x + 4, station.y - 10, 24, 10, accent);
+    rect(station.x + 10, station.y - 22, 12, 12, "#f5f0df");
+    rect(station.x + 8, station.y + 26, 5, 12, "#5b3b31");
+    rect(station.x + 19, station.y + 26, 5, 12, "#5b3b31");
+    ctx.fillStyle = "#f5f0df";
+    ctx.font = "10px Georgia";
+    ctx.textAlign = "center";
+    ctx.fillText(station.label, station.x + 12, station.y + 52);
+  });
+}
+
+function drawInteriorExit() {
+  if (!isInteriorLocation()) return;
+  const exit = INTERIOR_EXITS[state.currentLocation];
+  if (!exit) return;
+  rect(exit.x - 10, exit.y + 18, 44, 10, "rgba(0,0,0,.22)");
+  rect(exit.x, exit.y, 24, 22, "#d8a23a");
+  rect(exit.x + 2, exit.y + 2, 20, 18, "#4d2c2b");
+  rect(exit.x + 8, exit.y + 8, 8, 10, "#c18455");
+  rect(exit.x + 18, exit.y + 10, 2, 2, "#f2c14e");
+}
+
+function drawInteriorDecor() {
+  if (!isInteriorLocation()) return;
+  const id = state.currentLocation;
+  if (id === "townHallInterior") {
+    rect(280, 70, 400, 26, "#5a3f2c");
+    rect(304, 86, 352, 8, "#e6d3a4");
+    rect(148, 248, 664, 6, "#d7d0c3");
+    rect(200, 420, 560, 5, "#7d8078");
+  }
+  if (id === "libraryInterior") {
+    for (let y = 84; y < 470; y += 92) {
+      rect(76, y, 58, 62, "#704633");
+      rect(826, y, 58, 62, "#704633");
+      for (let i = 0; i < 5; i += 1) {
+        rect(84, y + 8 + i * 10, 42, 6, ["#5da9e9", "#f2c14e", "#6fbf73", "#e36b5d", "#b089d6"][i]);
+        rect(834, y + 8 + i * 10, 42, 6, ["#6fbf73", "#f2c14e", "#5da9e9", "#b089d6", "#e36b5d"][i]);
+      }
+    }
+  }
+  if (id === "courtInterior") {
+    rect(226, 78, 508, 18, "#665a7d");
+    for (let x = 254; x < 706; x += 46) rect(x, 96, 12, 140, "#d7d0c3");
+    rect(278, 238, 404, 10, "#f2c14e");
+    rect(392, 452, 180, 24, "#5b3b31");
+  }
+  if (id === "parkInterior") {
+    rect(128, 92, 704, 12, "#4e9b50");
+    rect(128, 456, 704, 12, "#4e9b50");
+    for (let x = 146; x < 814; x += 88) {
+      rect(x, 104, 18, 18, "#f05d5e");
+      rect(x + 28, 430, 18, 18, "#ffe066");
+    }
+  }
 }
 
 function drawExamPracticeRooms() {
@@ -2464,6 +3038,7 @@ function drawKiosk(x, y, label) {
 }
 
 function drawFineDetails() {
+  if (isInteriorLocation()) return;
   const id = state.currentLocation;
   if (id === "village") {
     drawBoat(738, 356);
@@ -2581,8 +3156,22 @@ function drawInteractionHint() {
   if (!found || activeQuestion || !dialogue.classList.contains("hidden")) return;
   const x = found.item.x + 12;
   const y = found.item.y - 24;
-  const label = found.type === "examRoom" ? "E Practice" : "E";
-  const width = found.type === "examRoom" ? 72 : 36;
+  const label = found.type === "examRoom"
+    ? "E Practice"
+    : found.type === "buildingDoor"
+      ? "E Enter"
+      : found.type === "studyStation"
+        ? "E Study"
+        : found.type === "exitDoor"
+          ? "E Exit"
+          : "E";
+  const width = found.type === "examRoom"
+    ? 72
+    : found.type === "buildingDoor" || found.type === "studyStation"
+      ? 68
+      : found.type === "exitDoor"
+        ? 56
+        : 36;
   ctx.fillStyle = "#111719";
   ctx.fillRect(x - width / 2, y - 14, width, 20);
   ctx.strokeStyle = "#f2c14e";
@@ -2628,6 +3217,13 @@ function drawBuildingLayer(visual) {
 }
 
 function drawPropLayer() {
+  if (isInteriorLocation()) {
+    drawInteriorDecor();
+    drawStudyStations();
+    drawInteriorExit();
+    return;
+  }
+  drawBuildingDoors();
   drawSigns();
   props.forEach(drawProp);
   drawFineDetails();
@@ -2725,6 +3321,11 @@ choicePanel.addEventListener("click", (event) => {
   const examPractice = event.target.closest("button[data-exam-practice]");
   if (examPractice) {
     completeExamPractice(examPractice.dataset.examPractice);
+    return;
+  }
+  const studyStation = event.target.closest("button[data-study-station]");
+  if (studyStation) {
+    completeStudyStation(studyStation.dataset.studyStation);
     return;
   }
   const gateAnswer = event.target.closest("button[data-gate-answer]");

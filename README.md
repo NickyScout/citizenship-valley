@@ -6,6 +6,12 @@ An indie-style GCSE Citizenship revision RPG inspired by cosy top-down games.
 
 Open `http://127.0.0.1:5173/index.html` while the local preview server is running.
 
+Run local world validation before publishing changes:
+
+```powershell
+node .\scripts\validate-world.js
+```
+
 Controls:
 
 - `WASD` or arrow keys: move

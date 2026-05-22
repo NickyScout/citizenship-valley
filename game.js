@@ -905,11 +905,11 @@ const locationBlueprints = [
     travel: "Clock-lift to Democracy Capital",
     visual: { sky: "#586a75", water: "#245666", road: "#93908a", roofA: "#4b5a65", roofB: "#5c5470", roofC: "#7b6d65", roofD: "#2f4f5f" },
     npcs: [
-      ["advocateFarah", "Advocate Farah", 132, 218, "#466d9f", "Human rights, equality, and discrimination."],
+      ["advocateFarah", "Advocate Farah", 72, 218, "#466d9f", "Human rights, equality, and discrimination."],
       ["sergeantBlake", "Sergeant Blake", 372, 292, "#31405a", "Police powers, safeguards, and accountability."],
-      ["mediatorChen", "Mediator Chen", 664, 220, "#d88c5a", "Civil disputes and legal solutions."],
+      ["mediatorChen", "Mediator Chen", 612, 220, "#d88c5a", "Civil disputes and legal solutions."],
       ["youthEllis", "Youth Worker Ellis", 356, 430, "#6fbf73", "Youth justice and rehabilitation."],
-      ["justiceRowan2", "Justice Rowan", 704, 384, "#b089d6", "Courts, rule of law, and fair trials."]
+      ["justiceRowan2", "Justice Rowan", 628, 384, "#b089d6", "Courts, rule of law, and fair trials."]
     ],
     topics: [
       ["ruleLaw", "Rule of Law Seal", "justiceRowan2", "advocateFarah", "Ask Farah why power must be limited by law.", "The rule of law means everyone is subject to law, including people in power, and laws should be applied fairly.", "Which statement best fits rule of law?", ["No one is above the law", "Power has no limits", "Only citizens obey law"]],
@@ -961,7 +961,7 @@ const locationBlueprints = [
     travel: "Campaign Boat to Action Workshop",
     visual: { sky: "#4f9b8f", water: "#1f6b78", road: "#aa967a", roofA: "#b94e48", roofB: "#466d9f", roofC: "#8f5b3f", roofD: "#4f7b55" },
     npcs: [
-      ["campaignPriya2", "Priya the Campaigner", 132, 218, "#6fbf73", "Campaign strategy and public voice."],
+      ["campaignPriya2", "Priya the Campaigner", 164, 250, "#6fbf73", "Campaign strategy and public voice."],
       ["unionMorgan", "Union Rep Morgan", 372, 292, "#d88c5a", "Trade unions and collective action."],
       ["charityAmina", "Charity Lead Amina", 664, 220, "#5da9e9", "Volunteering and charities."],
       ["lobbyistPax", "Lobbyist Pax", 356, 430, "#b089d6", "Lobbying and pressure groups."],
@@ -993,7 +993,7 @@ const locationBlueprints = [
       ["surveyorTess", "Surveyor Tess", 372, 292, "#5da9e9", "Surveys and interviews."],
       ["statJules", "Statistician Jules", 664, 220, "#6fbf73", "Data, charts, and impact."],
       ["organiserKai", "Organiser Kai", 356, 430, "#e36b5d", "Action methods and events."],
-      ["examinerMira", "Examiner Mira", 704, 384, "#b089d6", "Evaluation and exam write-up."]
+      ["examinerMira", "Examiner Mira", 620, 384, "#b089d6", "Evaluation and exam write-up."]
     ],
     topics: [
       ["issue", "Choose The Issue", "plannerNoor2", "surveyorTess", "Ask Tess how to choose a real issue.", "A good issue is specific, researchable, linked to citizenship, and important to a community.", "A good active citizenship issue should be...", ["Specific, researchable, and relevant", "Impossible to investigate", "Only a joke"]],
@@ -1017,11 +1017,11 @@ const locationBlueprints = [
     travel: "Course complete",
     visual: { sky: "#6b5b8f", water: "#394d78", road: "#a79bb7", roofA: "#5c5470", roofB: "#394d78", roofC: "#6b5b8f", roofD: "#b98231" },
     npcs: [
-      ["examMira2", "Examiner Mira", 132, 218, "#b089d6", "Command words and mark schemes."],
+      ["examMira2", "Examiner Mira", 236, 218, "#b089d6", "Command words and mark schemes."],
       ["timeAsh", "Timekeeper Ash", 372, 292, "#d88c5a", "Timed practice."],
       ["sourceNia", "Source Keeper Nia", 664, 220, "#5da9e9", "Source reliability and usefulness."],
       ["coachLeon", "Debate Coach Leon", 356, 430, "#6fbf73", "Balanced arguments."],
-      ["scribePip", "Paragraph Scribe Pip", 704, 384, "#f2c14e", "PEEL paragraphs and evidence."]
+      ["scribePip", "Paragraph Scribe Pip", 620, 384, "#f2c14e", "PEEL paragraphs and evidence."]
     ],
     topics: [
       ["commandWords", "Command Word Corridor", "examMira2", "scribePip", "Ask Pip how explain differs from identify.", "Identify means name something; explain means give a developed reason or link.", "Explain questions need...", ["Developed reasons", "One-word labels only", "No links"]],
@@ -1196,14 +1196,14 @@ const signs = [
 const props = [
   { type: "barrel", x: 522, y: 510 },
   { type: "barrel", x: 686, y: 404 },
-  { type: "crate", x: 600, y: 390 },
-  { type: "crate", x: 628, y: 390 },
-  { type: "lamp", x: 512, y: 296 },
+  { type: "crate", x: 590, y: 528 },
+  { type: "crate", x: 622, y: 528 },
+  { type: "lamp", x: 548, y: 250 },
   { type: "lamp", x: 230, y: 182 },
-  { type: "flowers", x: 92, y: 202 },
+  { type: "flowers", x: 46, y: 218 },
   { type: "flowers", x: 630, y: 232 },
-  { type: "bench", x: 238, y: 338 },
-  { type: "bench", x: 570, y: 338 }
+  { type: "bench", x: 214, y: 520 },
+  { type: "bench", x: 570, y: 520 }
 ];
 
 function addKnowledge(amount) {

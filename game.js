@@ -1446,7 +1446,7 @@ function findInteractable() {
   const npc = npcs.find((person) => rectsNear(state.player, person));
   if (npc) return { type: "npc", item: npc };
   if (state.currentLocation === "examHall") {
-    const room = EXAM_PRACTICE_ROOMS.find((item) => rectsNear(state.player, { ...item, w: 24, h: 20 }, 44));
+    const room = EXAM_PRACTICE_ROOMS.find((item) => rectsNear(state.player, { ...item, w: 24, h: 20 }, 78));
     if (room) return { type: "examRoom", item: room };
   }
   const sign = signs.find((item) => rectsNear(state.player, { ...item, w: 20, h: 20 }, 38));
@@ -1883,7 +1883,7 @@ function interact() {
 
   const found = findInteractable();
   if (!found) {
-    showFloatingMessage("No one is close enough to talk to.");
+    showFloatingMessage(state.currentLocation === "examHall" ? "Stand on a gold practice mat and press E." : "No one is close enough to talk to.");
     return;
   }
   if (found.type === "sign") {
@@ -2333,12 +2333,22 @@ function drawExamPracticeRooms() {
   if (state.currentLocation !== "examHall") return;
   EXAM_PRACTICE_ROOMS.forEach((room) => {
     const done = state.examPracticeCompleted.has(room.id);
+    const accent = done ? "#6fbf73" : "#f2c14e";
+    rect(room.x - 12, room.y + 18, 48, 14, done ? "rgba(111,191,115,.24)" : "rgba(242,193,78,.28)");
+    rect(room.x - 12, room.y + 30, 48, 2, accent);
     rect(room.x - 2, room.y + 16, 28, 5, "rgba(0,0,0,.26)");
-    rect(room.x, room.y, 24, 18, done ? "#6fbf73" : "#f2c14e");
+    rect(room.x, room.y, 24, 18, accent);
     rect(room.x + 2, room.y + 2, 20, 14, "#2d2521");
-    rect(room.x + 5, room.y + 5, 14, 2, done ? "#6fbf73" : "#f2c14e");
+    rect(room.x + 5, room.y + 5, 14, 2, accent);
     rect(room.x + 5, room.y + 10, 10, 2, "#f5f0df");
     if (done) rect(room.x + 16, room.y + 10, 3, 3, "#f5f0df");
+    rect(room.x - 5, room.y - 18, 34, 14, "rgba(17,23,25,.9)");
+    ctx.strokeStyle = accent;
+    ctx.strokeRect(room.x - 5, room.y - 18, 34, 14);
+    ctx.fillStyle = "#f5f0df";
+    ctx.font = "10px Georgia";
+    ctx.textAlign = "center";
+    ctx.fillText("E", room.x + 12, room.y - 8);
   });
 }
 
@@ -2571,14 +2581,16 @@ function drawInteractionHint() {
   if (!found || activeQuestion || !dialogue.classList.contains("hidden")) return;
   const x = found.item.x + 12;
   const y = found.item.y - 24;
+  const label = found.type === "examRoom" ? "E Practice" : "E";
+  const width = found.type === "examRoom" ? 72 : 36;
   ctx.fillStyle = "#111719";
-  ctx.fillRect(x - 18, y - 14, 36, 20);
+  ctx.fillRect(x - width / 2, y - 14, width, 20);
   ctx.strokeStyle = "#f2c14e";
-  ctx.strokeRect(x - 18, y - 14, 36, 20);
+  ctx.strokeRect(x - width / 2, y - 14, width, 20);
   ctx.fillStyle = "#f5f0df";
   ctx.font = "13px Georgia";
   ctx.textAlign = "center";
-  ctx.fillText("E", x, y + 1);
+  ctx.fillText(label, x, y + 1);
 }
 
 function drawWorld() {

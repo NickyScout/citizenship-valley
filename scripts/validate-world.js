@@ -190,6 +190,17 @@ function propBounds(prop) {
   return { x: prop.x, y: prop.y, w: size.w, h: size.h };
 }
 
+function propTouchesTile(layout, prop, tile, logicalTile) {
+  const bounds = propBounds(prop);
+  const points = [
+    [bounds.x, bounds.y],
+    [bounds.x + bounds.w - 1, bounds.y],
+    [bounds.x, bounds.y + bounds.h - 1],
+    [bounds.x + bounds.w - 1, bounds.y + bounds.h - 1]
+  ];
+  return points.some(([x, y]) => tileAt(layout, x, y, logicalTile) === tile);
+}
+
 function validateWorld() {
   const data = loadGameData();
   const failures = [];
@@ -245,6 +256,10 @@ function validateWorld() {
     (location.npcs || []).forEach((npc) => {
       (npc.checks || []).forEach((check, index) => validateAnswerSet(failures, `${locationId} ${npc.id} check ${index + 1}`, check));
       if (!canReachInteractable(reachable, npc, NPC_INTERACTION_DISTANCE)) failures.push(`NPC ${locationId}:${npc.id} is not reachable from spawn.`);
+      const npcBox = { x: npc.x - 6, y: npc.y - 17, w: 36, h: 65 };
+      props.forEach((prop) => {
+        if (rectsOverlap(npcBox, propBounds(prop))) failures.push(`NPC ${locationId}:${npc.id} overlaps ${prop.type} at ${prop.x},${prop.y}.`);
+      });
     });
 
     if (locationId === "examHall") {
@@ -255,6 +270,11 @@ function validateWorld() {
     }
 
     state.currentLocation = locationId;
+    if (locationId === "village") {
+      props.forEach((prop) => {
+        if (propTouchesTile(layout, prop, "=", LOGICAL_TILE)) failures.push(`Village ${prop.type} at ${prop.x},${prop.y} sits on a road tile.`);
+      });
+    }
     (layout.buildings || []).forEach((building, index) => {
       const label = regionBuildingLabel(index);
       const signW = Math.max(54, label.length * 7);

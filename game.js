@@ -1195,13 +1195,13 @@ const signs = [
 
 const props = [
   { type: "barrel", x: 522, y: 510 },
-  { type: "barrel", x: 686, y: 404 },
+  { type: "barrel", x: 820, y: 400 },
   { type: "crate", x: 590, y: 528 },
   { type: "crate", x: 622, y: 528 },
-  { type: "lamp", x: 548, y: 250 },
-  { type: "lamp", x: 230, y: 182 },
-  { type: "flowers", x: 46, y: 218 },
-  { type: "flowers", x: 630, y: 232 },
+  { type: "lamp", x: 760, y: 232 },
+  { type: "lamp", x: 232, y: 96 },
+  { type: "flowers", x: 760, y: 96 },
+  { type: "flowers", x: 804, y: 232 },
   { type: "bench", x: 214, y: 520 },
   { type: "bench", x: 570, y: 520 }
 ];

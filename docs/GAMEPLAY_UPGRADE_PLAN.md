@@ -343,3 +343,541 @@
 3. После Фазы A — выпустить релиз и собрать обратную связь, прежде чем уходить в мини-игры.
 
 Документ живой: обновлять по мере выпуска фаз и появления решений.
+
+---
+
+## 16. Анализ текущей версии после внедрения фаз A-E
+
+Текущее состояние игры уже заметно ближе к полноценной RPG-структуре, чем исходный прототип. Реализованы базовый стартовый поток, кастомизация, Backpack, Progress Center, Character Panel, Story Beats, Apathy Shade, Exam Readiness и набор мини-игр. Сохранение расширено до `SAVE_VERSION = 5`, а основные системы уже связаны между собой через `state.profile`, `state.stats`, `state.achievements`, `state.storySeen`, `state.storyEnding` и `state.miniGameScores`.
+
+### 16.1 Что сейчас работает хорошо
+
+- У игры появилась понятная внешняя RPG-рамка: имя героя, уровень, XP, фокус, характеристики, шанс экзамена, инвентарь, прогресс и сюжетные сцены.
+- `Backpack` отделён от HUD и поддерживает слоты `Outfit` / `Hand`, что делает экипировку понятнее.
+- `Progress Center` уже объединяет Story, Quests, Buildings, Mini-games и Achievements.
+- Мини-игры доступны без ломки карты и старых квестов, дают награды и сохраняют лучшие результаты.
+- Сюжетный слой с Apathy Shade даёт игре цель и объясняет, зачем игрок проходит регионы.
+- Старые сейвы не должны ломаться: новые поля добавляются через `migrateSave`.
+- Developer travel menu сохранён, что важно для тестирования регионов.
+
+### 16.2 Главные слабые места текущей версии
+
+- Мини-игры пока воспринимаются как отдельное меню, а не как естественная часть мира. Их нужно привязать к NPC, зданиям и регионам.
+- Сюжетные сцены запускаются, но пока слабо завязаны на реальные решения игрока. Apathy Shade должен чаще реагировать на действия игрока.
+- Character/Stats уже работают, но баланс XP, Focus, Exam Readiness и наград ещё черновой.
+- Progress Center показывает много информации, но ему не хватает фильтров, подсказок «что делать дальше» и понятных статусов по curriculum-темам.
+- Предметы имеют мини-арт и действия, но у них пока мало игровых эффектов. Большинство предметов не меняют тактику прохождения.
+- Экономика простая: монеты выдаются, но тратить их почти некуда. Нужны торговцы и региональные товары.
+- Финал существует, но Exam Simulation пока не является настоящим финальным экзаменом с несколькими типами вопросов и оцениванием.
+- UI быстро разрастается: много overlay-панелей, поэтому нужна унификация поведения, закрытия, z-index и мобильной компоновки.
+- Нет автоматизированных UI-проверок для меню, сохранения, мини-игр и переходов между регионами.
+
+---
+
+## 17. Приоритетный backlog улучшений после Phase E
+
+### P0 — Исправить восприятие мини-игр как «оторванного меню»
+
+Цель: мини-игры должны запускаться из мира, а не только из HUD.
+
+1. Привязать мини-игры к конкретным NPC:
+  - `Source Detective` — Editor Vale в Modern Britain Borough.
+  - `Rights vs Responsibilities` — Advocate Farah или Judge Rowan в Rights & Law Quarter.
+  - `Ballot Count` — MP Rowan / Mayor Ada / Democracy Capital NPC.
+  - `Petition Regatta` — Participation Harbour NPC.
+  - `Debate Arena` — Democracy Capital и Action Workshop.
+  - `Campaign Planner` — Action Workshop.
+  - `Exam Simulation` — Exam Hall.
+2. Добавить кнопку `Mini-game` в NPC menu, если у NPC есть связанная игра.
+3. В `WORLD` или NPC-data добавить поле вроде `miniGameId`.
+4. В Progress → Mini-games показывать регион и NPC, у которого игра запускается.
+5. Для каждой мини-игры после первого прохождения добавить короткую реплику NPC с учебным выводом.
+
+### P0 — Сделать Exam Simulation настоящим финальным экзаменом
+
+Цель: финал должен ощущаться как кульминация, а не обычная мини-игра.
+
+Статус: реализован первый полноценный проход — Exam Simulation разделён на 5 секций, сохраняет section breakdown, показывает экран результата и влияет на Bronze/Silver/Gold ending вместе с Exam Readiness.
+
+1. Разделить Exam Simulation на 5 секций:
+  - Identify.
+  - Describe.
+  - Explain.
+  - Evaluate.
+  - Source.
+2. Для каждой секции использовать разные типы взаимодействия:
+  - выбор правильного пункта;
+  - сборка ответа из частей;
+  - выбор evidence;
+  - оценочное заключение;
+  - проверка reliability у источника.
+3. Финальную концовку определять не только `examChance`, но и фактическим score Exam Simulation.
+4. Добавить экран результата с breakdown по секциям.
+5. Сохранять лучший Exam Simulation score в `state.miniGameScores.examSimulation`.
+
+### P1 — Улучшить баланс RPG-статов и Focus
+
+Цель: характеристики должны быть полезными и понятными.
+
+1. Пересмотреть XP curve: сейчас уровень может расти слишком медленно или слишком быстро в зависимости от порядка прохождения.
+2. Сделать Focus расходуемым ресурсом для подсказок, повторных попыток или бонусов в мини-играх.
+3. Добавить отдых/восстановление Focus:
+  - через `Revision Tea`;
+  - через Study Stations;
+  - через безопасную зону в Village.
+4. Добавить tooltip/description для каждого стата в Character Panel.
+5. Показывать, как конкретный stat влияет на Exam Readiness.
+6. Дать игроку больше способов заработать `statPoints` или перераспределить их позднее.
+
+### P1 — Сделать предметы более игровыми
+
+Цель: предметы должны влиять на выбор игрока.
+
+1. Добавить `effect` к предметам:
+  - `Revision Tea`: +Focus.
+  - `Justice Quill`: бонус к Source/Evaluate вопросам.
+  - `Debate Blade`: бонус к Debate Arena.
+  - `Citizen Scroll`: открывает Story/Progress подсказку.
+  - `Notebook`: открывает Progress и показывает next objective.
+2. Добавить regional collectibles: `Civic Cards` по темам curriculum.
+3. Добавить `stackable` для consumables.
+4. Разделить предметы по категориям в Backpack: Quest / Consumable / Outfit / Tool / Collectible.
+5. В магазинах продавать не только текущие reward-items, но и полезные consumables.
+
+### P1 — Экономика и торговцы
+
+Цель: монеты должны иметь смысл.
+
+1. Назначить одному NPC в каждом регионе роль vendor.
+2. Добавить список товаров по региону:
+  - Village: Revision Tea, Notebook skins.
+  - Modern Britain: Source Lens.
+  - Rights & Law: Rights Card Pack.
+  - Democracy: Debate Cards.
+  - Participation: Petition Kit.
+  - Action Workshop: Campaign Toolkit.
+  - Exam Hall: Practice Pass / Focus items.
+3. Сделать покупку через отдельную shop-панель, а не только продажу через inventory buttons.
+4. Ограничить продажу quest items.
+5. Добавить баланс цен, чтобы монеты не копились без применения.
+
+### P1 — Углубить сюжетные решения
+
+Цель: Apathy Shade должен реагировать на выборы игрока.
+
+1. Ввести `state.storyFlags`, например:
+  - `challengedRumour`;
+  - `defendedRights`;
+  - `helpedVolunteer`;
+  - `usedEvidenceInDebate`.
+2. В мини-играх и ключевых квестах выставлять story flags.
+3. В cutscenes менять текст в зависимости от flags.
+4. Для Silver/Gold endings учитывать не только completion, но и story choices.
+5. Добавить 2-3 короткие «моральные развилки» без провала, но с разным акцентом наград.
+
+### P2 — Curriculum tracking как настоящий учебный прогресс
+
+Цель: Progress Center должен показывать, какие GCSE-темы изучены.
+
+1. В `curriculum.js` добавить поля:
+  - `area`;
+  - `difficulty`;
+  - `statBoosts`;
+  - `miniGameRefs`;
+  - `examSkill`.
+2. Квесты, Study Stations и мини-игры связать с curriculum topic id.
+3. Добавить Progress → Curriculum вкладку.
+4. Показывать процент изученности по областям:
+  - Democracy;
+  - Rights & Law;
+  - Modern Britain;
+  - Participation;
+  - Active Citizenship;
+  - Exam Skills.
+5. В конце мини-игры показывать, какие topic ids улучшились.
+
+### P2 — Улучшить UX меню и мобильную эргономику
+
+Цель: интерфейс должен оставаться удобным по мере роста систем.
+
+1. Сделать единый overlay manager:
+  - закрытие через Escape;
+  - единый backdrop click;
+  - запрет одновременного открытия нескольких панелей;
+  - единый z-index порядок.
+2. Вынести общие стили `menu-overlay`, `menu-panel`, tabs, cards в повторяемые классы.
+3. На мобильных экранах сделать HUD компактнее:
+  - collapsible sections;
+  - отдельные кнопки быстрого меню;
+  - скрывать длинные списки inventory/progress.
+4. Добавить Settings:
+  - large text;
+  - reduced motion;
+  - high contrast;
+  - reset save.
+5. Добавить явные подсказки при первом открытии каждого меню.
+
+### P2 — Улучшить визуальные ассеты
+
+Цель: игра должна выглядеть как цельный RPG-прототип, а не набор UI-заглушек.
+
+1. Заменить CSS-пиксельные item images на реальные маленькие PNG/WebP assets в `assets/items/`.
+2. Добавить портрет/силуэт Apathy Shade как отдельный asset.
+3. Добавить regional title cards для story scenes.
+4. Сделать hero customization визуально заметнее на canvas:
+  - разные hairstyles;
+  - разные outfit silhouettes;
+  - accent color на одежде, а не только поверхностная полоска.
+5. В mini-games добавить тематические визуальные элементы:
+  - newspaper cards;
+  - ballot slips;
+  - debate cards;
+  - campaign planning tiles.
+
+### P2 — QA и автоматизация
+
+Цель: ускорить безопасную разработку следующих фаз.
+
+1. Добавить локальный VM-check для save migration v1 → v5.
+2. Добавить проверку, что все overlay buttons имеют working handler или `data-*` action.
+3. Добавить проверку, что каждый `MINI_GAMES` entry имеет:
+  - title;
+  - region;
+  - reward;
+  - минимум 3 rounds;
+  - valid correct index.
+4. Добавить проверку, что каждый achievement id уникален.
+5. Добавить smoke-check для `renderProgressPanel`, `renderInventoryPanel`, `renderCharacterPanel`, `renderMiniGamePanel` через VM.
+6. Для UI-регрессий использовать Playwright хотя бы на 3 сценария:
+  - New Game → customization → start;
+  - open Backpack / Progress / Character / Mini-games;
+  - complete one mini-game.
+
+---
+
+## 18. Предлагаемые следующие фазы после E
+
+### Фаза F1 — Интеграция мини-игр в мир
+
+1. Добавить `miniGameId` NPC и/или зданиям.
+2. Добавить кнопку `Mini-game` в NPC menu.
+3. Показать на карте короткие маркеры/подсказки у NPC, у которых есть мини-игры.
+4. Обновить Progress → Mini-games, чтобы показывать «где найти» каждую игру.
+5. QA: пройти одну мини-игру из каждого региона через NPC.
+
+### Фаза F2 — Финальный Exam Simulation 2.0
+
+1. Разделить финал на 5 exam sections.
+2. Добавить итоговый score breakdown.
+3. Связать Bronze/Silver/Gold ending с score + readiness + story flags.
+4. Добавить New Game+ экран после финала.
+
+### Фаза F3 — Economy & Vendors
+
+1. Добавить vendor roles и shop panel.
+2. Добавить региональные товары и consumables.
+3. Настроить цены, sell rules и quest item locks.
+4. QA: купить/продать/использовать предмет без ломки inventory/equipment.
+
+### Фаза F4 — Curriculum Progress
+
+1. Обогатить `curriculum.js` topic metadata.
+2. Добавить Curriculum tab в Progress Center.
+3. Связать quests/stations/minigames с topic ids.
+4. Показывать readiness не только общей цифрой, но и по curriculum areas.
+
+### Фаза F5 — Accessibility, polish, release hardening
+
+1. Settings panel: large text, high contrast, reduced motion.
+2. Overlay manager и unified panel behavior.
+3. UI smoke tests.
+4. Финальная балансировка XP, Focus, монет и readiness.
+5. Обновить `docs/AI_HANDOFF.md` текущей архитектурой.
+
+---
+
+## 19. Рекомендуемый порядок ближайшей разработки
+
+1. **Mini-games in world** — самый важный шаг, потому что он превратит Phase E из меню в игровой контент.
+2. **Exam Simulation 2.0** — усилит финал и сделает концовки заслуженными.
+3. **Item effects + vendors** — даст смысл экономике и инвентарю.
+4. **Curriculum tracking** — усилит образовательную ценность и поможет игроку видеть подготовку к GCSE.
+5. **QA automation** — снизит риск регрессий перед дальнейшим расширением.
+
+Критерий успеха следующего крупного релиза: игрок должен пройти путь «регион → NPC → мини-игра → награда → прогресс curriculum/story» без необходимости открывать dev меню или угадывать, где находится новый контент.
+
+---
+
+## 20. Улучшения графики и визуальной читаемости
+
+Текущая графика уже работает как функциональный top-down прототип: игрок, NPC, здания, дороги, вода, двери и UI различимы. Следующий шаг — сделать мир более выразительным, чтобы локации запоминались визуально и игрок понимал, где он находится, куда идти и какие объекты важны.
+
+### 20.1 Общий визуальный стиль
+
+1. Зафиксировать style guide:
+  - размер тайла;
+  - палитры регионов;
+  - контраст интерактивных объектов;
+  - правила обводки предметов/NPC/дверей;
+  - набор UI-цветов для статусов: quest, mini-game, shop, story, exam.
+2. Уменьшить визуальную похожесть регионов: сейчас часть локаций отличается в основном цветом, но не силуэтом.
+3. Для каждого региона задать уникальный visual motif:
+  - Village: школа, noticeboard, civic square, деревенская зелень.
+  - Modern Britain: газетные киоски, карта UK, медиа-экран, multicultural market.
+  - Rights & Law: суд, весы правосудия, каменные арки, legal notice boards.
+  - Democracy: парламентские колонны, ballot booths, election posters, clock tower.
+  - Participation: harbour, лодки, petition stalls, volunteer banners.
+  - Action Workshop: campaign tables, planning boards, posters, survey boxes.
+  - Exam Hall: castle, exam desks, source archive, final gate.
+4. Заменить часть CSS/primitive-рисунков на реальные маленькие PNG/WebP assets в `assets/`:
+  - `assets/items/` для предметов;
+  - `assets/ui/` для иконок панелей;
+  - `assets/story/` для story title cards;
+  - `assets/props/` для региональных объектов.
+5. Сделать Apathy Shade узнаваемым визуальным символом:
+  - отдельный силуэт;
+  - появление в story scenes;
+  - слабые следы/тени в регионах, где сюжет ещё не решён.
+
+### 20.2 Персонаж и кастомизация
+
+1. Усилить различие пресетов персонажа:
+  - разные причёски;
+  - разные силуэты одежды;
+  - разные цвета обуви/рюкзака;
+  - заметный accent color на одежде.
+2. Добавить маленький портрет героя в HUD/Character Panel.
+3. Синхронизировать портрет и canvas-спрайт: выбранный preset должен быть узнаваем и в меню, и в мире.
+4. Сделать held item видимее:
+  - `Justice Quill` должен выглядеть как перо;
+  - `Debate Blade` как церемониальный аргумент-инструмент;
+  - future tools должны иметь отдельный силуэт в руке.
+5. Добавить простые idle/walk варианты:
+  - лёгкое покачивание рюкзака;
+  - маленькое движение hair/accessory;
+  - визуальный highlight при interaction range.
+
+### 20.3 Предметы и инвентарь
+
+1. Перейти от CSS-пиксельных миниатюр к asset-based иконкам:
+  - единый размер, например 32x32 или 48x48;
+  - прозрачный фон;
+  - 1–2 пикселя обводки;
+  - единая перспектива.
+2. Для каждой категории предметов добавить цветовую рамку:
+  - quest — gold;
+  - consumable — green;
+  - outfit — blue;
+  - tool — silver;
+  - collectible — teal/purple.
+3. В Backpack показывать выбранный предмет крупнее справа с описанием и эффектами.
+4. Добавить lock/unsellable marker для quest items.
+5. В будущем добавить drag-and-drop или быстрый equip, но только после стабилизации кликов на mobile.
+
+### 20.4 Story и mini-game визуалы
+
+1. Для story scenes сделать regional title cards:
+  - фон региона;
+  - Apathy Shade;
+  - ключевой объект региона;
+  - название акта.
+2. Для мини-игр добавить тематические визуальные компоненты:
+  - Source Detective: карточки газетных заголовков, reliable/unreliable stamps.
+  - Rights Match: пары карточек rights/responsibilities.
+  - Petition Regatta: маленькая карта гавани и лодка.
+  - Ballot Count: ballot slips и counting table.
+  - Debate Arena: карточки Argument/Evidence/Rebuttal/Empathy.
+  - Campaign Planner: board с шагами Research → Plan → Action → Evaluate.
+  - Exam Simulation: exam paper, source extract, answer planner.
+3. Мини-игры должны отличаться не только текстом, но и layout-паттерном.
+4. В конце мини-игры показывать medal screen с визуальной наградой.
+
+---
+
+## 21. Улучшения расположения объектов и дизайна локаций
+
+### 21.1 Принципы построения локаций
+
+1. Каждая локация должна иметь центральный ориентир, видимый почти сразу после входа:
+  - Village: civic square / noticeboard.
+  - Modern Britain: media plaza.
+  - Rights & Law: court square.
+  - Democracy: parliament steps.
+  - Participation: harbour pier.
+  - Action Workshop: campaign board.
+  - Exam Hall: castle gate.
+2. Вход игрока должен направлять взгляд к первому NPC или центральному объекту.
+3. Важные здания должны стоять вдоль понятного маршрута, а не случайно по краям карты.
+4. Между зданием, NPC и мини-игрой должна быть визуальная связь:
+  - NPC стоит рядом с тематическим объектом;
+  - возле NPC есть prop, который намекает на тему;
+  - вход в здание находится в зоне, куда естественно ведёт дорога.
+5. Каждый регион должен поддерживать цикл: spawn → landmark → NPC cluster → building/interior → travel gate.
+
+### 21.2 Улучшение дорог и навигации
+
+1. Сделать дороги более читаемыми:
+  - главная дорога от spawn к центральной площади;
+  - вторичные дорожки к зданиям;
+  - визуальное отличие bridge/pier/courtyard.
+2. Добавить signposts у развилок:
+  - `Town Hall`;
+  - `Library`;
+  - `Court`;
+  - `Harbour`;
+  - `Exam Hall`;
+  - `Travel Gate`.
+3. Добавить мини-таблички около зданий, но следить, чтобы текст не перекрывал двери/NPC.
+4. На Travel Gate поставить уникальный prop в каждом регионе:
+  - train sign;
+  - underground arch;
+  - clock lift;
+  - campaign boat;
+  - workshop path;
+  - castle bridge.
+5. В HUD/Progress добавить подсказку `Next place to go`, привязанную к текущему story/quest state.
+
+### 21.3 Расстановка NPC
+
+1. У каждого NPC должна быть роль в пространстве:
+  - quest giver у тематического здания;
+  - mini-game NPC рядом с интерактивной зоной;
+  - vendor у stall/shop;
+  - story NPC у landmark.
+2. Избегать NPC, стоящих слишком близко к дверям, travel gate и study stations.
+3. Группировать NPC по 2–3 вокруг тем, но оставлять проходы шириной минимум 1–2 player-width.
+4. Добавить idle-facing direction, чтобы NPC смотрел на площадь/дорогу/игрока, а не в стену.
+5. Для NPC с мини-игрой добавить маленький marker над головой или рядом (`!`, card icon, dice icon), но не перегружать экран.
+
+### 21.4 Расстановка зданий и интерьеров
+
+1. Проверить все здания на «понятность входа»: дверь должна быть на стороне, куда подходит дорога.
+2. У каждого building entrance добавить 1–2 props, объясняющих назначение:
+  - Town Hall: noticeboard, flags.
+  - Library: books cart, reading sign.
+  - Court: scales, stone sign.
+  - Campaign Hub: posters, clipboard.
+3. Интерьеры сейчас функциональны, но их можно сделать тематически разными:
+  - Town Hall Interior: desks, council board.
+  - Library Interior: shelves, source table.
+  - Court Interior: judge bench, witness stand.
+  - Park Action Hub: planning table, campaign posters.
+4. Study stations внутри зданий должны располагаться как маленький маршрут, а не как набор точек.
+5. Exit door всегда должен быть заметен и не перекрываться panel prompts.
+
+### 21.5 Связность регионов
+
+1. Сейчас регионы связаны через travel gate и `location.next`; это работает, но ощущается линейно. Нужно сделать связность более «картой мира».
+2. Добавить World Map panel:
+  - список регионов;
+  - locked/unlocked/completed status;
+  - быстрый travel только для уже unlocked регионов;
+  - подсказка, почему следующий регион locked.
+3. Сделать travel gate визуально связанным с destination:
+  - перед поездкой показывать destination card;
+  - после открытия региона добавлять marker в Progress/Map.
+4. Позволить возвращаться в предыдущие регионы не только через dev menu:
+  - public travel menu;
+  - map-based fast travel;
+  - unlock after completing gate questions.
+5. Добавить региональные completion states:
+  - `visited`;
+  - `questsComplete`;
+  - `studyComplete`;
+  - `miniGameMedal`;
+  - `storyBeatSeen`.
+
+### 21.6 Плотность объектов и читаемость карты
+
+1. Избегать пустых больших зон, но не заполнять всё props.
+2. Для каждой локации задать зоны:
+  - safe spawn;
+  - central hub;
+  - learning buildings;
+  - NPC cluster;
+  - mini-game area;
+  - travel edge.
+3. Props должны направлять движение, а не блокировать его.
+4. Вода/деревья/стены должны создавать границы, но не ловушки.
+5. Проверять, что игрок может обойти все decorative objects и не застревает в углах.
+
+---
+
+## 22. Практический план переработки карты и графики
+
+### Map Phase 1 — Audit и карта связности
+
+1. Составить таблицу всех локаций:
+  - spawn;
+  - main landmark;
+  - NPC positions;
+  - building doors;
+  - travel gate;
+  - mini-game trigger;
+  - blocked zones.
+2. Написать/расширить VM-check:
+  - reachable spawn;
+  - reachable NPCs;
+  - reachable doors;
+  - reachable mini-game triggers;
+  - no NPC-door conflicts;
+  - no prompt overlap near important objects.
+3. Для каждой локации сделать простую ASCII/JSON-схему зон.
+
+### Map Phase 2 — Перекомпозиция регионов
+
+1. Переставить NPC и props так, чтобы появился маршрут от spawn к landmark.
+2. Добавить региональные landmarks и signposts.
+3. Уточнить дороги и подходы к дверям.
+4. Добавить thematic props около NPC/зданий.
+5. Проверить desktop/mobile визуально.
+
+### Map Phase 3 — Интеграция мини-игр в локации
+
+1. Добавить mini-game trigger props:
+  - newspaper stand;
+  - rights card table;
+  - petition boat;
+  - ballot table;
+  - debate podium;
+  - campaign planning board;
+  - exam desk.
+2. Привязать trigger props к `MINI_GAMES`.
+3. Добавить маркеры «new / completed / medal» около trigger props.
+4. В Progress → Mini-games показывать location hint и completion marker.
+
+### Map Phase 4 — Asset pass
+
+1. Создать `assets/items/`, `assets/props/region/`, `assets/story/`.
+2. Перевести самые заметные CSS-рисунки в изображения:
+  - item icons;
+  - Apathy Shade;
+  - regional landmarks;
+  - mini-game cards.
+3. Добавить fallback на CSS/primitive drawing, если asset не загрузился.
+4. Проверить размер bundle: игра должна оставаться лёгкой для Static Web Apps.
+
+### Map Phase 5 — QA маршрутов
+
+1. Для каждой локации пройти вручную:
+  - spawn → first NPC;
+  - spawn → every building door;
+  - spawn → mini-game trigger;
+  - spawn → travel gate;
+  - travel gate → next region;
+  - return to previous region.
+2. Прогнать automated checks.
+3. Сделать скриншоты desktop и mobile.
+4. Исправить overlap labels/prompts.
+5. После проверки обновить `docs/AI_HANDOFF.md` с новой структурой карты.
+
+### Критерий успеха графико-карточного релиза
+
+Игрок должен по одному взгляду понимать:
+
+- какой это регион;
+- где главный путь;
+- кто важный NPC;
+- где здание/мини-игра/travel gate;
+- какие области уже пройдены;
+- куда идти дальше без открытия dev menu.

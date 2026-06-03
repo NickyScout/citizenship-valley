@@ -8,14 +8,14 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Citizenship Valley</title>
-    <link rel="stylesheet" href="styles.css?v=2026.05.23.9">
+    <link rel="stylesheet" href="styles.css?v=2026.06.03.2">
 </head>
 
-<body data-app-version="2026.05.23.9">
+<body data-app-version="2026.06.03.2">
     <main class="game-shell">
         <section class="stage" aria-label="Citizenship Valley game">
             <canvas id="game" width="1280" height="768"></canvas>
-            <div id="appVersion" class="app-version" aria-label="App version">v2026.05.23.9</div>
+            <div id="appVersion" class="app-version" aria-label="App version">v2026.06.03.2</div>
             <div id="titleScreen" class="intro-overlay hidden" aria-label="Title screen">
                 <div class="intro-card">
                     <h2 class="intro-title">Citizenship Valley</h2>
@@ -151,6 +151,27 @@
                     <div id="characterPanelBody" class="character-layout"></div>
                 </div>
             </div>
+            <div id="storyPanel" class="story-overlay hidden" role="dialog" aria-modal="true"
+                aria-labelledby="storyPanelTitle">
+                <div class="story-card">
+                    <div id="storyPanelBody" class="story-card-body"></div>
+                    <button id="storyContinueButton" class="intro-btn intro-btn-primary" type="button">Continue</button>
+                </div>
+            </div>
+            <div id="miniGamePanel" class="menu-overlay hidden" role="dialog" aria-modal="true"
+                aria-labelledby="miniGamePanelTitle">
+                <div class="menu-panel minigame-panel">
+                    <div class="menu-panel-header">
+                        <div>
+                            <h2 id="miniGamePanelTitle">Mini-game</h2>
+                            <p>Short citizenship challenges with rewards.</p>
+                        </div>
+                        <button id="miniGameCloseButton" class="icon-close-button" type="button"
+                            aria-label="Close mini-game">×</button>
+                    </div>
+                    <div id="miniGamePanelBody" class="minigame-layout"></div>
+                </div>
+            </div>
             <div id="dialogue" class="dialogue hidden" aria-live="polite"></div>
             <div id="choicePanel" class="choice-panel hidden"></div>
             <div id="touchControls" class="touch-controls" aria-label="Touch controls">
@@ -214,6 +235,7 @@
                 <h2>Current Quest</h2>
                 <p id="questText">Talk to the Mayor outside Town Hall.</p>
                 <button id="progressOpenButton" class="reset-button" type="button">Open Progress</button>
+                <button id="miniGameOpenButton" class="reset-button" type="button">Open Mini-games</button>
             </div>
 
             <div class="inventory">
@@ -264,6 +286,7 @@
                 <p><kbd>I</kbd> open backpack</p>
                 <p><kbd>P</kbd> open progress</p>
                 <p><kbd>C</kbd> open character</p>
+                <p><kbd>G</kbd> open mini-games</p>
                 <p><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> answer</p>
                 <p><kbd>R</kbd> reset saved progress</p>
                 <p>Use item buttons in the inventory.</p>
@@ -272,8 +295,8 @@
         </aside>
     </main>
 
-    <script src="curriculum.js?v=2026.05.23.9"></script>
-    <script src="game.js?v=2026.05.23.9"></script>
+    <script src="curriculum.js?v=2026.06.03.2"></script>
+    <script src="game.js?v=2026.06.03.2"></script>
 </body>
 
 </html>

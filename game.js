@@ -23,6 +23,13 @@ const characterOpenButton = document.getElementById("characterOpenButton");
 const characterPanel = document.getElementById("characterPanel");
 const characterPanelBody = document.getElementById("characterPanelBody");
 const characterCloseButton = document.getElementById("characterCloseButton");
+const storyPanel = document.getElementById("storyPanel");
+const storyPanelBody = document.getElementById("storyPanelBody");
+const storyContinueButton = document.getElementById("storyContinueButton");
+const miniGameOpenButton = document.getElementById("miniGameOpenButton");
+const miniGamePanel = document.getElementById("miniGamePanel");
+const miniGamePanelBody = document.getElementById("miniGamePanelBody");
+const miniGameCloseButton = document.getElementById("miniGameCloseButton");
 const focusText = document.getElementById("focusText");
 const focusBar = document.getElementById("focusBar");
 const xpText = document.getElementById("xpText");
@@ -43,7 +50,7 @@ const RENDER_SCALE = TILE / LOGICAL_TILE;
 const VIEW_W = canvas.width / RENDER_SCALE;
 const VIEW_H = canvas.height / RENDER_SCALE;
 const SAVE_KEY = "citizenshipValleySaveV1";
-const SAVE_VERSION = 3;
+const SAVE_VERSION = 5;
 const keys = new Set();
 let activeNpc = null;
 let activeQuestion = null;
@@ -53,6 +60,7 @@ let messageTimer = 0;
 let saveReady = false;
 let gameStarted = false;
 let currentProgressTab = "story";
+let activeMiniGame = null;
 
 const ACCENT_COLORS = {
   ember: "#e36b5d",
@@ -69,6 +77,180 @@ const STAT_LABELS = {
   integrity: "Integrity"
 };
 const MAX_LEVEL = 10;
+
+const STORY_BEATS = {
+  intro: {
+    act: 1,
+    title: "The Citizen Scroll Awakens",
+    region: "Citizenship Village",
+    villain: "Apathy Shade",
+    body: "A cold hush moves over the village noticeboard. The Citizen Scroll glows in your backpack: the valley is losing its sparks of participation, and the Exam Hall Castle will not open for passive citizens.",
+    objective: "Speak to local citizens, complete quests, and collect sparks by proving that rights, responsibilities, and evidence still matter."
+  },
+  modernBritain: {
+    act: 2,
+    title: "Headlines in the Fog",
+    region: "Modern Britain Borough",
+    villain: "Apathy Shade",
+    body: "The Shade spreads rumours through headlines and half-truths. People stop checking sources, and the borough forgets how shared values can hold diverse communities together.",
+    objective: "Use evidence, source-checking, and balanced answers to weaken the fog."
+  },
+  rightsLaw: {
+    act: 3,
+    title: "The Silent Court",
+    region: "Rights & Law Quarter",
+    villain: "Apathy Shade",
+    body: "In the court square, the Shade whispers that rights are only words on paper. Witnesses hesitate, and responsibility begins to look optional.",
+    objective: "Defend rights by linking them to fairness, law, safeguards, and accountability."
+  },
+  democracy: {
+    act: 4,
+    title: "Empty Ballot Hall",
+    region: "Democracy Capital",
+    villain: "Apathy Shade",
+    body: "The debate lights dim. The Shade wants citizens to believe that voting, scrutiny, Parliament, and local representation do not matter.",
+    objective: "Win arguments with evidence and show why democratic participation changes decisions."
+  },
+  participation: {
+    act: 5,
+    title: "Harbour of Unsent Petitions",
+    region: "Participation Harbour",
+    villain: "Apathy Shade",
+    body: "Petitions drift unfinished in the harbour. The Shade feeds on people saying somebody else will act.",
+    objective: "Organise informed action, gather support, and prove that active citizenship is practical."
+  },
+  actionWorkshop: {
+    act: 6,
+    title: "Workshop Against Apathy",
+    region: "Action Workshop",
+    villain: "Apathy Shade",
+    body: "Plans, surveys, and campaign posters lie scattered. The Shade can only be cornered by careful research, a clear plan, action, and evaluation.",
+    objective: "Prepare a campaign sequence strong enough to reach the Exam Hall Castle."
+  },
+  examHall: {
+    act: 7,
+    title: "The Exam Hall Castle Opens",
+    region: "Exam Hall Castle",
+    villain: "Apathy Shade",
+    body: "The castle doors unlock, but the Shade waits beside the exam desk. It cannot answer for you; it can only hope you have not revised the links between knowledge, argument, empathy, and integrity.",
+    objective: "Complete practice rooms, raise Exam Readiness, then face the ending."
+  }
+};
+
+const STORY_ENDINGS = {
+  bronze: {
+    title: "Bronze Citizen",
+    body: "You pass the final challenge by remembering the essentials: citizens have rights, responsibilities, and routes to take action. The Shade retreats from the village, but a few sparks still wait to be restored."
+  },
+  silver: {
+    title: "Silver Citizen",
+    body: "Your answers connect evidence, fairness, democracy, and participation. The valley's regions relight, and the Shade loses its hold over most citizens."
+  },
+  gold: {
+    title: "Gold Citizen",
+    body: "You bring every spark together: knowledge, rhetoric, empathy, integrity, and action. The Apathy Shade dissolves at the Exam Hall doors, and Citizenship Valley becomes a living revision map."
+  }
+};
+
+const MINI_GAMES = {
+  sourceDetective: {
+    title: "Source Detective",
+    region: "Modern Britain",
+    summary: "Judge whether media claims are reliable before the Apathy Shade spreads them.",
+    reward: { coins: 10, xp: 14, integrity: 2, knowledge: 1 },
+    rounds: [
+      { prompt: "A headline quotes named ONS data and links to the full report.", choices: ["Reliable", "Unreliable"], correct: 0, explain: "Named data and a checkable source make it stronger." },
+      { prompt: "A post says 'everyone knows migrants cause every local problem' with no evidence.", choices: ["Reliable", "Unreliable"], correct: 1, explain: "Sweeping claims without evidence are weak." },
+      { prompt: "An article separates facts, opinion, and named expert comment.", choices: ["Reliable", "Unreliable"], correct: 0, explain: "Clear separation helps citizens judge the claim." },
+      { prompt: "A viral image has no date, no author, and asks you to share immediately.", choices: ["Reliable", "Unreliable"], correct: 1, explain: "Missing context and pressure to share are warning signs." }
+    ]
+  },
+  rightsMatch: {
+    title: "Rights vs Responsibilities",
+    region: "Rights & Law",
+    summary: "Match each right with the civic responsibility that keeps it meaningful.",
+    reward: { coins: 10, xp: 14, empathy: 2, knowledge: 1 },
+    rounds: [
+      { prompt: "Freedom of expression works best when citizens...", choices: ["Listen and avoid harassment", "Silence opponents", "Ignore evidence"], correct: 0, explain: "Rights are protected alongside responsibilities to others." },
+      { prompt: "The right to vote connects with the responsibility to...", choices: ["Stay informed", "Sell your vote", "Avoid all debate"], correct: 0, explain: "Informed voting strengthens democracy." },
+      { prompt: "The right to a fair trial depends on...", choices: ["Independent courts", "Trial by rumour", "Secret punishments"], correct: 0, explain: "Fair processes protect everyone." },
+      { prompt: "Equality law asks citizens to...", choices: ["Challenge discrimination", "Treat stereotypes as facts", "Ignore unfairness"], correct: 0, explain: "Citizenship includes respect and fairness." }
+    ]
+  },
+  petitionRegatta: {
+    title: "Petition Regatta",
+    region: "Participation Harbour",
+    summary: "Steer a campaign boat toward signatures and away from misinformation.",
+    reward: { coins: 12, xp: 16, rhetoric: 2, empathy: 1 },
+    rounds: [
+      { prompt: "A resident asks what the petition wants. You choose...", choices: ["A clear, specific ask", "A vague slogan", "No explanation"], correct: 0, explain: "Good petitions have clear aims." },
+      { prompt: "A red rumour floats by. You...", choices: ["Check evidence first", "Repeat it loudly", "Hide the source"], correct: 0, explain: "Campaigns need integrity." },
+      { prompt: "Volunteers need a safe route. You...", choices: ["Plan roles and timing", "Send everyone randomly", "Ignore accessibility"], correct: 0, explain: "Organisation makes participation practical." },
+      { prompt: "After collecting signatures, the best next step is...", choices: ["Submit and follow up", "Throw them away", "Stop communicating"], correct: 0, explain: "Active citizenship follows through." }
+    ]
+  },
+  ballotCount: {
+    title: "Ballot Count",
+    region: "Democracy Capital",
+    summary: "Count First Past the Post results and identify the winning candidate.",
+    reward: { coins: 10, xp: 14, knowledge: 1, integrity: 2 },
+    rounds: [
+      { prompt: "Asha 12, Ben 9, Cara 7. Who wins?", choices: ["Asha", "Ben", "Cara"], correct: 0, explain: "FPTP awards the seat to the most votes." },
+      { prompt: "Red 21, Blue 21, Green 19. What is the issue?", choices: ["Tie for first", "Green wins", "No votes counted"], correct: 0, explain: "A tie needs a local tie-break process." },
+      { prompt: "A ballot marks two candidates when only one is allowed. It is usually...", choices: ["Rejected/spoiled", "Counted twice", "Given to the mayor"], correct: 0, explain: "Invalid ballots are separated in a count." },
+      { prompt: "Why do observers watch counts?", choices: ["Transparency", "To change votes", "To stop reporting"], correct: 0, explain: "Observation supports trust and accountability." }
+    ]
+  },
+  debateArena: {
+    title: "Debate Arena",
+    region: "Democracy / Action Workshop",
+    summary: "Play the best debate card for each round against the Shade's weak arguments.",
+    reward: { coins: 12, xp: 18, rhetoric: 3, empathy: 1 },
+    rounds: [
+      { prompt: "Opponent: 'Young people should never be heard.'", choices: ["Evidence", "Insult", "Silence"], correct: 0, explain: "Evidence beats dismissal." },
+      { prompt: "Opponent uses a stereotype about a group.", choices: ["Empathy and rights", "Copy the stereotype", "Avoid the issue"], correct: 0, explain: "Empathy protects fair debate." },
+      { prompt: "Opponent ignores your source.", choices: ["Rebuttal", "Personal attack", "Give up"], correct: 0, explain: "A rebuttal explains why evidence matters." },
+      { prompt: "Final round needs a balanced conclusion.", choices: ["Judgement", "Slogan only", "New rumour"], correct: 0, explain: "Strong answers make a supported judgement." }
+    ]
+  },
+  campaignPlanner: {
+    title: "Campaign Planner",
+    region: "Action Workshop",
+    summary: "Put an active citizenship campaign into the right order.",
+    reward: { coins: 12, xp: 18, rhetoric: 2, integrity: 1, knowledge: 1 },
+    rounds: [
+      { prompt: "First step of a campaign", choices: ["Research", "Evaluate", "Celebrate"], correct: 0, explain: "Research defines the issue." },
+      { prompt: "After research, citizens should...", choices: ["Plan", "Forget the evidence", "Publish results before acting"], correct: 0, explain: "Planning turns evidence into action." },
+      { prompt: "The campaign then needs...", choices: ["Action", "Silence", "A hidden goal"], correct: 0, explain: "Action is the participation stage." },
+      { prompt: "The final step is...", choices: ["Evaluate impact", "Ignore outcomes", "Delete notes"], correct: 0, explain: "Evaluation shows what changed." }
+    ]
+  },
+  examSimulation: {
+    title: "Exam Simulation",
+    region: "Exam Hall",
+    summary: "Sit the final five-section GCSE challenge: identify, describe, explain, evaluate, source.",
+    isFinalExam: true,
+    reward: { coins: 16, xp: 22, knowledge: 3, integrity: 2, rhetoric: 1 },
+    rounds: [
+      { section: "Identify", task: "Select the precise point", prompt: "A one-mark identify question asks: Name one way citizens can participate in democracy.", choices: ["Voting in an election", "Writing every detail you know", "Ignoring political decisions"], correct: 0, explain: "Identify needs one clear, accurate point." },
+      { section: "Describe", task: "Choose the developed detail", prompt: "Which sentence best describes how a petition can influence decision-makers?", choices: ["It shows public support for a clear request and can be sent to the right authority.", "Petitions exist.", "A petition always instantly changes the law."], correct: 0, explain: "Describe answers add relevant detail without exaggerating." },
+      { section: "Explain", task: "Link cause and effect", prompt: "Why can a free press support democracy?", choices: ["It informs citizens and can hold power to account, so voters can make better judgements.", "It prints words on paper.", "It means every article is automatically unbiased."], correct: 0, explain: "Explain answers show how or why one idea leads to another." },
+      { section: "Evaluate", task: "Make a balanced judgement", prompt: "Which conclusion best evaluates whether peaceful protest is useful?", choices: ["It can raise awareness and pressure leaders, but impact depends on evidence, public support, and lawful methods.", "It is always useless.", "It is always successful whatever happens."], correct: 0, explain: "Evaluate answers weigh strengths, limits, and reach a supported judgement." },
+      { section: "Source", task: "Judge reliability", prompt: "A social post makes a dramatic claim about migration but has no author, date, data, or source link. What should you do first?", choices: ["Treat it cautiously and check origin, purpose, evidence, and accuracy.", "Share it because it sounds urgent.", "Assume it is reliable because it is short."], correct: 0, explain: "Source questions start by checking origin, purpose, content, accuracy, and relevance." }
+    ]
+  }
+};
+
+const MINI_GAME_NPC_LINKS = {
+  editorVale: { miniGameId: "sourceDetective", conclusion: "Check the source, evidence, and purpose before you share. That is how citizens weaken rumour." },
+  advocateFarah: { miniGameId: "rightsMatch", conclusion: "Rights work best when citizens also protect fairness and responsibilities for others." },
+  officerJune: { miniGameId: "ballotCount", conclusion: "Transparent counting helps voters trust the result, even when the race is close." },
+  campaignPriya2: { miniGameId: "petitionRegatta", conclusion: "A clear demand, evidence, and follow-up turn signatures into action." },
+  managerSol: { miniGameId: "debateArena", conclusion: "Strong debate uses evidence and rebuttal instead of slogans or personal attacks." },
+  coachLeon: { miniGameId: "debateArena", conclusion: "A balanced argument should answer the other side and finish with a supported judgement." },
+  plannerNoor2: { miniGameId: "campaignPlanner", conclusion: "Research, plan, action, and evaluation make an active citizenship project credible." },
+  examMira2: { miniGameId: "examSimulation", conclusion: "Command words are your route map: identify, describe, explain, evaluate, then check sources." }
+};
 
 const PROFILE_PRESETS = [
   { id: "boySchool", label: "Schoolboy", gender: "boy", outfit: "schoolJumper", accent: "ember" },
@@ -93,7 +275,14 @@ const ACHIEVEMENTS = [
   { id: "toolBearer", name: "Tool Bearer", description: "Equip a tool in your hand." },
   { id: "wellPrepared", name: "Well Prepared", description: "Reach 25 knowledge." },
   { id: "civicSaver", name: "Civic Saver", description: "Hold 50 coins at once." },
-  { id: "fullPractice", name: "Practice Champion", description: "Complete all Exam Hall practice rooms." }
+  { id: "fullPractice", name: "Practice Champion", description: "Complete all Exam Hall practice rooms." },
+  { id: "sourceDetective", name: "Source Detective", description: "Earn a medal in Source Detective." },
+  { id: "rightsMatcher", name: "Rights Matcher", description: "Earn a medal in Rights vs Responsibilities." },
+  { id: "petitionPilot", name: "Petition Pilot", description: "Earn a medal in Petition Regatta." },
+  { id: "ballotCounter", name: "Ballot Counter", description: "Earn a medal in Ballot Count." },
+  { id: "debateChampion", name: "Debate Champion", description: "Earn a medal in Debate Arena." },
+  { id: "campaignPlanner", name: "Campaign Planner", description: "Earn a medal in Campaign Planner." },
+  { id: "examSimulator", name: "Exam Simulator", description: "Earn a medal in Exam Simulation." }
 ];
 
 function defaultProfile() {
@@ -188,7 +377,7 @@ function awardStats(reward = {}) {
 
 function statRewardForRegion(locationId) {
   const rewards = {
-    village: { empathy: 1, integrity: 1, xp: 10 },
+    village: { empathy: 1, integrity: 1, rhetoric: 1, xp: 4 },
     modernBritain: { integrity: 2, empathy: 1, xp: 12 },
     rightsLaw: { integrity: 2, empathy: 1, xp: 12 },
     democracy: { rhetoric: 2, integrity: 1, xp: 12 },
@@ -201,6 +390,12 @@ function statRewardForRegion(locationId) {
     parkInterior: { rhetoric: 1, empathy: 1, xp: 6 }
   };
   return rewards[locationId] || { knowledge: 1, xp: 6 };
+}
+
+function questCoinReward(reward, locationId) {
+  const base = Number(reward?.coins) || 0;
+  const multiplier = locationId === "village" ? 0.35 : 0.65;
+  return Math.max(base ? 2 : 0, Math.round(base * multiplier));
 }
 
 function allocateStat(stat) {
@@ -224,6 +419,10 @@ const state = {
   completedStudyStations: new Set(),
   examPracticeCompleted: new Set(),
   achievements: new Set(),
+  miniGameScores: {},
+  storyAct: 1,
+  storySeen: new Set(),
+  storyEnding: null,
   currentLocation: "village",
   unlockedLocations: new Set(["village"]),
   pendingGate: null,
@@ -260,6 +459,10 @@ function serializeGame() {
     completedStudyStations: [...state.completedStudyStations],
     examPracticeCompleted: [...state.examPracticeCompleted],
     achievements: [...state.achievements],
+    miniGameScores: state.miniGameScores,
+    storyAct: state.storyAct,
+    storySeen: [...state.storySeen],
+    storyEnding: state.storyEnding,
     currentLocation: state.currentLocation,
     unlockedLocations: [...state.unlockedLocations],
     pendingGate: state.pendingGate,
@@ -297,6 +500,16 @@ function migrateSave(raw) {
       });
     }
     data.saveVersion = 3;
+  }
+  if (data.saveVersion < 4) {
+    data.storyAct = Number.isFinite(data.storyAct) ? data.storyAct : 1;
+    data.storySeen = Array.isArray(data.storySeen) ? data.storySeen : [];
+    data.storyEnding = data.storyEnding || null;
+    data.saveVersion = 4;
+  }
+  if (data.saveVersion < 5) {
+    data.miniGameScores = data.miniGameScores && typeof data.miniGameScores === "object" ? data.miniGameScores : {};
+    data.saveVersion = 5;
   }
   return data;
 }
@@ -343,6 +556,10 @@ function loadGame() {
     state.completedStudyStations = new Set(Array.isArray(saved.completedStudyStations) ? saved.completedStudyStations : []);
     state.examPracticeCompleted = new Set(Array.isArray(saved.examPracticeCompleted) ? saved.examPracticeCompleted : []);
     state.achievements = new Set(Array.isArray(saved.achievements) ? saved.achievements.filter((id) => ACHIEVEMENTS.some((achievement) => achievement.id === id)) : []);
+    state.miniGameScores = saved.miniGameScores && typeof saved.miniGameScores === "object" ? saved.miniGameScores : {};
+    state.storyAct = Number(saved.storyAct) || 1;
+    state.storySeen = new Set(Array.isArray(saved.storySeen) ? saved.storySeen.filter((id) => STORY_BEATS[id] || STORY_ENDINGS[id]) : []);
+    state.storyEnding = saved.storyEnding || null;
     state.unlockedLocations = new Set(Array.isArray(saved.unlockedLocations) ? saved.unlockedLocations : ["village"]);
     state.pendingGate = saved.pendingGate || null;
     state.lastDoorReturn = saved.lastDoorReturn && WORLD_LAYOUTS[saved.lastDoorReturn.from]
@@ -397,6 +614,10 @@ function resetGame(options = {}) {
   state.completedStudyStations = new Set();
   state.examPracticeCompleted = new Set();
   state.achievements = new Set();
+  state.miniGameScores = {};
+  state.storyAct = 1;
+  state.storySeen = new Set();
+  state.storyEnding = null;
   state.unlockedLocations = new Set(["village"]);
   state.activeQuest = null;
   state.pendingGate = null;
@@ -760,8 +981,8 @@ const EXAM_PRACTICE_ROOMS = [
     id: "identify",
     label: "Identify",
     title: "Identify Room",
-    x: 426,
-    y: 222,
+    x: 286,
+    y: 286,
     question: "Identify one way citizens can take part in democracy between general elections.",
     plan: [
       "Name one clear method of participation.",
@@ -774,8 +995,8 @@ const EXAM_PRACTICE_ROOMS = [
     id: "describe",
     label: "Describe",
     title: "Describe Room",
-    x: 132,
-    y: 354,
+    x: 398,
+    y: 286,
     question: "Describe two responsibilities that support rights in the UK.",
     plan: [
       "Give two distinct responsibilities.",
@@ -788,8 +1009,8 @@ const EXAM_PRACTICE_ROOMS = [
     id: "explain",
     label: "Explain",
     title: "Explain Room",
-    x: 728,
-    y: 354,
+    x: 510,
+    y: 286,
     question: "Explain why a free press can be important in a democracy.",
     plan: [
       "Make a clear point about information or accountability.",
@@ -802,8 +1023,8 @@ const EXAM_PRACTICE_ROOMS = [
     id: "evaluate",
     label: "Evaluate",
     title: "Evaluate Room",
-    x: 128,
-    y: 552,
+    x: 342,
+    y: 374,
     question: "Evaluate whether peaceful protest is an effective way for citizens to create change.",
     plan: [
       "Give one reason protest can be effective.",
@@ -816,8 +1037,8 @@ const EXAM_PRACTICE_ROOMS = [
     id: "sourceUsefulness",
     label: "Sources",
     title: "Source Usefulness Lab",
-    x: 728,
-    y: 552,
+    x: 566,
+    y: 374,
     question: "A campaign leaflet says: 'Most young people want more local youth services.' Explain how useful this source is for investigating a local issue.",
     plan: [
       "Use content: what information does the source give?",
@@ -1366,6 +1587,7 @@ const npcs = [
     x: 372,
     y: 292,
     color: "#6fbf73",
+    miniGameId: "petitionRegatta",
     badge: "Participation Badge",
     reward: { item: "campaignBoots", coins: 14 },
     quest: "Visit the library and speak to Sam about rights and responsibilities.",
@@ -1915,12 +2137,14 @@ const locationBlueprints = [
 ];
 
 function makeNpc([id, name, x, y, color, intro]) {
+  const miniGameLink = MINI_GAME_NPC_LINKS[id];
   return {
     id,
     name,
     x,
     y,
     color,
+    ...(miniGameLink ? { miniGameId: miniGameLink.miniGameId } : {}),
     badge: "Regional Badge",
     reward: { item: "revisionTea", coins: 8 },
     quest: "Choose another regional quest.",
@@ -2082,6 +2306,7 @@ function setupDevTravel() {
     state.activeQuest = null;
     state.pendingGate = null;
     setLocation(target);
+    showStoryForLocation(target);
     state.journal = `Dev travel: switched to ${WORLD[target].name}.`;
     updateHud();
     saveGame();
@@ -2134,15 +2359,19 @@ function addCoins(amount) {
 function addItem(id) {
   if (ITEMS[id]) {
     const item = ITEMS[id];
-    if (["outfit", "tool", "quest"].includes(item.type) && state.inventory.includes(id)) {
+    if (["outfit", "tool", "quest", "treasure"].includes(item.type) && state.inventory.includes(id)) {
       updateHud();
       saveGame();
-      return;
+      return false;
     }
     state.inventory.push(id);
+    updateHud();
+    saveGame();
+    return true;
   }
   updateHud();
   saveGame();
+  return false;
 }
 
 function ensureEquipmentOwned() {
@@ -2192,6 +2421,19 @@ function syncAchievements() {
   unlockAchievement("wellPrepared", state.knowledge >= 25);
   unlockAchievement("civicSaver", state.coins >= 50);
   unlockAchievement("fullPractice", state.examPracticeCompleted.size >= EXAM_PRACTICE_ROOMS.length);
+  unlockAchievement("sourceDetective", miniGameHasMedal("sourceDetective"));
+  unlockAchievement("rightsMatcher", miniGameHasMedal("rightsMatch"));
+  unlockAchievement("petitionPilot", miniGameHasMedal("petitionRegatta"));
+  unlockAchievement("ballotCounter", miniGameHasMedal("ballotCount"));
+  unlockAchievement("debateChampion", miniGameHasMedal("debateArena"));
+  unlockAchievement("campaignPlanner", miniGameHasMedal("campaignPlanner"));
+  unlockAchievement("examSimulator", miniGameHasMedal("examSimulation"));
+}
+
+function miniGameHasMedal(id) {
+  const game = MINI_GAMES[id];
+  const score = state.miniGameScores[id]?.score;
+  return Boolean(game && Number.isFinite(score) && miniGameMedal(score, game.rounds.length) !== "practice");
 }
 
 function updateHud() {
@@ -2216,6 +2458,8 @@ function updateHud() {
   if (nameSlot) nameSlot.textContent = state.profile?.name || "Citizen";
   const levelSlot = document.getElementById("playerLevelText");
   if (levelSlot) levelSlot.textContent = `Lvl ${state.stats?.level ?? 1}${state.stats?.statPoints ? ` · ${state.stats.statPoints} pts` : ""}`;
+  characterOpenButton?.classList.toggle("has-points", Boolean(state.stats?.statPoints));
+  if (characterOpenButton) characterOpenButton.title = state.stats?.statPoints ? "You have unspent stat points." : "Open Character";
   if (focusText) focusText.textContent = `${Math.round(state.stats.focus)}/100`;
   if (focusBar) focusBar.style.width = `${clamp(state.stats.focus, 0, 100)}%`;
   const nextXp = xpForNextLevel();
@@ -2233,6 +2477,52 @@ function escapeHtml(value) {
     ">": "&gt;",
     "\"": "&quot;"
   }[character]));
+}
+
+function shuffledAnswerIndexes(length) {
+  const order = Array.from({ length }, (_, index) => index);
+  for (let index = order.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [order[index], order[swapIndex]] = [order[swapIndex], order[index]];
+  }
+  return order;
+}
+
+function renderShuffledAnswers(answers, attributeName, options = {}) {
+  const order = options.order || shuffledAnswerIndexes(answers.length);
+  const extraAttributes = options.extraAttributes || "";
+  return order.map((originalIndex, displayIndex) => (
+    `<button type="button" data-${attributeName}="${originalIndex}"${extraAttributes}>${displayIndex + 1}. ${escapeHtml(answers[originalIndex])}</button>`
+  )).join("");
+}
+
+function markAnswerThen(button, isCorrect, correctSelector, callback) {
+  if (!button) {
+    callback();
+    return;
+  }
+  const panel = button.closest(".choice-panel, .minigame-layout") || button.parentElement;
+  panel?.querySelectorAll("button").forEach((item) => { item.disabled = true; });
+  if (correctSelector && panel) {
+    panel.querySelectorAll(correctSelector).forEach((item) => item.classList.add("answer-correct"));
+  }
+  button.classList.add(isCorrect ? "answer-correct" : "answer-wrong");
+  window.setTimeout(callback, isCorrect ? 420 : 760);
+}
+
+function clickVisibleAnswerButton(position) {
+  if (miniGamePanel && !miniGamePanel.classList.contains("hidden") && activeMiniGame) {
+    const miniButtons = [...miniGamePanel.querySelectorAll("button[data-minigame-choice]")].filter((button) => !button.disabled);
+    miniButtons[position]?.click();
+    return;
+  }
+  const selector = state.pendingGate
+    ? "button[data-gate-answer]"
+    : pendingQuestTurnIn
+      ? "button[data-quest-answer]"
+      : "button[data-answer]";
+  const buttons = [...choicePanel.querySelectorAll(selector)].filter((button) => !button.disabled);
+  buttons[position]?.click();
 }
 
 function reviewEntries() {
@@ -2489,12 +2779,7 @@ function storyProgressSummary() {
   const completedPercent = Math.round((completedQuests / totalQuests) * 100);
   const exploredRegions = [...state.unlockedLocations].filter((id) => locationOrder.includes(id)).length;
   const current = currentLocation();
-  let act = "Act 1: Citizenship Village";
-  if (exploredRegions >= 6 || state.examPracticeCompleted.size > 0) act = "Act 7: Exam Hall Castle";
-  else if (exploredRegions >= 5) act = "Act 6: Action Workshop";
-  else if (exploredRegions >= 4) act = "Act 5: Participation Harbour";
-  else if (exploredRegions >= 3) act = "Act 4: Democracy Capital";
-  else if (exploredRegions >= 2) act = "Act 2-3: Regional Investigation";
+  const act = storyActTitle();
   return { totalQuests, completedQuests, completedPercent, exploredRegions, current, act };
 }
 
@@ -2512,6 +2797,7 @@ function renderProgressStory() {
       <p>${escapeHtml(state.journal)}</p>
       <p><strong>Current objective:</strong> ${escapeHtml(state.quest)}</p>
       <p><strong>Current region:</strong> ${escapeHtml(summary.current.name)}</p>
+      <p><strong>Story scenes:</strong> ${state.storySeen.size}/${Object.keys(STORY_BEATS).length + Object.keys(STORY_ENDINGS).length} seen${state.storyEnding ? ` - Ending: ${escapeHtml(STORY_ENDINGS[state.storyEnding]?.title || state.storyEnding)}` : ""}</p>
     </section>
   `;
 }
@@ -2572,24 +2858,233 @@ function renderProgressAchievements() {
   return `<section class="progress-section"><div class="achievement-grid">${cards}</div></section>`;
 }
 
+function miniGameMedal(score, total) {
+  if (score >= total) return "gold";
+  if (score >= Math.ceil(total * .75)) return "silver";
+  if (score >= Math.ceil(total * .5)) return "bronze";
+  return "practice";
+}
+
+function miniGameHosts(id) {
+  return locationOrder.flatMap((locationId) => {
+    const location = WORLD[locationId];
+    return (location?.npcs || [])
+      .filter((npc) => npc.miniGameId === id)
+      .map((npc) => ({ npc, location }));
+  });
+}
+
+function miniGameHostText(id) {
+  const hosts = miniGameHosts(id);
+  if (!hosts.length) return "Host: Progress menu";
+  return hosts
+    .map(({ npc, location }) => `${npc.name} in ${location.name}`)
+    .join("; ");
+}
+
+function miniGameNpcConclusion(id) {
+  const host = miniGameHosts(id)[0]?.npc;
+  const conclusion = host ? MINI_GAME_NPC_LINKS[host.id]?.conclusion : "Keep practising this skill and link it to GCSE command words.";
+  return host && conclusion ? `${host.name}: ${conclusion}` : conclusion;
+}
+
+function renderProgressMiniGames() {
+  const cards = Object.entries(MINI_GAMES).map(([id, game]) => {
+    const score = state.miniGameScores[id]?.score ?? null;
+    const medal = score === null ? "not started" : miniGameMedal(score, game.rounds.length);
+    const hostText = miniGameHostText(id);
+    return `
+      <div class="progress-card minigame-card">
+        <strong>${escapeHtml(game.title)}</strong>
+        <small>${escapeHtml(game.region)} - ${score === null ? "not played" : `${score}/${game.rounds.length} (${medal})`}</small>
+        <small>${escapeHtml(hostText)}</small>
+        <p>${escapeHtml(game.summary)}</p>
+        <button type="button" data-minigame-start="${id}">${score === null ? "Start" : "Replay"}</button>
+      </div>
+    `;
+  }).join("");
+  return `<section class="progress-section"><div class="progress-card-grid">${cards}</div></section>`;
+}
+
 function renderProgressPanel() {
   if (!progressPanelBody) return;
   const content = currentProgressTab === "quests"
     ? renderProgressQuests()
     : currentProgressTab === "buildings"
       ? renderProgressBuildings()
-      : currentProgressTab === "achievements"
-        ? renderProgressAchievements()
-        : renderProgressStory();
+      : currentProgressTab === "miniGames"
+        ? renderProgressMiniGames()
+        : currentProgressTab === "achievements"
+          ? renderProgressAchievements()
+          : renderProgressStory();
   progressPanelBody.innerHTML = `
     <nav class="progress-tabs" aria-label="Progress sections">
       ${progressTabButton("story", "Story")}
       ${progressTabButton("quests", "Quests")}
       ${progressTabButton("buildings", "Buildings")}
+      ${progressTabButton("miniGames", "Mini-games")}
       ${progressTabButton("achievements", "Achievements")}
     </nav>
     ${content}
   `;
+}
+
+function openMiniGameHub() {
+  openProgressPanel("miniGames");
+}
+
+function miniGameScoreText(id) {
+  const game = MINI_GAMES[id];
+  const score = state.miniGameScores[id]?.score;
+  return Number.isFinite(score) ? `Best: ${score}/${game.rounds.length} (${miniGameMedal(score, game.rounds.length)})` : "Best: not played";
+}
+
+function openMiniGame(id) {
+  const game = MINI_GAMES[id];
+  if (!game) return;
+  activeMiniGame = {
+    id,
+    index: 0,
+    score: 0,
+    answered: false,
+    selected: null,
+    orders: game.rounds.map((round) => shuffledAnswerIndexes(round.choices.length))
+  };
+  renderMiniGamePanel();
+  miniGamePanel?.classList.remove("hidden");
+}
+
+function renderMiniGamePanel() {
+  if (!miniGamePanelBody || !activeMiniGame) return;
+  const game = MINI_GAMES[activeMiniGame.id];
+  const round = game.rounds[activeMiniGame.index];
+  const order = activeMiniGame.orders[activeMiniGame.index] || shuffledAnswerIndexes(round.choices.length);
+  const choices = order.map((originalIndex, displayIndex) => {
+    const chosen = activeMiniGame.selected === originalIndex;
+    const correct = activeMiniGame.answered && originalIndex === round.correct;
+    const wrong = activeMiniGame.answered && chosen && originalIndex !== round.correct;
+    return `<button type="button" class="minigame-choice${correct ? " is-correct answer-correct" : ""}${wrong ? " is-wrong answer-wrong" : ""}" data-minigame-choice="${originalIndex}"${activeMiniGame.answered ? " disabled" : ""}>${displayIndex + 1}. ${escapeHtml(round.choices[originalIndex])}</button>`;
+  }).join("");
+  const feedback = activeMiniGame.answered
+    ? `<div class="minigame-feedback"><strong>${activeMiniGame.selected === round.correct ? "Correct" : "Not quite"}</strong><p>${escapeHtml(round.explain)}</p><button type="button" data-minigame-next>${activeMiniGame.index >= game.rounds.length - 1 ? "Finish" : "Next"}</button></div>`
+    : "";
+  const sectionLabel = game.isFinalExam && round.section ? `${round.section} section` : `Round ${activeMiniGame.index + 1}/${game.rounds.length}`;
+  const taskLabel = game.isFinalExam && round.task ? ` - ${round.task}` : "";
+  miniGamePanelBody.innerHTML = `
+    <div class="minigame-header">
+      <strong>${escapeHtml(game.title)}</strong>
+      <small>${escapeHtml(game.region)} - ${miniGameScoreText(activeMiniGame.id)}</small>
+    </div>
+    <div class="minigame-meter"><span style="width:${(activeMiniGame.index / game.rounds.length) * 100}%"></span></div>
+    <div class="minigame-round">
+      <small>${escapeHtml(sectionLabel)}${escapeHtml(taskLabel)} - Score ${activeMiniGame.score}</small>
+      <p>${escapeHtml(round.prompt)}</p>
+      <div class="minigame-choices">${choices}</div>
+      ${feedback}
+    </div>
+  `;
+}
+
+function answerMiniGame(index) {
+  if (!activeMiniGame || activeMiniGame.answered) return;
+  const game = MINI_GAMES[activeMiniGame.id];
+  const round = game.rounds[activeMiniGame.index];
+  activeMiniGame.selected = index;
+  activeMiniGame.answered = true;
+  if (index === round.correct) activeMiniGame.score += 1;
+  activeMiniGame.sectionResults = activeMiniGame.sectionResults || [];
+  activeMiniGame.sectionResults[activeMiniGame.index] = {
+    section: round.section || `Round ${activeMiniGame.index + 1}`,
+    task: round.task || "Question",
+    correct: index === round.correct,
+    selected: round.choices[index],
+    answer: round.choices[round.correct],
+    explain: round.explain
+  };
+  renderMiniGamePanel();
+}
+
+function miniGameSectionBreakdown(id, sectionResults = []) {
+  const game = MINI_GAMES[id];
+  if (!game?.isFinalExam) return [];
+  return game.rounds.map((round, index) => {
+    const result = sectionResults[index] || {};
+    return {
+      section: round.section || `Section ${index + 1}`,
+      task: round.task || "Question",
+      correct: Boolean(result.correct),
+      selected: result.selected || "No answer",
+      answer: round.choices[round.correct],
+      explain: round.explain
+    };
+  });
+}
+
+function renderExamBreakdown(sections = []) {
+  if (!sections.length) return "";
+  const rows = sections.map((section) => `
+    <div class="exam-breakdown-row${section.correct ? " is-correct" : " is-wrong"}">
+      <strong>${escapeHtml(section.section)}</strong>
+      <small>${escapeHtml(section.task)} - ${section.correct ? "secure" : "revise"}</small>
+      <p>${escapeHtml(section.explain)}</p>
+    </div>
+  `).join("");
+  return `<div class="exam-breakdown"><h3>Section breakdown</h3>${rows}</div>`;
+}
+
+function advanceMiniGame() {
+  if (!activeMiniGame) return;
+  const game = MINI_GAMES[activeMiniGame.id];
+  if (activeMiniGame.index >= game.rounds.length - 1) {
+    completeMiniGame();
+    return;
+  }
+  activeMiniGame.index += 1;
+  activeMiniGame.answered = false;
+  activeMiniGame.selected = null;
+  renderMiniGamePanel();
+}
+
+function completeMiniGame() {
+  if (!activeMiniGame) return;
+  const game = MINI_GAMES[activeMiniGame.id];
+  const id = activeMiniGame.id;
+  const score = activeMiniGame.score;
+  const previous = state.miniGameScores[id]?.score ?? -1;
+  const medal = miniGameMedal(score, game.rounds.length);
+  const npcConclusion = miniGameNpcConclusion(id);
+  const sections = miniGameSectionBreakdown(id, activeMiniGame.sectionResults || []);
+  if (score > previous) {
+    state.miniGameScores[id] = { score, medal, completedAt: Date.now(), ...(sections.length ? { sections } : {}) };
+    const bonus = medal === "gold" ? 8 : medal === "silver" ? 5 : medal === "bronze" ? 3 : 1;
+    addCoins((game.reward.coins || 0) + bonus);
+    awardStats(game.reward);
+    if (medal !== "practice") state.stats.spark += 1;
+    state.journal = `${game.title}: ${score}/${game.rounds.length}, ${medal}. ${npcConclusion}`;
+  } else {
+    state.journal = `${game.title}: ${score}/${game.rounds.length}. Best score unchanged. ${npcConclusion}`;
+  }
+  activeMiniGame = null;
+  renderProgressPanel();
+  updateHud();
+  saveGame();
+  miniGamePanelBody.innerHTML = `
+    <div class="minigame-result">
+      <strong>${escapeHtml(game.title)} complete</strong>
+      <p>Score: ${score}/${game.rounds.length}</p>
+      <p>Medal: ${escapeHtml(medal)}</p>
+      <p>${escapeHtml(npcConclusion)}</p>
+      ${renderExamBreakdown(sections)}
+      <button type="button" data-minigame-replay="${id}">Replay</button>
+      ${game.isFinalExam ? `<button type="button" data-minigame-ending>Face final ending</button>` : ""}
+      <button type="button" data-minigame-close>Close</button>
+    </div>
+  `;
+}
+
+function closeMiniGamePanel() {
+  activeMiniGame = null;
+  miniGamePanel?.classList.add("hidden");
 }
 
 function renderCharacterPanel() {
@@ -2725,7 +3220,7 @@ function findInteractable() {
     if (exit && rectsNear(state.player, { ...exit, w: 28, h: 20 }, 54)) return { type: "exitDoor", item: exit };
   }
   if (state.currentLocation === "examHall") {
-    const room = EXAM_PRACTICE_ROOMS.find((item) => rectsNear(state.player, { ...item, w: 24, h: 20 }, 78));
+    const room = EXAM_PRACTICE_ROOMS.find((item) => rectsNear(state.player, { ...item, w: 24, h: 20 }, 50));
     if (room) return { type: "examRoom", item: room };
   }
   const sign = currentSigns().find((item) => rectsNear(state.player, { ...item, w: 20, h: 20 }, 38));
@@ -2878,9 +3373,7 @@ function hideDialogue() {
 function showQuestion(npc) {
   activeQuestion = npc;
   const check = npc.checks[activeCheckIndex];
-  const controls = check.answers
-    .map((answer, index) => `<button type="button" data-answer="${index}">${index + 1}. ${answer}</button>`)
-    .join("");
+  const controls = renderShuffledAnswers(check.answers, "answer");
   choicePanel.innerHTML = renderNpcWindow(npc.name, check.question, "Choose 1, 2, or 3.", controls, "question");
   choicePanel.classList.remove("hidden");
 }
@@ -2895,14 +3388,101 @@ function hidePanel() {
   choicePanel.innerHTML = "";
 }
 
+function storyBeatForLocation(locationId) {
+  if (locationId === "village") return "intro";
+  return STORY_BEATS[locationId] ? locationId : null;
+}
+
+function storyActTitle() {
+  const beat = Object.values(STORY_BEATS).find((entry) => entry.act === state.storyAct);
+  return beat ? `Act ${beat.act}: ${beat.region}` : `Act ${state.storyAct}`;
+}
+
+function storySceneHtml(beat, endingId = null) {
+  const isEnding = Boolean(endingId);
+  const label = isEnding ? "Finale" : `Act ${beat.act}`;
+  return `
+    <div class="story-scene${isEnding ? " story-scene-ending" : ""}">
+      <div class="story-art" aria-hidden="true">
+        <span class="story-sky"></span>
+        <span class="story-castle"></span>
+        <span class="story-scroll"></span>
+        <span class="story-spark story-spark-a"></span>
+        <span class="story-spark story-spark-b"></span>
+        <span class="story-shade"></span>
+      </div>
+      <div class="story-copy">
+        <small>${escapeHtml(label)} - ${escapeHtml(beat.region || "Citizenship Valley")}</small>
+        <h2 id="storyPanelTitle">${escapeHtml(beat.title)}</h2>
+        <p>${escapeHtml(beat.body)}</p>
+        <p><strong>${isEnding ? "Result" : beat.villain}:</strong> ${escapeHtml(beat.objective || `Exam Readiness ${examChance()}% - Sparks ${collectedSparks()}`)}</p>
+      </div>
+    </div>
+  `;
+}
+
+function showStoryBeat(id, options = {}) {
+  const beat = STORY_BEATS[id];
+  if (!beat || !storyPanelBody || !storyPanel) return false;
+  if (!options.force && state.storySeen.has(id)) return false;
+  state.storyAct = Math.max(state.storyAct || 1, beat.act);
+  state.storySeen.add(id);
+  storyPanelBody.innerHTML = storySceneHtml(beat);
+  storyPanel.classList.remove("hidden");
+  state.journal = `${beat.title}: ${beat.objective}`;
+  updateHud();
+  saveGame();
+  return true;
+}
+
+function showStoryForLocation(locationId, options = {}) {
+  const beatId = storyBeatForLocation(locationId);
+  return beatId ? showStoryBeat(beatId, options) : false;
+}
+
+function finalEndingId() {
+  const readiness = examChance();
+  const examScore = state.miniGameScores.examSimulation?.score ?? 0;
+  const examTotal = MINI_GAMES.examSimulation.rounds.length;
+  const allPractice = state.examPracticeCompleted.size >= EXAM_PRACTICE_ROOMS.length;
+  const allRegions = locationOrder.every((id) => state.unlockedLocations.has(id));
+  if (readiness >= 85 && examScore >= examTotal - 1 && allPractice && allRegions) return "gold";
+  if ((readiness >= 65 && examScore >= 3) || examScore >= examTotal - 1) return "silver";
+  return "bronze";
+}
+
+function examSimulationSummaryText() {
+  const score = state.miniGameScores.examSimulation?.score;
+  const total = MINI_GAMES.examSimulation.rounds.length;
+  return Number.isFinite(score) ? `${score}/${total}` : "not attempted";
+}
+
+function showFinalEnding() {
+  const endingId = finalEndingId();
+  const ending = STORY_ENDINGS[endingId];
+  if (!ending || !storyPanelBody || !storyPanel) return;
+  state.storyAct = 7;
+  state.storyEnding = endingId;
+  state.storySeen.add(endingId);
+  storyPanelBody.innerHTML = storySceneHtml({ ...ending, region: "Exam Hall Castle", objective: `Exam Readiness ${examChance()}% - Exam Score ${examSimulationSummaryText()} - Sparks ${collectedSparks()}` }, endingId);
+  storyPanel.classList.remove("hidden");
+  state.journal = `${ending.title}: ${ending.body}`;
+  updateHud();
+  saveGame();
+}
+
+function hideStoryPanel() {
+  storyPanel?.classList.add("hidden");
+}
+
 function npcById(id) {
   return npcs.find((npc) => npc.id === id);
 }
 
-function itemRewardText(reward) {
+function itemRewardText(reward, coinsOverride = reward.coins) {
   const items = reward.items || (reward.item ? [reward.item] : []);
   const names = items.map((id) => ITEMS[id].name);
-  return [...names, `${reward.coins} coins`].join(", ");
+  return [...names, `${coinsOverride} coins`].filter(Boolean).join(", ");
 }
 
 function showExamPracticeRoom(room) {
@@ -2932,7 +3512,7 @@ function showStudyStation(station) {
   const revise = station.revise.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
   const answers = completed
     ? `<button type="button" disabled>Mini-question complete</button>`
-    : station.answers.map((answer, index) => `<button type="button" data-study-answer="${index}" data-study-station-id="${station.id}">${index + 1}. ${escapeHtml(answer)}</button>`).join("");
+    : renderShuffledAnswers(station.answers, "study-answer", { extraAttributes: ` data-study-station-id="${station.id}"` });
   const html = `
     <div class="exam-practice-card">
       <strong>${escapeHtml(station.summary)}</strong>
@@ -3052,6 +3632,9 @@ function showNpcMenu(npc) {
     `<button type="button" data-menu="talk" data-npc="${npc.id}">Talk</button>`,
     `<button type="button" data-menu="quests" data-npc="${npc.id}">Quests</button>`
   ];
+  if (npc.miniGameId && MINI_GAMES[npc.miniGameId]) {
+    buttons.push(`<button type="button" data-menu="miniGame" data-npc="${npc.id}">Mini-game: ${MINI_GAMES[npc.miniGameId].title}</button>`);
+  }
   if (state.activeQuest) {
     const quest = QUESTS[state.activeQuest.id];
     if (quest.target === npc.id && state.activeQuest.stage === "travel") {
@@ -3068,6 +3651,7 @@ function showNpcMenu(npc) {
 }
 
 function showQuestList(npc) {
+  const nextOpenQuestId = npc.questIds.find((id) => !state.completedQuests.has(id));
   const rows = npc.questIds.map((id) => {
     const quest = QUESTS[id];
     if (state.completedQuests.has(id)) {
@@ -3078,6 +3662,9 @@ function showQuestList(npc) {
     }
     if (state.activeQuest) {
       return `<button type="button" disabled>${quest.title} - finish current quest first</button>`;
+    }
+    if (id !== nextOpenQuestId) {
+      return `<button type="button" disabled>${quest.title} - complete earlier ${npc.name} quests first</button>`;
     }
     return `<button type="button" data-menu="acceptQuest" data-quest="${id}">${quest.title}: ${quest.brief}</button>`;
   }).join("");
@@ -3104,7 +3691,7 @@ function askQuestTarget(npc) {
   if (quest.target !== npc.id || active.stage !== "travel") return;
   active.stage = "return";
   const giver = npcById(quest.giver);
-  addKnowledge(3);
+  addKnowledge(1);
   state.quest = `${quest.title}: return to ${giver.name}.`;
   state.journal = quest.clue;
   updateHud();
@@ -3119,9 +3706,7 @@ function showTurnInQuestion(npc) {
   const quest = QUESTS[active.id];
   if (quest.giver !== npc.id || active.stage !== "return") return;
   pendingQuestTurnIn = quest;
-  showPanel(quest.answers
-    .map((answer, index) => `<button type="button" data-quest-answer="${index}">${index + 1}. ${answer}</button>`)
-    .join(""), quest.question, "question");
+  showPanel(renderShuffledAnswers(quest.answers, "quest-answer"), quest.question, "question");
 }
 
 function answerQuest(index) {
@@ -3141,19 +3726,22 @@ function completeQuest(quest) {
   const questId = state.activeQuest?.id;
   const questLocationId = questId ? getQuestLocationId(questId) : state.currentLocation;
   const reward = quest.reward;
-  addCoins(reward.coins);
-  (reward.items || (reward.item ? [reward.item] : [])).forEach(addItem);
-  addKnowledge(7);
+  const coins = questCoinReward(reward, questLocationId);
+  addCoins(coins);
+  const addedItems = (reward.items || (reward.item ? [reward.item] : [])).filter(addItem);
+  addKnowledge(2);
   awardStats({ ...statRewardForRegion(questLocationId), focus: -3, spark: 1 });
   if (questId) state.completedQuests.add(questId);
   state.activeQuest = null;
   const location = currentLocation();
   const unfinished = location.questIds.filter((id) => !state.completedQuests.has(id)).length;
   state.quest = unfinished ? `${location.name}: ${unfinished} quest${unfinished === 1 ? "" : "s"} left.` : `${location.name}: use Travel gate for 3 questions.`;
-  state.journal = `${quest.title} complete. Reward: ${itemRewardText(reward)}.`;
+  const levelHint = state.stats.statPoints ? " Open Character (C) to spend your new stat points." : "";
+  const rewardText = itemRewardText({ items: addedItems, coins }, coins);
+  state.journal = `${quest.title} complete. Reward: ${rewardText}.${levelHint}`;
   updateHud();
   saveGame();
-  showDialogue(npcById(quest.giver).name, `${quest.feedback} Reward: ${itemRewardText(reward)}.`, "Choose another quest or equip your rewards.", "reward");
+  showDialogue(npcById(quest.giver).name, `${quest.feedback} Reward: ${rewardText}.${levelHint}`, "Choose another quest or equip your rewards.", "reward");
 }
 
 function showTradeMenu(npc) {
@@ -3165,7 +3753,9 @@ function showTradeMenu(npc) {
 function showTravelGate(npc) {
   const location = currentLocation();
   if (!location.next) {
-    showPanel(`<button type="button" disabled>You have reached the final region. Complete Exam Hall quests for mastery.</button><button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`, location.name, "reward");
+    const examScore = state.miniGameScores.examSimulation?.score;
+    const ready = Number.isFinite(examScore);
+    showPanel(`<button type="button" data-menu="finalExam" data-npc="${npc.id}">${ready ? "Retake Exam Simulation" : "Sit Exam Simulation"}</button><button type="button" data-menu="finalEnding"${ready ? "" : " disabled"}>${ready ? `Face final ending (${examSimulationSummaryText()})` : "Complete Exam Simulation first"}</button><button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`, location.name, "reward");
     return;
   }
   const unfinished = location.questIds.filter((id) => !state.completedQuests.has(id));
@@ -3183,9 +3773,7 @@ function showGateQuestion() {
   if (!gate) return;
   const location = WORLD[gate.location];
   const check = location.gateQuestions[gate.index];
-  showPanel(check.answers
-    .map((answer, index) => `<button type="button" data-gate-answer="${index}">${index + 1}. ${answer}</button>`)
-    .join(""), `${location.travel}: Question ${gate.index + 1}/3`, "gate");
+  showPanel(renderShuffledAnswers(check.answers, "gate-answer"), `${location.travel}: Question ${gate.index + 1}/3`, "gate");
 }
 
 function answerGate(index) {
@@ -3210,7 +3798,9 @@ function answerGate(index) {
   state.unlockedLocations.add(location.next);
   if (!state.badges.includes(location.badge)) addBadge(location.badge);
   setLocation(location.next);
-  showDialogue("New Region Unlocked", `${currentLocation().name} is now open.`, "Talk to local NPCs to start the next set of quests.", "reward");
+  if (!showStoryForLocation(location.next)) {
+    showDialogue("New Region Unlocked", `${currentLocation().name} is now open.`, "Talk to local NPCs to start the next set of quests.", "reward");
+  }
 }
 
 function closeQuestion() {
@@ -4278,6 +4868,14 @@ window.addEventListener("keydown", (event) => {
     closeCharacterPanel();
     return;
   }
+  if (key === "escape" && storyPanel && !storyPanel.classList.contains("hidden")) {
+    hideStoryPanel();
+    return;
+  }
+  if (key === "escape" && miniGamePanel && !miniGamePanel.classList.contains("hidden")) {
+    closeMiniGamePanel();
+    return;
+  }
   if (key === "i" && !typing) {
     event.preventDefault();
     toggleInventoryPanel();
@@ -4293,6 +4891,11 @@ window.addEventListener("keydown", (event) => {
     toggleCharacterPanel();
     return;
   }
+  if (key === "g" && !typing) {
+    event.preventDefault();
+    openMiniGameHub();
+    return;
+  }
   if (key === "e" && !typing) interact();
   if (key === "r" && !typing) {
     if (window.confirm("Start a new game and delete saved progress?")) {
@@ -4300,13 +4903,7 @@ window.addEventListener("keydown", (event) => {
     }
   }
   if (["1", "2", "3"].includes(key) && !typing) {
-    if (state.pendingGate) {
-      answerGate(Number(key) - 1);
-    } else if (pendingQuestTurnIn) {
-      answerQuest(Number(key) - 1);
-    } else {
-      answer(Number(key) - 1);
-    }
+    clickVisibleAnswerButton(Number(key) - 1);
   }
   keys.add(key);
 });
@@ -4333,17 +4930,28 @@ choicePanel.addEventListener("click", (event) => {
   }
   const studyAnswer = event.target.closest("button[data-study-answer][data-study-station-id]");
   if (studyAnswer) {
-    answerStudyStation(studyAnswer.dataset.studyStationId, Number(studyAnswer.dataset.studyAnswer));
+    const station = currentStudyStations().find((item) => item.id === studyAnswer.dataset.studyStationId);
+    const selected = Number(studyAnswer.dataset.studyAnswer);
+    const correct = station?.correct ?? -1;
+    markAnswerThen(studyAnswer, selected === correct, `button[data-study-answer="${correct}"][data-study-station-id="${studyAnswer.dataset.studyStationId}"]`, () => {
+      answerStudyStation(studyAnswer.dataset.studyStationId, selected);
+    });
     return;
   }
   const gateAnswer = event.target.closest("button[data-gate-answer]");
   if (gateAnswer) {
-    answerGate(Number(gateAnswer.dataset.gateAnswer));
+    const gate = state.pendingGate;
+    const check = gate ? WORLD[gate.location]?.gateQuestions[gate.index] : null;
+    const selected = Number(gateAnswer.dataset.gateAnswer);
+    const correct = check?.correct ?? -1;
+    markAnswerThen(gateAnswer, selected === correct, `button[data-gate-answer="${correct}"]`, () => answerGate(selected));
     return;
   }
   const questAnswer = event.target.closest("button[data-quest-answer]");
   if (questAnswer) {
-    answerQuest(Number(questAnswer.dataset.questAnswer));
+    const selected = Number(questAnswer.dataset.questAnswer);
+    const correct = pendingQuestTurnIn?.correct ?? -1;
+    markAnswerThen(questAnswer, selected === correct, `button[data-quest-answer="${correct}"]`, () => answerQuest(selected));
     return;
   }
   const menuButton = event.target.closest("button[data-menu]");
@@ -4351,6 +4959,14 @@ choicePanel.addEventListener("click", (event) => {
     const action = menuButton.dataset.menu;
     const npc = npcById(menuButton.dataset.npc);
     if (action === "close") hidePanel();
+    if (action === "finalEnding") {
+      hidePanel();
+      showFinalEnding();
+    }
+    if (action === "finalExam") {
+      hidePanel();
+      openMiniGame("examSimulation");
+    }
     if (action === "back" && npc) showNpcMenu(npc);
     if (action === "talk" && npc) {
       hidePanel();
@@ -4361,11 +4977,20 @@ choicePanel.addEventListener("click", (event) => {
     if (action === "turnIn" && npc) showTurnInQuestion(npc);
     if (action === "trade" && npc) showTradeMenu(npc);
     if (action === "travel" && npc) showTravelGate(npc);
+    if (action === "miniGame" && npc?.miniGameId) {
+      hidePanel();
+      openMiniGame(npc.miniGameId);
+    }
     if (action === "acceptQuest") acceptQuest(menuButton.dataset.quest);
     return;
   }
   const button = event.target.closest("button[data-answer]");
-  if (button) answer(Number(button.dataset.answer));
+  if (button) {
+    const check = activeQuestion?.checks?.[activeCheckIndex];
+    const selected = Number(button.dataset.answer);
+    const correct = check?.correct ?? -1;
+    markAnswerThen(button, selected === correct, `button[data-answer="${correct}"]`, () => answer(selected));
+  }
 });
 
 inventoryList.addEventListener("click", (event) => {
@@ -4389,6 +5014,11 @@ progressPanel?.addEventListener("click", (event) => {
     closeProgressPanel();
     return;
   }
+  const miniGameButton = event.target.closest("button[data-minigame-start]");
+  if (miniGameButton) {
+    openMiniGame(miniGameButton.dataset.minigameStart);
+    return;
+  }
   const tabButton = event.target.closest("button[data-progress-tab]");
   if (!tabButton) return;
   currentProgressTab = tabButton.dataset.progressTab;
@@ -4405,6 +5035,39 @@ characterPanel?.addEventListener("click", (event) => {
   const statButton = event.target.closest("button[data-character-stat]");
   if (!statButton) return;
   allocateStat(statButton.dataset.characterStat);
+});
+
+storyContinueButton?.addEventListener("click", () => hideStoryPanel());
+storyPanel?.addEventListener("click", (event) => {
+  if (event.target === storyPanel) hideStoryPanel();
+});
+
+miniGameOpenButton?.addEventListener("click", () => openMiniGameHub());
+miniGameCloseButton?.addEventListener("click", () => closeMiniGamePanel());
+miniGamePanel?.addEventListener("click", (event) => {
+  if (event.target === miniGamePanel) {
+    closeMiniGamePanel();
+    return;
+  }
+  const choice = event.target.closest("button[data-minigame-choice]");
+  if (choice) {
+    answerMiniGame(Number(choice.dataset.minigameChoice));
+    return;
+  }
+  if (event.target.closest("button[data-minigame-next]")) {
+    advanceMiniGame();
+    return;
+  }
+  const replay = event.target.closest("button[data-minigame-replay]");
+  if (replay) {
+    openMiniGame(replay.dataset.minigameReplay);
+    return;
+  }
+  if (event.target.closest("button[data-minigame-close]")) closeMiniGamePanel();
+  if (event.target.closest("button[data-minigame-ending]")) {
+    closeMiniGamePanel();
+    showFinalEnding();
+  }
 });
 
 function handleInventoryAction(event) {
@@ -4696,5 +5359,6 @@ function startGameNew(profile) {
   saveReady = true;
   resetGame({ profile });
   updateHud();
+  showStoryBeat("intro", { force: true });
   if (!gameStarted) { gameStarted = true; loop(); }
 }

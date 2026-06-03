@@ -50,7 +50,7 @@ const RENDER_SCALE = TILE / LOGICAL_TILE;
 const VIEW_W = canvas.width / RENDER_SCALE;
 const VIEW_H = canvas.height / RENDER_SCALE;
 const SAVE_KEY = "citizenshipValleySaveV1";
-const SAVE_VERSION = 5;
+const SAVE_VERSION = 6;
 const keys = new Set();
 let activeNpc = null;
 let activeQuestion = null;
@@ -76,6 +76,20 @@ const STAT_LABELS = {
   empathy: "Empathy",
   integrity: "Integrity"
 };
+const READINESS_BASE = 35;
+const READINESS_WEIGHTS = {
+  knowledge: 0.6,
+  rhetoric: 0.4,
+  empathy: 0.2,
+  integrity: 0.3
+};
+const STAT_DESCRIPTIONS = {
+  knowledge: "Builds accurate GCSE content and has the strongest Exam Readiness impact.",
+  rhetoric: "Strengthens debate, explanations, and persuasive active citizenship answers.",
+  empathy: "Supports balanced judgement, rights responsibilities, and community choices.",
+  integrity: "Improves evidence use, source caution, and fair legal reasoning."
+};
+const TOOL_ASSIST_FOCUS_COST = 10;
 const MAX_LEVEL = 10;
 
 const STORY_BEATS = {
@@ -150,6 +164,46 @@ const STORY_ENDINGS = {
     title: "Gold Citizen",
     body: "You bring every spark together: knowledge, rhetoric, empathy, integrity, and action. The Apathy Shade dissolves at the Exam Hall doors, and Citizenship Valley becomes a living revision map."
   }
+};
+
+const STORY_FLAGS = {
+  challengedRumour: {
+    label: "Challenged Rumour",
+    description: "Checked claims before the Shade could spread them."
+  },
+  defendedRights: {
+    label: "Defended Rights",
+    description: "Linked rights to fairness, safeguards, and responsibility."
+  },
+  usedEvidenceInDebate: {
+    label: "Used Evidence In Debate",
+    description: "Answered weak arguments with reasons and evidence."
+  },
+  helpedVolunteer: {
+    label: "Helped Volunteers",
+    description: "Turned concern into practical participation."
+  },
+  plannedAction: {
+    label: "Planned Action",
+    description: "Prepared research, action, impact, and evaluation."
+  }
+};
+
+const MINI_GAME_STORY_FLAGS = {
+  sourceDetective: "challengedRumour",
+  rightsMatch: "defendedRights",
+  ballotCount: "usedEvidenceInDebate",
+  debateArena: "usedEvidenceInDebate",
+  petitionRegatta: "helpedVolunteer",
+  campaignPlanner: "plannedAction"
+};
+
+const REGION_STORY_FLAGS = {
+  modernBritain: "challengedRumour",
+  rightsLaw: "defendedRights",
+  democracy: "usedEvidenceInDebate",
+  participation: "helpedVolunteer",
+  actionWorkshop: "plannedAction"
 };
 
 const MINI_GAMES = {
@@ -339,16 +393,8 @@ function collectedSparks() {
 
 function examChance() {
   const stats = state.stats || defaultStats();
-  return Math.round(clamp(
-    35
-    + stats.knowledge * 0.6
-    + stats.rhetoric * 0.4
-    + stats.empathy * 0.2
-    + stats.integrity * 0.3
-    + collectedSparks() * 1.5,
-    0,
-    95
-  ));
+  const statScore = STAT_KEYS.reduce((sum, key) => sum + stats[key] * READINESS_WEIGHTS[key], 0);
+  return Math.round(clamp(READINESS_BASE + statScore + collectedSparks() * 1.5, 0, 95));
 }
 
 function awardStats(reward = {}) {
@@ -422,6 +468,7 @@ const state = {
   miniGameScores: {},
   storyAct: 1,
   storySeen: new Set(),
+  storyFlags: {},
   storyEnding: null,
   currentLocation: "village",
   unlockedLocations: new Set(["village"]),
@@ -462,6 +509,7 @@ function serializeGame() {
     miniGameScores: state.miniGameScores,
     storyAct: state.storyAct,
     storySeen: [...state.storySeen],
+    storyFlags: state.storyFlags,
     storyEnding: state.storyEnding,
     currentLocation: state.currentLocation,
     unlockedLocations: [...state.unlockedLocations],
@@ -478,6 +526,33 @@ function serializeGame() {
       dir: state.player.dir
     }
   };
+}
+
+function sanitiseStoryFlags(input = {}) {
+  return Object.keys(STORY_FLAGS).reduce((flags, key) => {
+    if (Boolean(input[key])) flags[key] = true;
+    return flags;
+  }, {});
+}
+
+function storyFlagCount() {
+  return Object.keys(STORY_FLAGS).filter((key) => state.storyFlags?.[key]).length;
+}
+
+function markStoryFlag(key) {
+  if (!STORY_FLAGS[key]) return "";
+  state.storyFlags = sanitiseStoryFlags(state.storyFlags);
+  if (state.storyFlags[key]) return "";
+  state.storyFlags[key] = true;
+  return ` ${STORY_FLAGS[key].label} recorded.`;
+}
+
+function shadeReactionText() {
+  const count = storyFlagCount();
+  if (count >= 5) return "The Shade has little left to feed on: you challenged rumours, defended rights, used evidence, helped volunteers, and planned action.";
+  if (count >= 3) return "The Shade flickers as your choices start linking evidence, fairness, and action.";
+  if (count >= 1) return "The Shade notices your choices, but some sparks still need action.";
+  return "The Shade still waits for proof that you can turn knowledge into choices.";
 }
 
 function migrateSave(raw) {
@@ -510,6 +585,10 @@ function migrateSave(raw) {
   if (data.saveVersion < 5) {
     data.miniGameScores = data.miniGameScores && typeof data.miniGameScores === "object" ? data.miniGameScores : {};
     data.saveVersion = 5;
+  }
+  if (data.saveVersion < 6) {
+    data.storyFlags = data.storyFlags && typeof data.storyFlags === "object" ? data.storyFlags : {};
+    data.saveVersion = 6;
   }
   return data;
 }
@@ -559,6 +638,7 @@ function loadGame() {
     state.miniGameScores = saved.miniGameScores && typeof saved.miniGameScores === "object" ? saved.miniGameScores : {};
     state.storyAct = Number(saved.storyAct) || 1;
     state.storySeen = new Set(Array.isArray(saved.storySeen) ? saved.storySeen.filter((id) => STORY_BEATS[id] || STORY_ENDINGS[id]) : []);
+    state.storyFlags = sanitiseStoryFlags(saved.storyFlags);
     state.storyEnding = saved.storyEnding || null;
     state.unlockedLocations = new Set(Array.isArray(saved.unlockedLocations) ? saved.unlockedLocations : ["village"]);
     state.pendingGate = saved.pendingGate || null;
@@ -617,6 +697,7 @@ function resetGame(options = {}) {
   state.miniGameScores = {};
   state.storyAct = 1;
   state.storySeen = new Set();
+  state.storyFlags = {};
   state.storyEnding = null;
   state.unlockedLocations = new Set(["village"]);
   state.activeQuest = null;
@@ -666,6 +747,7 @@ const ITEMS = {
     type: "tool",
     icon: "DB",
     value: 24,
+    effect: { miniGameBonus: "debateArena" },
     description: "A ceremonial blade that sharpens arguments, not people."
   },
   justiceQuill: {
@@ -673,6 +755,7 @@ const ITEMS = {
     type: "tool",
     icon: "JQ",
     value: 22,
+    effect: { examSections: ["Evaluate", "Source"], miniGameBonus: "sourceDetective" },
     description: "A courtly quill for clear evidence and fair judgement."
   },
   revisionTea: {
@@ -681,7 +764,8 @@ const ITEMS = {
     icon: "RT",
     value: 8,
     color: "#8fcf9b",
-    description: "Use for +5 knowledge."
+    effect: { focus: 25 },
+    description: "Use to restore +25 Focus."
   },
   civicGem: {
     name: "Civic Gem",
@@ -705,6 +789,7 @@ const ITEMS = {
     icon: "NB",
     value: 0,
     color: "#d8c77a",
+    effect: { openProgress: "story" },
     description: "A place for progress notes, clues, and future planning."
   },
   citizenScroll: {
@@ -713,28 +798,81 @@ const ITEMS = {
     icon: "CS",
     value: 0,
     color: "#f2c14e",
+    effect: { storyHint: true },
     description: "A starter scroll. It hints at lost sparks of participation across the valley."
+  }
+};
+
+const VENDORS = {
+  mayor: {
+    title: "Village Supplies",
+    stock: [
+      { item: "revisionTea", price: 6, note: "Focus recovery for longer routes." },
+      { item: "notebook", price: 10, note: "Progress notes for new citizens." }
+    ]
+  },
+  editorVale: {
+    title: "Source Desk",
+    stock: [
+      { item: "revisionTea", price: 7, note: "Steady focus before source checks." },
+      { item: "justiceQuill", price: 28, note: "Evidence and reliability support." }
+    ]
+  },
+  advocateFarah: {
+    title: "Rights Kit",
+    stock: [
+      { item: "revisionTea", price: 7, note: "Calm revision before court topics." },
+      { item: "libertyCoat", price: 26, note: "A rights-themed outfit." }
+    ]
+  },
+  managerSol: {
+    title: "Debate Stand",
+    stock: [
+      { item: "revisionTea", price: 7, note: "Focus before debates." },
+      { item: "debateBlade", price: 30, note: "Helps in Debate Arena." }
+    ]
+  },
+  campaignPriya2: {
+    title: "Campaign Stall",
+    stock: [
+      { item: "revisionTea", price: 7, note: "Focus for petition routes." },
+      { item: "campaignBoots", price: 22, note: "Built for participation work." }
+    ]
+  },
+  plannerNoor2: {
+    title: "Action Workshop Store",
+    stock: [
+      { item: "revisionTea", price: 8, note: "Focus for planning and evaluation." },
+      { item: "notebook", price: 12, note: "Keep campaign objectives visible." }
+    ]
+  },
+  examMira2: {
+    title: "Exam Prep Desk",
+    stock: [
+      { item: "revisionTea", price: 8, note: "Recover Focus before the final exam." },
+      { item: "justiceQuill", price: 30, note: "Useful for Evaluate and Source sections." }
+    ]
   }
 };
 
 const baseMap = [
   "##############################",
-  "#............~~..............#",
-  "#....TT.....~~~~....TT.......#",
-  "#..######...........####.....#",
-  "#..#MAY#...........#LIB#.....#",
-  "#..######...........####.....#",
   "#............................#",
   "#............................#",
   "#............................#",
   "#............................#",
-  "#............##..............#",
-  "#....TT......##......TT......#",
   "#............................#",
-  "#...........######...........#",
-  "#..####.....#CRT#.....####...#",
-  "#..#HME.....######.....PAR#..#",
-  "#..####................####..#",
+  "#............................#",
+  "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+  "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+  "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+  "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+  "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+  "#............................#",
+  "#............................#",
+  "#............................#",
+  "#............................#",
+  "#............................#",
   "#............................#",
   "##############################"
 ];
@@ -776,21 +914,21 @@ const WORLD_LAYOUTS = {
     map: [
       "##############################",
       "#............................#",
-      "#...TT..................TT...#",
-      "#..######......,,,,....####..#",
-      "#..######......,,,,....####..#",
-      "#..######......,,,,....####..#",
-      "#..............,,,,..........#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
-      "#..............,,,,..........#",
-      "#..............,,,,..........#",
-      "#.....TT.......,,,,....TT....#",
       "#............................#",
-      "#...........########.........#",
-      "#...........########...####..#",
-      "#...........########...####..#",
-      "#......................####..#",
+      "#..............,,,,..........#",
+      "#..............,,,,..........#",
+      "#..............,,,,..........#",
+      "#..............,,,,..........#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
+      "#..............,,,,..........#",
+      "#..............,,,,..........#",
+      "#..............,,,,..........#",
+      "#............................#",
+      "#...........::::::::.........#",
+      "#...........::::::::.........#",
+      "#...........::::::::.........#",
+      "#............................#",
       "#............................#",
       "##############################"
     ],
@@ -806,21 +944,21 @@ const WORLD_LAYOUTS = {
     map: [
       "##############################",
       "#............................#",
-      "#....TT.................TT...#",
-      "#...........########.........#",
-      "#...........########.........#",
-      "#...........########.........#",
+      "#............................#",
+      "#...........::::::::.........#",
+      "#...........::::::::.........#",
+      "#...........::::::::.........#",
       "#............................#",
       "#.............::::...........#",
-      "#....####.....::::.....####..#",
-      "#....####::::::::::::::####..#",
-      "#....####.....::::.....####..#",
+      "#.............::::...........#",
+      "#......::::::::::::::::......#",
+      "#.............::::...........#",
       "#.............::::...........#",
       "#............................#",
-      "#..######.....::::...........#",
-      "#..######.....::::....######.#",
-      "#..######.....::::....######.#",
-      "#.....................######.#",
+      "#.............::::...........#",
+      "#.............::::...........#",
+      "#.............::::...........#",
+      "#............................#",
       "#............................#",
       "##############################"
     ],
@@ -835,22 +973,22 @@ const WORLD_LAYOUTS = {
   democracy: {
     map: [
       "##############################",
-      "#............~~..............#",
-      "#...........~~~~.............#",
-      "#....######.~~~~....######...#",
-      "#....######.~~~~....######...#",
-      "#....######.~~~~....######...#",
-      "#............~~..............#",
+      "#............................#",
+      "#............................#",
+      "#....::::::........::::::....#",
+      "#....::::::........::::::....#",
+      "#....::::::........::::::....#",
+      "#............................#",
       "#,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
       "#,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
       "#...........::::::...........#",
       "#...........::::::...........#",
-      "#.....TT....::::::.....TT....#",
+      "#...........::::::...........#",
       "#...........::::::...........#",
       "#............................#",
-      "#.................########...#",
-      "#.................########...#",
-      "#.......................####.#",
+      "#.................::::::::...#",
+      "#.................::::::::...#",
+      "#............................#",
       "#............................#",
       "##############################"
     ],
@@ -869,17 +1007,17 @@ const WORLD_LAYOUTS = {
       "#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#",
       "#~~~~====================~~~~#",
       "#~~..=..................=~~~~#",
-      "#~~..=....TT............=~~~~#",
+      "#~~..=..................=~~~~#",
       "#~~..=..................=~~~~#",
       "#~~..=,,,,,,,,,,,,,,,,,,=~~~~#",
       "#~~..=,,,,,,,,,,,,,,,,,,=~~~~#",
       "#~~~~=..................=~~~~#",
-      "#~~~~=..........####....=~~~~#",
-      "#~~~~=..........####....=~~~~#",
+      "#~~~~=..........::::....=~~~~#",
+      "#~~~~=..........::::....=~~~~#",
       "#~~~~=..................=~~~~#",
       "#~~~~=..................=~~~~#",
-      "#~~~~=............####..=~~~~#",
-      "#~~~~=............####..=~~~~#",
+      "#~~~~=............::::..=~~~~#",
+      "#~~~~=............::::..=~~~~#",
       "#~~~~====================~~~~#",
       "#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#",
       "##############################"
@@ -897,21 +1035,21 @@ const WORLD_LAYOUTS = {
     map: [
       "##############################",
       "#............................#",
-      "#..TT....................TT..#",
-      "#........####......####......#",
-      "#........####......####......#",
-      "#........####......####......#",
+      "#............................#",
+      "#........::::......::::......#",
+      "#........::::......::::......#",
+      "#........::::......::::......#",
       "#............................#",
       "#......,,,,,,,,,,,,,,,,......#",
       "#......,,,,,,,,,,,,,,,,......#",
       "#......,,,,,,::::,,,,,,......#",
       "#............::::............#",
-      "#.....TT.....::::......TT....#",
       "#............::::............#",
-      "#..######....::::............#",
-      "#..######....::::....######..#",
-      "#..######....::::....######..#",
-      "#....................######..#",
+      "#............::::............#",
+      "#..::::::::..::::............#",
+      "#..::::::::..::::....::::::..#",
+      "#..::::::::..::::....::::::..#",
+      "#............................#",
       "#............................#",
       "##############################"
     ],
@@ -927,10 +1065,10 @@ const WORLD_LAYOUTS = {
     map: [
       "##############################",
       "#............................#",
-      "#....TT.................TT...#",
-      "#...........########.........#",
-      "#...........########.........#",
-      "#...........########.........#",
+      "#............................#",
+      "#...........::::::::.........#",
+      "#...........::::::::.........#",
+      "#...........::::::::.........#",
       "#............................#",
       "#............::::............#",
       "#............::::............#",
@@ -938,9 +1076,9 @@ const WORLD_LAYOUTS = {
       "#......::::::::::::::::......#",
       "#............::::............#",
       "#............::::............#",
-      "#..####......::::......####..#",
-      "#..####......::::......####..#",
-      "#..####......::::......####..#",
+      "#..::::......::::......::::..#",
+      "#..::::......::::......::::..#",
+      "#..::::......::::......::::..#",
       "#............................#",
       "#............................#",
       "##############################"
@@ -1879,6 +2017,7 @@ const QUESTS = {
 };
 
 npcs.forEach((npc) => {
+  if (VENDORS[npc.id]) npc.vendor = VENDORS[npc.id];
   npc.questIds = Object.keys(QUESTS).filter((id) => QUESTS[id].giver === npc.id);
 });
 
@@ -2035,7 +2174,7 @@ const locationBlueprints = [
       ["mpRivers", "MP Rivers", 372, 292, "#5da9e9", "Representation and constituencies."],
       ["managerSol", "Campaign Manager Sol", 640, 244, "#e36b5d", "Parties and manifestos."],
       ["officerJune", "Returning Officer June", 356, 430, "#6fbf73", "Elections and voting systems."],
-      ["heraldEwan", "Devolution Herald Ewan", 704, 384, "#b089d6", "Devolution and levels of government."]
+      ["heraldEwan", "Devolution Herald Ewan", 704, 368, "#b089d6", "Devolution and levels of government."]
     ],
     topics: [
       ["parliament", "Bill Trail", "speakerLark", "mpRivers", "Ask Rivers how MPs represent people.", "Parliament debates, scrutinises, passes laws, and holds government to account.", "Parliament can hold government to account by...", ["Scrutiny and questions", "Arresting voters", "Running every school"]],
@@ -2063,7 +2202,7 @@ const locationBlueprints = [
       ["unionMorgan", "Union Rep Morgan", 372, 292, "#d88c5a", "Trade unions and collective action."],
       ["charityAmina", "Charity Lead Amina", 664, 220, "#5da9e9", "Volunteering and charities."],
       ["lobbyistPax", "Lobbyist Pax", 356, 406, "#b089d6", "Lobbying and pressure groups."],
-      ["moderatorRae", "Digital Moderator Rae", 704, 384, "#f2c14e", "Social media and online participation."]
+      ["moderatorRae", "Digital Moderator Rae", 704, 368, "#f2c14e", "Social media and online participation."]
     ],
     topics: [
       ["petition", "Petition Pier", "campaignPriya2", "lobbyistPax", "Ask Pax what target a petition needs.", "A petition needs a clear demand, evidence, public support, and the right decision-maker.", "A strong petition needs...", ["Clear aim, evidence, and target", "No audience", "Only decoration"]],
@@ -2117,7 +2256,7 @@ const locationBlueprints = [
     npcs: [
       ["examMira2", "Examiner Mira", 236, 218, "#b089d6", "Command words and mark schemes."],
       ["timeAsh", "Timekeeper Ash", 372, 292, "#d88c5a", "Timed practice."],
-      ["sourceNia", "Source Keeper Nia", 664, 220, "#5da9e9", "Source reliability and usefulness."],
+      ["sourceNia", "Source Keeper Nia", 648, 220, "#5da9e9", "Source reliability and usefulness."],
       ["coachLeon", "Debate Coach Leon", 356, 430, "#6fbf73", "Balanced arguments."],
       ["scribePip", "Paragraph Scribe Pip", 620, 384, "#f2c14e", "PEEL paragraphs and evidence."]
     ],
@@ -2138,6 +2277,7 @@ const locationBlueprints = [
 
 function makeNpc([id, name, x, y, color, intro]) {
   const miniGameLink = MINI_GAME_NPC_LINKS[id];
+  const vendor = VENDORS[id];
   return {
     id,
     name,
@@ -2145,6 +2285,7 @@ function makeNpc([id, name, x, y, color, intro]) {
     y,
     color,
     ...(miniGameLink ? { miniGameId: miniGameLink.miniGameId } : {}),
+    ...(vendor ? { vendor } : {}),
     badge: "Regional Badge",
     reward: { item: "revisionTea", coins: 8 },
     quest: "Choose another regional quest.",
@@ -2331,16 +2472,10 @@ const signs = [
 ];
 
 const props = [
-  { type: "barrel", x: 522, y: 510 },
-  { type: "barrel", x: 820, y: 400 },
-  { type: "crate", x: 590, y: 528 },
-  { type: "crate", x: 622, y: 528 },
-  { type: "lamp", x: 760, y: 232 },
-  { type: "lamp", x: 232, y: 96 },
-  { type: "flowers", x: 760, y: 96 },
-  { type: "flowers", x: 804, y: 232 },
-  { type: "bench", x: 214, y: 520 },
-  { type: "bench", x: 570, y: 520 }
+  { location: "village", type: "lamp", x: 232, y: 100 },
+  { location: "village", type: "lamp", x: 760, y: 232 },
+  { location: "village", type: "flowers", x: 666, y: 96 },
+  { location: "village", type: "flowers", x: 790, y: 96 }
 ];
 
 function addKnowledge(amount) {
@@ -2695,10 +2830,10 @@ function renderItemActions(id, item, options = {}) {
   if (item.type === "tool") {
     actions.push(`<button type="button" data-action="equip" data-item="${id}">Hold</button>`);
   }
-  if (item.type === "consumable") {
+  if (item.type === "consumable" || item.effect?.openProgress || item.effect?.storyHint) {
     actions.push(`<button type="button" data-action="use" data-item="${id}">Use</button>`);
   }
-  if (!options.compact && item.value > 0 && !isEquippedItem(id)) {
+  if (!options.compact && item.value > 0 && item.type !== "quest" && !isEquippedItem(id)) {
     actions.push(`<button type="button" data-action="sell" data-item="${id}">Sell ${item.value}c</button>`);
   }
   return actions.join("");
@@ -2785,6 +2920,9 @@ function storyProgressSummary() {
 
 function renderProgressStory() {
   const summary = storyProgressSummary();
+  const flagRows = Object.entries(STORY_FLAGS).map(([key, flag]) => `
+    <li><span class="status-${state.storyFlags?.[key] ? "done" : "open"}">${state.storyFlags?.[key] ? "Done" : "Open"}</span> ${escapeHtml(flag.label)} - ${escapeHtml(flag.description)}</li>
+  `).join("");
   return `
     <section class="progress-section">
       <h3>${escapeHtml(summary.act)}</h3>
@@ -2797,6 +2935,8 @@ function renderProgressStory() {
       <p>${escapeHtml(state.journal)}</p>
       <p><strong>Current objective:</strong> ${escapeHtml(state.quest)}</p>
       <p><strong>Current region:</strong> ${escapeHtml(summary.current.name)}</p>
+      <p><strong>Apathy Shade:</strong> ${escapeHtml(shadeReactionText())}</p>
+      <div class="progress-card"><strong>Choices against Apathy (${storyFlagCount()}/${Object.keys(STORY_FLAGS).length})</strong><ul class="progress-list">${flagRows}</ul></div>
       <p><strong>Story scenes:</strong> ${state.storySeen.size}/${Object.keys(STORY_BEATS).length + Object.keys(STORY_ENDINGS).length} seen${state.storyEnding ? ` - Ending: ${escapeHtml(STORY_ENDINGS[state.storyEnding]?.title || state.storyEnding)}` : ""}</p>
     </section>
   `;
@@ -2966,7 +3106,7 @@ function renderMiniGamePanel() {
     return `<button type="button" class="minigame-choice${correct ? " is-correct answer-correct" : ""}${wrong ? " is-wrong answer-wrong" : ""}" data-minigame-choice="${originalIndex}"${activeMiniGame.answered ? " disabled" : ""}>${displayIndex + 1}. ${escapeHtml(round.choices[originalIndex])}</button>`;
   }).join("");
   const feedback = activeMiniGame.answered
-    ? `<div class="minigame-feedback"><strong>${activeMiniGame.selected === round.correct ? "Correct" : "Not quite"}</strong><p>${escapeHtml(round.explain)}</p><button type="button" data-minigame-next>${activeMiniGame.index >= game.rounds.length - 1 ? "Finish" : "Next"}</button></div>`
+    ? `<div class="minigame-feedback"><strong>${escapeHtml(miniGameFeedbackTitle(activeMiniGame, round))}</strong><p>${escapeHtml(miniGameFeedbackText(activeMiniGame, round))}</p><button type="button" data-minigame-next>${activeMiniGame.index >= game.rounds.length - 1 ? "Finish" : "Next"}</button></div>`
     : "";
   const sectionLabel = game.isFinalExam && round.section ? `${round.section} section` : `Round ${activeMiniGame.index + 1}/${game.rounds.length}`;
   const taskLabel = game.isFinalExam && round.task ? ` - ${round.task}` : "";
@@ -2985,23 +3125,55 @@ function renderMiniGamePanel() {
   `;
 }
 
+function miniGameFeedbackTitle(run, round) {
+  const result = run.sectionResults?.[run.index];
+  if (result?.assisted) return "Tool assist";
+  return run.selected === round.correct ? "Correct" : "Not quite";
+}
+
+function miniGameFeedbackText(run, round) {
+  const result = run.sectionResults?.[run.index];
+  return result?.assistText || round.explain;
+}
+
 function answerMiniGame(index) {
   if (!activeMiniGame || activeMiniGame.answered) return;
   const game = MINI_GAMES[activeMiniGame.id];
   const round = game.rounds[activeMiniGame.index];
+  const correct = index === round.correct;
+  const assist = !correct ? miniGameToolAssist(activeMiniGame.id, round) : null;
+  const resultCorrect = correct || Boolean(assist);
   activeMiniGame.selected = index;
   activeMiniGame.answered = true;
-  if (index === round.correct) activeMiniGame.score += 1;
+  if (assist) {
+    activeMiniGame.toolBonusUsed = true;
+    awardStats({ focus: -TOOL_ASSIST_FOCUS_COST });
+  }
+  if (resultCorrect) activeMiniGame.score += 1;
   activeMiniGame.sectionResults = activeMiniGame.sectionResults || [];
   activeMiniGame.sectionResults[activeMiniGame.index] = {
     section: round.section || `Round ${activeMiniGame.index + 1}`,
     task: round.task || "Question",
-    correct: index === round.correct,
+    correct: resultCorrect,
+    assisted: Boolean(assist),
+    assistText: assist,
     selected: round.choices[index],
     answer: round.choices[round.correct],
     explain: round.explain
   };
   renderMiniGamePanel();
+}
+
+function miniGameToolAssist(id, round) {
+  if (activeMiniGame?.toolBonusUsed) return null;
+  const tool = ITEMS[state.equipped.tool];
+  if (!tool?.effect) return null;
+  if ((state.stats?.focus || 0) < TOOL_ASSIST_FOCUS_COST) return null;
+  if (tool.effect.miniGameBonus === id) return `${tool.name} spent ${TOOL_ASSIST_FOCUS_COST} Focus to turn a weak answer into a usable point.`;
+  if (id === "examSimulation" && tool.effect.examSections?.includes(round.section)) {
+    return `${tool.name} spent ${TOOL_ASSIST_FOCUS_COST} Focus to help with the ${round.section} section.`;
+  }
+  return null;
 }
 
 function miniGameSectionBreakdown(id, sectionResults = []) {
@@ -3013,6 +3185,8 @@ function miniGameSectionBreakdown(id, sectionResults = []) {
       section: round.section || `Section ${index + 1}`,
       task: round.task || "Question",
       correct: Boolean(result.correct),
+      assisted: Boolean(result.assisted),
+      assistText: result.assistText || "",
       selected: result.selected || "No answer",
       answer: round.choices[round.correct],
       explain: round.explain
@@ -3025,8 +3199,8 @@ function renderExamBreakdown(sections = []) {
   const rows = sections.map((section) => `
     <div class="exam-breakdown-row${section.correct ? " is-correct" : " is-wrong"}">
       <strong>${escapeHtml(section.section)}</strong>
-      <small>${escapeHtml(section.task)} - ${section.correct ? "secure" : "revise"}</small>
-      <p>${escapeHtml(section.explain)}</p>
+      <small>${escapeHtml(section.task)} - ${section.assisted ? "tool assist" : section.correct ? "secure" : "revise"}</small>
+      <p>${escapeHtml(section.assistText || section.explain)}</p>
     </div>
   `).join("");
   return `<div class="exam-breakdown"><h3>Section breakdown</h3>${rows}</div>`;
@@ -3054,15 +3228,16 @@ function completeMiniGame() {
   const medal = miniGameMedal(score, game.rounds.length);
   const npcConclusion = miniGameNpcConclusion(id);
   const sections = miniGameSectionBreakdown(id, activeMiniGame.sectionResults || []);
+  const storyNote = medal !== "practice" ? markStoryFlag(MINI_GAME_STORY_FLAGS[id]) : "";
   if (score > previous) {
     state.miniGameScores[id] = { score, medal, completedAt: Date.now(), ...(sections.length ? { sections } : {}) };
     const bonus = medal === "gold" ? 8 : medal === "silver" ? 5 : medal === "bronze" ? 3 : 1;
     addCoins((game.reward.coins || 0) + bonus);
     awardStats(game.reward);
     if (medal !== "practice") state.stats.spark += 1;
-    state.journal = `${game.title}: ${score}/${game.rounds.length}, ${medal}. ${npcConclusion}`;
+    state.journal = `${game.title}: ${score}/${game.rounds.length}, ${medal}. ${npcConclusion}${storyNote}`;
   } else {
-    state.journal = `${game.title}: ${score}/${game.rounds.length}. Best score unchanged. ${npcConclusion}`;
+    state.journal = `${game.title}: ${score}/${game.rounds.length}. Best score unchanged. ${npcConclusion}${storyNote}`;
   }
   activeMiniGame = null;
   renderProgressPanel();
@@ -3092,11 +3267,14 @@ function renderCharacterPanel() {
   const nextXp = xpForNextLevel();
   const statCards = STAT_KEYS.map((key) => {
     const value = Math.round(state.stats[key]);
+    const contribution = Math.round(value * READINESS_WEIGHTS[key]);
     const disabled = state.stats.statPoints <= 0 || value >= 100 ? " disabled" : "";
     return `
       <div class="character-stat-card">
         <div class="stat-card-header"><strong>${STAT_LABELS[key]}</strong><span>${value}/100</span></div>
+        <small>${escapeHtml(STAT_DESCRIPTIONS[key])}</small>
         <div class="progress-bar mini"><span style="width:${value}%"></span></div>
+        <small>Readiness contribution: +${contribution}%</small>
         <button type="button" data-character-stat="${key}"${disabled}>+1</button>
       </div>
     `;
@@ -3110,8 +3288,8 @@ function renderCharacterPanel() {
     <section class="character-stat-grid">${statCards}</section>
     <section class="character-formula">
       <strong>Readiness formula</strong>
-      <p>35 + Knowledge × 0.6 + Rhetoric × 0.4 + Empathy × 0.2 + Integrity × 0.3 + Sparks × 1.5, capped at 95%.</p>
-      <p>Sparks: ${collectedSparks()} · Focus: ${Math.round(state.stats.focus)}/100</p>
+      <p>${READINESS_BASE} + Knowledge x ${READINESS_WEIGHTS.knowledge} + Rhetoric x ${READINESS_WEIGHTS.rhetoric} + Empathy x ${READINESS_WEIGHTS.empathy} + Integrity x ${READINESS_WEIGHTS.integrity} + Sparks x 1.5, capped at 95%.</p>
+      <p>Sparks: ${collectedSparks()} · Focus: ${Math.round(state.stats.focus)}/100 · Tool assists cost ${TOOL_ASSIST_FOCUS_COST} Focus.</p>
     </section>
   `;
 }
@@ -3135,11 +3313,21 @@ function unequipItem(slot) {
 
 function useItem(id) {
   const item = ITEMS[id];
-  if (!item || item.type !== "consumable" || !state.inventory.includes(id)) return;
-  removeItem(id);
-  addKnowledge(5);
-  awardStats({ focus: 15 });
-  state.journal = `${item.name} used. Knowledge +5, Focus +15.`;
+  if (!item || !state.inventory.includes(id)) return;
+  if (item.type === "consumable") {
+    removeItem(id);
+    awardStats({ focus: item.effect?.focus || 0, knowledge: item.effect?.knowledge || 0 });
+    state.journal = `${item.name} used. Focus restored to ${Math.round(state.stats.focus)}/100.`;
+  } else if (item.effect?.openProgress) {
+    state.journal = `Notebook opened. Current objective: ${state.quest}`;
+    openProgressPanel(item.effect.openProgress);
+  } else if (item.effect?.storyHint) {
+    const beat = Object.values(STORY_BEATS).find((entry) => entry.act === state.storyAct) || STORY_BEATS.intro;
+    state.journal = `Citizen Scroll: ${beat.objective}`;
+    openProgressPanel("story");
+  } else {
+    return;
+  }
   updateHud();
   saveGame();
 }
@@ -3147,6 +3335,11 @@ function useItem(id) {
 function sellItem(id) {
   const item = ITEMS[id];
   if (!item || !state.inventory.includes(id)) return;
+  if (item.type === "quest") {
+    state.journal = `${item.name} is a key item and cannot be sold.`;
+    updateHud();
+    return;
+  }
   if (state.equipped.outfit === id || state.equipped.tool === id) {
     state.journal = "Unequip an item before selling it.";
     updateHud();
@@ -3190,7 +3383,7 @@ function isBlocked(x, y, w, h) {
     [x + 2, y + h - 2],
     [x + w - 2, y + h - 2]
   ];
-  return isBuildingBlocked(x, y, w, h) || points.some(([px, py]) => "#~=T".includes(tileAtPixel(px, py)) || isHarborWater(px, py));
+  return isBuildingBlocked(x, y, w, h) || points.some(([px, py]) => "#~T".includes(tileAtPixel(px, py)) || isHarborWater(px, py));
 }
 
 function isHarborWater(x, y) {
@@ -3416,6 +3609,7 @@ function storySceneHtml(beat, endingId = null) {
         <h2 id="storyPanelTitle">${escapeHtml(beat.title)}</h2>
         <p>${escapeHtml(beat.body)}</p>
         <p><strong>${isEnding ? "Result" : beat.villain}:</strong> ${escapeHtml(beat.objective || `Exam Readiness ${examChance()}% - Sparks ${collectedSparks()}`)}</p>
+        <p><strong>Choices:</strong> ${escapeHtml(shadeReactionText())}</p>
       </div>
     </div>
   `;
@@ -3446,8 +3640,9 @@ function finalEndingId() {
   const examTotal = MINI_GAMES.examSimulation.rounds.length;
   const allPractice = state.examPracticeCompleted.size >= EXAM_PRACTICE_ROOMS.length;
   const allRegions = locationOrder.every((id) => state.unlockedLocations.has(id));
-  if (readiness >= 85 && examScore >= examTotal - 1 && allPractice && allRegions) return "gold";
-  if ((readiness >= 65 && examScore >= 3) || examScore >= examTotal - 1) return "silver";
+  const choiceCount = storyFlagCount();
+  if (readiness >= 85 && examScore >= examTotal - 1 && allPractice && allRegions && choiceCount >= 5) return "gold";
+  if (((readiness >= 65 && examScore >= 3) || examScore >= examTotal - 1) && choiceCount >= 3) return "silver";
   return "bronze";
 }
 
@@ -3464,7 +3659,7 @@ function showFinalEnding() {
   state.storyAct = 7;
   state.storyEnding = endingId;
   state.storySeen.add(endingId);
-  storyPanelBody.innerHTML = storySceneHtml({ ...ending, region: "Exam Hall Castle", objective: `Exam Readiness ${examChance()}% - Exam Score ${examSimulationSummaryText()} - Sparks ${collectedSparks()}` }, endingId);
+  storyPanelBody.innerHTML = storySceneHtml({ ...ending, region: "Exam Hall Castle", objective: `Exam Readiness ${examChance()}% - Exam Score ${examSimulationSummaryText()} - Sparks ${collectedSparks()} - Choices ${storyFlagCount()}/${Object.keys(STORY_FLAGS).length}` }, endingId);
   storyPanel.classList.remove("hidden");
   state.journal = `${ending.title}: ${ending.body}`;
   updateHud();
@@ -3564,8 +3759,8 @@ function completeStudyStation(stationId) {
   }
   state.completedStudyStations.add(key);
   addKnowledge(station.reward || 3);
-  awardStats({ ...statRewardForRegion(state.currentLocation), focus: -2 });
-  state.journal = `${currentLocation().name}: ${station.label} logged. ${station.success}`;
+  awardStats({ ...statRewardForRegion(state.currentLocation), focus: 6 });
+  state.journal = `${currentLocation().name}: ${station.label} logged. ${station.success} Focus +6.`;
   const location = currentLocation();
   const allDone = currentStudyStations().every((item) => state.completedStudyStations.has(studyStationKey(state.currentLocation, item.id)));
   if (allDone && location.badge && !state.badges.includes(location.badge)) {
@@ -3731,6 +3926,7 @@ function completeQuest(quest) {
   const addedItems = (reward.items || (reward.item ? [reward.item] : [])).filter(addItem);
   addKnowledge(2);
   awardStats({ ...statRewardForRegion(questLocationId), focus: -3, spark: 1 });
+  const storyNote = markStoryFlag(REGION_STORY_FLAGS[questLocationId]);
   if (questId) state.completedQuests.add(questId);
   state.activeQuest = null;
   const location = currentLocation();
@@ -3738,13 +3934,77 @@ function completeQuest(quest) {
   state.quest = unfinished ? `${location.name}: ${unfinished} quest${unfinished === 1 ? "" : "s"} left.` : `${location.name}: use Travel gate for 3 questions.`;
   const levelHint = state.stats.statPoints ? " Open Character (C) to spend your new stat points." : "";
   const rewardText = itemRewardText({ items: addedItems, coins }, coins);
-  state.journal = `${quest.title} complete. Reward: ${rewardText}.${levelHint}`;
+  state.journal = `${quest.title} complete. Reward: ${rewardText}.${storyNote}${levelHint}`;
   updateHud();
   saveGame();
-  showDialogue(npcById(quest.giver).name, `${quest.feedback} Reward: ${rewardText}.${levelHint}`, "Choose another quest or equip your rewards.", "reward");
+  showDialogue(npcById(quest.giver).name, `${quest.feedback} Reward: ${rewardText}.${storyNote}${levelHint}`, "Choose another quest or equip your rewards.", "reward");
+}
+
+function hasUniqueItem(id) {
+  const item = ITEMS[id];
+  return Boolean(item && ["outfit", "tool", "quest", "treasure"].includes(item.type) && state.inventory.includes(id));
+}
+
+function renderShopRows(npc) {
+  const stock = npc.vendor?.stock || [];
+  if (!stock.length) return `<button type="button" disabled>No stock available yet.</button>`;
+  return stock.map((entry, index) => {
+    const item = ITEMS[entry.item];
+    if (!item) return "";
+    const owned = hasUniqueItem(entry.item);
+    const affordable = state.coins >= entry.price;
+    const disabled = owned || !affordable ? " disabled" : "";
+    const status = owned ? "Owned" : affordable ? `Buy ${entry.price}c` : `Need ${entry.price}c`;
+    return `
+      <div class="shop-row">
+        ${itemThumb(entry.item)}
+        <div>
+          <strong>${escapeHtml(item.name)}</strong>
+          <small>${escapeHtml(entry.note || item.description)}</small>
+        </div>
+        <button type="button" data-shop-buy="${index}" data-npc="${npc.id}"${disabled}>${status}</button>
+      </div>
+    `;
+  }).join("");
+}
+
+function buyShopItem(npc, stockIndex) {
+  if (!npc?.vendor) return;
+  const entry = npc.vendor.stock[stockIndex];
+  const item = entry ? ITEMS[entry.item] : null;
+  if (!entry || !item) return;
+  if (hasUniqueItem(entry.item)) {
+    state.journal = `${item.name} is already in your backpack.`;
+    updateHud();
+    showTradeMenu(npc);
+    return;
+  }
+  if (state.coins < entry.price) {
+    state.journal = `Not enough coins for ${item.name}.`;
+    updateHud();
+    showTradeMenu(npc);
+    return;
+  }
+  state.coins -= entry.price;
+  addItem(entry.item);
+  showTradeMenu(npc);
+  state.journal = `${npc.name} sold you ${item.name} for ${entry.price} coins.`;
+  updateHud();
+  saveGame();
 }
 
 function showTradeMenu(npc) {
+  if (npc.vendor) {
+    const html = `
+      <div class="shop-summary"><strong>${escapeHtml(npc.vendor.title)}</strong><small>Coins: ${state.coins}</small></div>
+      <div class="shop-list">${renderShopRows(npc)}</div>
+      <button type="button" data-menu="back" data-npc="${npc.id}">Back</button>
+    `;
+    state.journal = `${npc.name} has useful supplies for this region.`;
+    updateHud();
+    showPanel(html, `${npc.name}: Trade`, "talk");
+    return;
+  }
   state.journal = `Stand near ${npc.name} and use Sell buttons in your inventory.`;
   updateHud();
   showPanel(`<button type="button" disabled>Use the Sell buttons in the inventory panel.</button><button type="button" data-menu="back" data-npc="${npc.id}">Back</button>`, `${npc.name}: Trade`, "talk");
@@ -4554,18 +4814,10 @@ function drawStonePlaza() {
       if (hashNoise(x, y, 11) > .72) rect(x + offset + 7, y + 6, 12, 2, "#8a8178");
     }
   }
-  rect(704, 192, 160, 160, visual.water || "#1f6b78");
-  rect(704, 192, 7, 160, "rgba(255,255,255,.08)");
-  for (let y = 202; y < 344; y += 26) {
-    rect(716, y, 112, 3, "#58a8b0");
-    rect(836, y + 8, 18, 2, "#357f8b");
+  for (let x = 704; x < 850; x += 36) {
+    rect(x, 306, 26, 14, "rgba(245,240,223,.18)");
+    rect(x + 2, 318, 22, 2, "rgba(75,85,70,.18)");
   }
-  for (let x = 704; x < 864; x += 24) {
-    rect(x, 276, 24, 32, "#9a5b47");
-    rect(x + 2, 280, 20, 4, "#c07458");
-    rect(x + 2, 300, 20, 3, "#5c332b");
-  }
-  rect(716, 308, 130, 9, "#57322b");
 }
 
 function drawBoat(x, y) {
@@ -4615,12 +4867,14 @@ function drawFineDetails() {
   if (isInteriorLocation()) return;
   const id = state.currentLocation;
   if (id === "village") {
-    drawBoat(738, 356);
-    drawMarketStall(130, 424, "#b94e48", "Gear");
-    drawMarketStall(248, 424, "#466d9f", "Books");
-    for (let x = 70; x < 350; x += 28) {
-      rect(x, 384, 16, 5, "#6d4939");
-      rect(x + 3, 376, 4, 16, "#4b3128");
+    for (let i = 0; i < 14; i += 1) {
+      const x = 88 + Math.floor(hashNoise(i, 33, 5) * 710);
+      const y = 70 + Math.floor(hashNoise(i, 37, 6) * 430);
+      const tile = tileAtPixel(x, y);
+      if ("#~=,:".includes(tile) || isBuildingBlocked(x, y, 16, 16)) continue;
+      rect(x, y + 10, 18, 7, "#4f8f4a");
+      rect(x + 4, y + 5, 4, 4, i % 2 ? "#f7f0a3" : "#f05d5e");
+      rect(x + 11, y + 3, 4, 4, i % 3 ? "#ffe066" : "#e36b5d");
     }
   }
   if (id === "modernBritain") {
@@ -4799,7 +5053,7 @@ function drawPropLayer() {
   }
   drawBuildingDoors();
   drawSigns();
-  props.forEach(drawProp);
+  props.filter((prop) => !prop.location || prop.location === state.currentLocation).forEach(drawProp);
   drawFineDetails();
 }
 
@@ -4952,6 +5206,11 @@ choicePanel.addEventListener("click", (event) => {
     const selected = Number(questAnswer.dataset.questAnswer);
     const correct = pendingQuestTurnIn?.correct ?? -1;
     markAnswerThen(questAnswer, selected === correct, `button[data-quest-answer="${correct}"]`, () => answerQuest(selected));
+    return;
+  }
+  const shopBuy = event.target.closest("button[data-shop-buy]");
+  if (shopBuy) {
+    buyShopItem(npcById(shopBuy.dataset.npc), Number(shopBuy.dataset.shopBuy));
     return;
   }
   const menuButton = event.target.closest("button[data-menu]");

@@ -8,14 +8,14 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Citizenship Valley</title>
-    <link rel="stylesheet" href="styles.css?v=2026.06.03.8">
+    <link rel="stylesheet" href="styles.css?v=2026.06.04.1">
 </head>
 
-<body data-app-version="2026.06.03.8">
+<body data-app-version="2026.06.04.1">
     <main class="game-shell">
         <section class="stage" aria-label="Citizenship Valley game">
             <canvas id="game" width="1280" height="768"></canvas>
-            <div id="appVersion" class="app-version" aria-label="App version">v2026.06.03.8</div>
+            <div id="appVersion" class="app-version" aria-label="App version">v2026.06.04.1</div>
             <div id="titleScreen" class="intro-overlay hidden" aria-label="Title screen">
                 <div class="intro-card">
                     <h2 class="intro-title">Citizenship Valley</h2>
@@ -199,7 +199,8 @@
                 </div>
             </div>
 
-            <div class="meter-group">
+            <details class="meter-group hud-section" open>
+                <summary>Status</summary>
                 <div class="region">
                     <span>Region</span>
                     <strong id="regionText">Citizenship Village</strong>
@@ -229,24 +230,24 @@
                 </div>
                 <div class="meter"><span id="examReadinessBar"></span></div>
                 <button id="characterOpenButton" class="reset-button" type="button">Open Character</button>
-            </div>
+            </details>
 
-            <div class="quest-card">
-                <h2>Current Quest</h2>
+            <details class="quest-card hud-section" open>
+                <summary>Current Quest</summary>
                 <p id="questText">Talk to the Mayor outside Town Hall.</p>
                 <button id="progressOpenButton" class="reset-button" type="button">Open Progress</button>
                 <button id="miniGameOpenButton" class="reset-button" type="button">Open Mini-games</button>
-            </div>
+            </details>
 
-            <div class="inventory">
-                <h2>Badges</h2>
+            <details class="inventory hud-section">
+                <summary>Badges</summary>
                 <ul id="badgeList">
                     <li>None yet</li>
                 </ul>
-            </div>
+            </details>
 
-            <div class="equipment">
-                <h2>Equipment</h2>
+            <details class="equipment hud-section">
+                <summary>Equipment</summary>
                 <dl>
                     <div>
                         <dt>Outfit</dt>
@@ -257,29 +258,29 @@
                         <dd id="toolText">None</dd>
                     </div>
                 </dl>
-            </div>
+            </details>
 
-            <div class="inventory">
-                <h2>Inventory</h2>
+            <details class="inventory hud-section" open>
+                <summary>Inventory</summary>
                 <button id="inventoryOpenButton" class="reset-button" type="button">Open Backpack</button>
                 <div id="inventoryList" class="inventory-list"></div>
-            </div>
+            </details>
 
-            <div class="log">
-                <h2>Journal</h2>
+            <details class="log hud-section" open>
+                <summary>Journal</summary>
                 <p id="journalText">Earn items by helping villagers.</p>
                 <div id="reviewList" class="review-list"></div>
                 <button id="reviewButton" class="reset-button" type="button">Open Review Journal</button>
-            </div>
+            </details>
 
-            <div class="dev-tools">
-                <h2>Dev Travel</h2>
+            <details class="dev-tools hud-section">
+                <summary>Dev Travel</summary>
                 <select id="devLocationSelect" aria-label="Switch test location"></select>
                 <button id="devTravelButton" class="reset-button" type="button">Switch Location</button>
-            </div>
+            </details>
 
-            <div class="controls">
-                <h2>Controls</h2>
+            <details class="controls hud-section">
+                <summary>Controls</summary>
                 <p><kbd>WASD</kbd> or <kbd>Arrows</kbd> move</p>
                 <p>Touch buttons also work on mobile.</p>
                 <p><kbd>E</kbd> talk / inspect</p>
@@ -291,12 +292,12 @@
                 <p><kbd>R</kbd> reset saved progress</p>
                 <p>Use item buttons in the inventory.</p>
                 <button id="resetButton" class="reset-button" type="button">New Game</button>
-            </div>
+            </details>
         </aside>
     </main>
 
-    <script src="curriculum.js?v=2026.06.03.8"></script>
-    <script src="game.js?v=2026.06.03.8"></script>
+    <script src="curriculum.js?v=2026.06.04.1"></script>
+    <script src="game.js?v=2026.06.04.1"></script>
 </body>
 
 </html>

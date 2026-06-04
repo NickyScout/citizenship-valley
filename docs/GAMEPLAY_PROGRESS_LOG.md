@@ -2,6 +2,93 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-04 — P2 QA automation first pass
+
+Plan area: P2 — QA and automation.
+
+What changed:
+- Added `scripts/validate-ui.js` as a standalone VM-based UI validation script.
+- The script validates mini-game structure: title, region, reward, minimum round count, and valid correct indexes.
+- The script validates achievement id uniqueness and required achievement text.
+- The script checks static HTML buttons have an id or handled data-action style attribute.
+- The script smoke-renders Inventory, Progress, Character, and Mini-game panels in a VM.
+- The plan marker remains in QA automation for the next substep: Playwright UI regression scenarios.
+
+Validation:
+- `node scripts\validate-ui.js`
+
+Next marker:
+- Continue with P2 — QA and automation, specifically Playwright UI regression scenarios.
+
+## 2026-06-04 — P2 visual assets first pass
+
+Plan area: P2 — Visual assets.
+
+What changed:
+- Added `assets/story/apathy-shade.svg` as a dedicated Apathy Shade silhouette asset.
+- Story scenes now use region-specific title-card backgrounds.
+- Story Shade rendering now uses the SVG asset instead of only CSS shape drawing.
+- Mini-game panels now include thematic visual props for source checking, rights matching, ballot counting, petitioning, debate, campaign planning, and exam simulation.
+- The plan marker moved to P2 — QA and automation.
+- Public build version moved to `2026.06.04.1`.
+
+Validation:
+- `node --check game.js`
+- `node --check curriculum.js`
+- `node scripts\validate-world.js`
+- VS Code diagnostics for edited files
+- Browser visual smoke test for story region cards, Apathy Shade SVG asset, mini-game visuals, and mobile overflow
+
+Next marker:
+- We are now at P2 — QA and automation in `GAMEPLAY_UPGRADE_PLAN.md`.
+
+## 2026-06-03 — P2 UX menus and mobile ergonomics
+
+Plan area: P2 — UX menus and mobile ergonomics.
+
+What changed:
+- Added a lightweight overlay manager for Inventory, Progress, Character, Story, and Mini-games.
+- Opening one overlay now closes the others instead of allowing stacked panels.
+- Escape now closes the active overlay first, then NPC/menu panels, then dialogue.
+- HUD sidebar sections now use collapsible `details/summary` blocks.
+- Mobile HUD spacing is tighter, and long inventory lists can scroll inside the HUD.
+- Overlay z-index ordering is explicit, with Story above other menu overlays.
+- The plan marker moved to P2 — Visual assets.
+- Public build version moved to `2026.06.03.10`.
+
+Validation:
+- `node --check game.js`
+- `node --check curriculum.js`
+- `node scripts\validate-world.js`
+- VS Code diagnostics for edited files
+- Browser smoke test for overlay exclusivity, Escape close behavior, collapsible HUD sections, and mobile overflow
+
+Next marker:
+- We are now at P2 — Visual assets in `GAMEPLAY_UPGRADE_PLAN.md`.
+
+## 2026-06-03 — P2 curriculum tracking
+
+Plan area: P2 — Curriculum tracking as real learning progress.
+
+What changed:
+- Added curriculum metadata fields through `GCSE_CURRICULUM_INDEX`: area, difficulty, statBoosts, miniGameRefs, and examSkill.
+- Added Progress → Curriculum tab.
+- Curriculum tab shows overall progress and per-area progress for Core Citizenship, Modern Britain, Rights & Law, Democracy, Participation, Active Citizenship, and Exam Skills.
+- Area progress counts completed quest topics, linked study stations, and linked mini-games.
+- Mini-game results now show which curriculum areas improved.
+- The plan marker moved to P2 — UX menus and mobile ergonomics.
+- Public build version moved to `2026.06.03.9`.
+
+Validation:
+- `node --check game.js`
+- `node --check curriculum.js`
+- `node scripts\validate-world.js`
+- VS Code diagnostics for edited files
+- Browser smoke test for Curriculum tab, metadata, mini-game curriculum note, and mobile layout
+
+Next marker:
+- We are now at P2 — UX menus and mobile ergonomics in `GAMEPLAY_UPGRADE_PLAN.md`.
+
 ## 2026-06-03 — P1 story choices and Shade reactions
 
 Plan area: P1 — Story choices and Apathy Shade reactions.

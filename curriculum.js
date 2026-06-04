@@ -180,12 +180,24 @@ window.GCSE_CURRICULUM = {
   }
 };
 
+const CURRICULUM_AREA_META = {
+  village: { area: "Core Citizenship", difficulty: "foundation", statBoosts: { knowledge: 1, empathy: 1 }, miniGameRefs: [], examSkill: "core concepts" },
+  modernBritain: { area: "Modern Britain", difficulty: "foundation", statBoosts: { knowledge: 1, integrity: 1 }, miniGameRefs: ["sourceDetective"], examSkill: "source checking" },
+  rightsLaw: { area: "Rights & Law", difficulty: "developing", statBoosts: { integrity: 2 }, miniGameRefs: ["rightsMatch"], examSkill: "rights and responsibilities" },
+  democracy: { area: "Democracy", difficulty: "developing", statBoosts: { rhetoric: 1, knowledge: 1 }, miniGameRefs: ["ballotCount", "debateArena"], examSkill: "representation and debate" },
+  participation: { area: "Participation", difficulty: "developing", statBoosts: { empathy: 1, rhetoric: 1 }, miniGameRefs: ["petitionRegatta"], examSkill: "participation methods" },
+  actionWorkshop: { area: "Active Citizenship", difficulty: "secure", statBoosts: { rhetoric: 1, integrity: 1 }, miniGameRefs: ["campaignPlanner", "debateArena"], examSkill: "project planning and evaluation" },
+  examHall: { area: "Exam Skills", difficulty: "exam", statBoosts: { knowledge: 1, integrity: 1 }, miniGameRefs: ["examSimulation"], examSkill: "command words and exam technique" }
+};
+
 window.GCSE_CURRICULUM_INDEX = Object.fromEntries(
   Object.values(window.GCSE_CURRICULUM.sections)
     .flatMap((section) => section.topics.map((topic) => {
+      const sectionId = Object.keys(window.GCSE_CURRICULUM.sections).find((id) => window.GCSE_CURRICULUM.sections[id] === section);
+      const meta = CURRICULUM_AREA_META[sectionId] || {};
       if (Array.isArray(topic)) {
-        return [topic[0], { npc: topic[1], asks: topic[2], correctAnswer: topic[3], note: section.focus }];
+        return [topic[0], { npc: topic[1], asks: topic[2], correctAnswer: topic[3], note: section.focus, ...meta }];
       }
-      return [topic.questId, topic];
+      return [topic.questId, { ...topic, ...meta }];
     }))
 );

@@ -206,6 +206,15 @@ const REGION_STORY_FLAGS = {
   actionWorkshop: "plannedAction"
 };
 
+const CURRICULUM_AREAS = ["Core Citizenship", "Modern Britain", "Rights & Law", "Democracy", "Participation", "Active Citizenship", "Exam Skills"];
+
+const STUDY_AREA_MAP = {
+  townHallInterior: "Democracy",
+  libraryInterior: "Modern Britain",
+  courtInterior: "Rights & Law",
+  parkInterior: "Active Citizenship"
+};
+
 const MINI_GAMES = {
   sourceDetective: {
     title: "Source Detective",
@@ -3046,6 +3055,66 @@ function renderProgressMiniGames() {
   return `<section class="progress-section"><div class="progress-card-grid">${cards}</div></section>`;
 }
 
+function curriculumEntries() {
+  const index = window.GCSE_CURRICULUM_INDEX || {};
+  return Object.entries(index).map(([id, topic]) => ({ id, ...topic }));
+}
+
+function curriculumAreaSummary(area) {
+  const topics = curriculumEntries().filter((topic) => topic.area === area);
+  const topicDone = topics.filter((topic) => state.completedQuests.has(topic.id)).length;
+  const miniGameRefs = [...new Set(topics.flatMap((topic) => topic.miniGameRefs || []))];
+  const miniDone = miniGameRefs.filter((id) => Number.isFinite(state.miniGameScores[id]?.score)).length;
+  const studyLocations = Object.entries(STUDY_AREA_MAP).filter(([, mappedArea]) => mappedArea === area).map(([locationId]) => locationId);
+  const studyTotal = studyLocations.reduce((sum, locationId) => sum + currentStudyStations(locationId).length, 0);
+  const studyDone = studyLocations.reduce((sum, locationId) => (
+    sum + currentStudyStations(locationId).filter((station) => state.completedStudyStations.has(studyStationKey(locationId, station.id))).length
+  ), 0);
+  const total = topics.length + miniGameRefs.length + studyTotal;
+  const done = topicDone + miniDone + studyDone;
+  return { area, topics, topicDone, miniGameRefs, miniDone, studyTotal, studyDone, total, done, percent: total ? Math.round((done / total) * 100) : 0 };
+}
+
+function curriculumAreasForMiniGame(id) {
+  return CURRICULUM_AREAS.filter((area) => curriculumAreaSummary(area).miniGameRefs.includes(id));
+}
+
+function miniGameCurriculumNote(id) {
+  const areas = curriculumAreasForMiniGame(id);
+  return areas.length ? ` Curriculum improved: ${areas.join(", ")}.` : "";
+}
+
+function renderProgressCurriculum() {
+  const summaries = CURRICULUM_AREAS.map(curriculumAreaSummary);
+  const total = summaries.reduce((sum, area) => sum + area.total, 0);
+  const done = summaries.reduce((sum, area) => sum + area.done, 0);
+  const overall = total ? Math.round((done / total) * 100) : 0;
+  const cards = summaries.map((summary) => {
+    const nextTopic = summary.topics.find((topic) => !state.completedQuests.has(topic.id));
+    const miniText = summary.miniGameRefs.length ? `${summary.miniDone}/${summary.miniGameRefs.length} mini-games` : "No mini-game link yet";
+    const stationText = summary.studyTotal ? `${summary.studyDone}/${summary.studyTotal} study stations` : "No study station link yet";
+    return `
+      <div class="progress-card">
+        <strong>${escapeHtml(summary.area)}</strong>
+        <small>${summary.done}/${summary.total} learning links complete</small>
+        <div class="progress-bar mini"><span style="width:${summary.percent}%"></span></div>
+        <p>${summary.percent}% learned - ${summary.topicDone}/${summary.topics.length} topics, ${escapeHtml(miniText)}, ${escapeHtml(stationText)}.</p>
+        <small>Next: ${escapeHtml(nextTopic?.asks || "All linked topics complete")}</small>
+      </div>
+    `;
+  }).join("");
+  return `
+    <section class="progress-section">
+      <div class="progress-card is-active">
+        <strong>Curriculum progress: ${overall}%</strong>
+        <small>${done}/${total} linked learning activities complete</small>
+        <div class="progress-bar"><span style="width:${overall}%"></span></div>
+      </div>
+      <div class="progress-card-grid">${cards}</div>
+    </section>
+  `;
+}
+
 function renderProgressPanel() {
   if (!progressPanelBody) return;
   const content = currentProgressTab === "quests"
@@ -3054,15 +3123,18 @@ function renderProgressPanel() {
       ? renderProgressBuildings()
       : currentProgressTab === "miniGames"
         ? renderProgressMiniGames()
-        : currentProgressTab === "achievements"
-          ? renderProgressAchievements()
-          : renderProgressStory();
+        : currentProgressTab === "curriculum"
+          ? renderProgressCurriculum()
+          : currentProgressTab === "achievements"
+            ? renderProgressAchievements()
+            : renderProgressStory();
   progressPanelBody.innerHTML = `
     <nav class="progress-tabs" aria-label="Progress sections">
       ${progressTabButton("story", "Story")}
       ${progressTabButton("quests", "Quests")}
       ${progressTabButton("buildings", "Buildings")}
       ${progressTabButton("miniGames", "Mini-games")}
+      ${progressTabButton("curriculum", "Curriculum")}
       ${progressTabButton("achievements", "Achievements")}
     </nav>
     ${content}
@@ -3079,9 +3151,14 @@ function miniGameScoreText(id) {
   return Number.isFinite(score) ? `Best: ${score}/${game.rounds.length} (${miniGameMedal(score, game.rounds.length)})` : "Best: not played";
 }
 
+function safeClassName(value) {
+  return String(value || "valley").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "valley";
+}
+
 function openMiniGame(id) {
   const game = MINI_GAMES[id];
   if (!game) return;
+  closeOverlays("miniGame");
   activeMiniGame = {
     id,
     index: 0,
@@ -3110,11 +3187,13 @@ function renderMiniGamePanel() {
     : "";
   const sectionLabel = game.isFinalExam && round.section ? `${round.section} section` : `Round ${activeMiniGame.index + 1}/${game.rounds.length}`;
   const taskLabel = game.isFinalExam && round.task ? ` - ${round.task}` : "";
+  const visualClass = `minigame-visual-${safeClassName(activeMiniGame.id)}`;
   miniGamePanelBody.innerHTML = `
     <div class="minigame-header">
       <strong>${escapeHtml(game.title)}</strong>
       <small>${escapeHtml(game.region)} - ${miniGameScoreText(activeMiniGame.id)}</small>
     </div>
+    <div class="minigame-visual ${visualClass}" aria-hidden="true"><span></span><span></span><span></span></div>
     <div class="minigame-meter"><span style="width:${(activeMiniGame.index / game.rounds.length) * 100}%"></span></div>
     <div class="minigame-round">
       <small>${escapeHtml(sectionLabel)}${escapeHtml(taskLabel)} - Score ${activeMiniGame.score}</small>
@@ -3229,15 +3308,16 @@ function completeMiniGame() {
   const npcConclusion = miniGameNpcConclusion(id);
   const sections = miniGameSectionBreakdown(id, activeMiniGame.sectionResults || []);
   const storyNote = medal !== "practice" ? markStoryFlag(MINI_GAME_STORY_FLAGS[id]) : "";
+  const curriculumNote = medal !== "practice" ? miniGameCurriculumNote(id) : "";
   if (score > previous) {
     state.miniGameScores[id] = { score, medal, completedAt: Date.now(), ...(sections.length ? { sections } : {}) };
     const bonus = medal === "gold" ? 8 : medal === "silver" ? 5 : medal === "bronze" ? 3 : 1;
     addCoins((game.reward.coins || 0) + bonus);
     awardStats(game.reward);
     if (medal !== "practice") state.stats.spark += 1;
-    state.journal = `${game.title}: ${score}/${game.rounds.length}, ${medal}. ${npcConclusion}${storyNote}`;
+    state.journal = `${game.title}: ${score}/${game.rounds.length}, ${medal}. ${npcConclusion}${storyNote}${curriculumNote}`;
   } else {
-    state.journal = `${game.title}: ${score}/${game.rounds.length}. Best score unchanged. ${npcConclusion}${storyNote}`;
+    state.journal = `${game.title}: ${score}/${game.rounds.length}. Best score unchanged. ${npcConclusion}${storyNote}${curriculumNote}`;
   }
   activeMiniGame = null;
   renderProgressPanel();
@@ -3249,6 +3329,7 @@ function completeMiniGame() {
       <p>Score: ${score}/${game.rounds.length}</p>
       <p>Medal: ${escapeHtml(medal)}</p>
       <p>${escapeHtml(npcConclusion)}</p>
+      ${curriculumNote ? `<p>${escapeHtml(curriculumNote.trim())}</p>` : ""}
       ${renderExamBreakdown(sections)}
       <button type="button" data-minigame-replay="${id}">Replay</button>
       ${game.isFinalExam ? `<button type="button" data-minigame-ending>Face final ending</button>` : ""}
@@ -3594,8 +3675,9 @@ function storyActTitle() {
 function storySceneHtml(beat, endingId = null) {
   const isEnding = Boolean(endingId);
   const label = isEnding ? "Finale" : `Act ${beat.act}`;
+  const regionClass = `story-region-${safeClassName(beat.region || "valley")}`;
   return `
-    <div class="story-scene${isEnding ? " story-scene-ending" : ""}">
+    <div class="story-scene ${regionClass}${isEnding ? " story-scene-ending" : ""}">
       <div class="story-art" aria-hidden="true">
         <span class="story-sky"></span>
         <span class="story-castle"></span>
@@ -3619,6 +3701,7 @@ function showStoryBeat(id, options = {}) {
   const beat = STORY_BEATS[id];
   if (!beat || !storyPanelBody || !storyPanel) return false;
   if (!options.force && state.storySeen.has(id)) return false;
+  closeOverlays("story");
   state.storyAct = Math.max(state.storyAct || 1, beat.act);
   state.storySeen.add(id);
   storyPanelBody.innerHTML = storySceneHtml(beat);
@@ -3656,6 +3739,7 @@ function showFinalEnding() {
   const endingId = finalEndingId();
   const ending = STORY_ENDINGS[endingId];
   if (!ending || !storyPanelBody || !storyPanel) return;
+  closeOverlays("story");
   state.storyAct = 7;
   state.storyEnding = endingId;
   state.storySeen.add(endingId);
@@ -5110,24 +5194,16 @@ window.addEventListener("keydown", (event) => {
   if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", " "].includes(key)) {
     event.preventDefault();
   }
-  if (key === "escape" && inventoryPanel && !inventoryPanel.classList.contains("hidden")) {
-    closeInventoryPanel();
-    return;
-  }
-  if (key === "escape" && progressPanel && !progressPanel.classList.contains("hidden")) {
-    closeProgressPanel();
-    return;
-  }
-  if (key === "escape" && characterPanel && !characterPanel.classList.contains("hidden")) {
-    closeCharacterPanel();
-    return;
-  }
-  if (key === "escape" && storyPanel && !storyPanel.classList.contains("hidden")) {
-    hideStoryPanel();
-    return;
-  }
-  if (key === "escape" && miniGamePanel && !miniGamePanel.classList.contains("hidden")) {
-    closeMiniGamePanel();
+  if (key === "escape") {
+    if (closeTopOverlay()) return;
+    if (!choicePanel.classList.contains("hidden")) {
+      hidePanel();
+      return;
+    }
+    if (!dialogue.classList.contains("hidden")) {
+      hideDialogue();
+      return;
+    }
     return;
   }
   if (key === "i" && !typing) {
@@ -5343,7 +5419,32 @@ function handleInventoryAction(event) {
   if (action === "sell") sellItem(item);
 }
 
+function overlayPanels() {
+  return {
+    inventory: inventoryPanel,
+    progress: progressPanel,
+    character: characterPanel,
+    story: storyPanel,
+    miniGame: miniGamePanel
+  };
+}
+
+function closeOverlays(except = null) {
+  Object.entries(overlayPanels()).forEach(([key, panel]) => {
+    if (key !== except) panel?.classList.add("hidden");
+  });
+  if (except !== "miniGame") activeMiniGame = null;
+}
+
+function closeTopOverlay() {
+  const open = Object.values(overlayPanels()).find((panel) => panel && !panel.classList.contains("hidden"));
+  if (!open) return false;
+  closeOverlays();
+  return true;
+}
+
 function openInventoryPanel() {
+  closeOverlays("inventory");
   renderInventoryPanel();
   inventoryPanel?.classList.remove("hidden");
 }
@@ -5359,6 +5460,7 @@ function toggleInventoryPanel() {
 }
 
 function openProgressPanel(tab = currentProgressTab) {
+  closeOverlays("progress");
   currentProgressTab = tab;
   renderProgressPanel();
   progressPanel?.classList.remove("hidden");
@@ -5375,6 +5477,7 @@ function toggleProgressPanel() {
 }
 
 function openCharacterPanel() {
+  closeOverlays("character");
   renderCharacterPanel();
   characterPanel?.classList.remove("hidden");
 }

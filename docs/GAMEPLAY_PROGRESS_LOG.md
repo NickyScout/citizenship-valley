@@ -2,6 +2,23 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-04 — GitHub Actions push notification fix
+
+Why:
+- GitHub was emailing failure notifications after commits because the Azure Static Web Apps deploy workflow ran on every push to `main` and the deploy step failed.
+
+What changed:
+- `.github/workflows/azure-static-web-apps.yml` now runs only from `workflow_dispatch`, so normal commits/pushes no longer trigger deploy attempts.
+- The workflow job id is now `build_and_deploy_job`, matching the structure expected by Azure Static Web Apps tooling.
+- Handoff notes now describe the workflow as manual-only and still requiring `AZURE_STATIC_WEB_APPS_API_TOKEN` for an explicit manual deploy.
+
+Validation:
+- `git diff --check` for the workflow/docs change.
+- GitHub Actions metadata confirmed the previous `Deploy Citizenship Game` runs were failing on the deploy step after push events.
+
+Next marker:
+- Continue with 20.4 — regional story title cards, distinct mini-game layouts, and medal reward visuals.
+
 ## 2026-06-04 — Reboot handoff snapshot
 
 Current status before PC restart:

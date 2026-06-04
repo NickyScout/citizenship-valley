@@ -52,7 +52,7 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
 - `assets/tiles/`, `assets/characters/`, `assets/buildings/`, `assets/props/` - broader reserved asset structure for future PNG art.
 - `qa-ui-regression.mjs`, `qa-visual-smoke.mjs`, `qa-regional-playthrough.mjs`, `qa-regional-quests-playthrough.mjs`, `qa-release-smoke.mjs` - local browser/CDP QA scripts.
 - `staticwebapp.config.json` - Azure Static Web Apps config.
-- `.github/workflows/azure-static-web-apps.yml` - intended GitHub Actions deploy workflow.
+- `.github/workflows/azure-static-web-apps.yml` - manual-only GitHub Actions deploy workflow for Azure Static Web Apps.
 - `dist/` - local deployment folder, ignored by Git.
 - `.tools/` and `node_modules/` - local tooling, ignored by Git.
 - `publish/` - clean Git working copy tracking `NickyScout/citizenship-valley`. The root `.git` is unreliable in the OneDrive workspace, so commits have been made from `publish/`.
@@ -136,14 +136,14 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
 - Run quick QA for focused UI changes and full QA before handoff/release candidates.
 - Update `docs/VISUAL_STYLE_GUIDE.md`, `docs/GAMEPLAY_PROGRESS_LOG.md`, and `docs/GAMEPLAY_UPGRADE_PLAN.md` after each graphics subsection.
 - Sync root changes into `publish/` after validated work. Do not deploy to Azure unless the user explicitly requests deploy.
-- Later backlog: move more hardcoded world/quest/NPC data out of `game.js`, improve curriculum coverage against the exact exam board specification, and fix GitHub Actions deployment.
+- Later backlog: move more hardcoded world/quest/NPC data out of `game.js`, improve curriculum coverage against the exact exam board specification, and verify the manual GitHub Actions deploy once the SWA token secret is configured.
 
 ## 6. Known Bugs or Failing Tests
 
 - No blocking automated QA issues are known at this handoff. The last full local QA after §20.3 completed with `blockingIssues: 0`.
 - Public Azure deployment was not run after §20.3, so the live site may not contain the latest Backpack/graphics docs changes until an explicit deploy is performed.
 - `node --check game.js` and similar shell syntax checks can fail in this OneDrive/Codex sandbox with `EPERM` path access errors, even when the JS parses correctly. A workaround used successfully was reading file content through the Node REPL and running `new Function(source)`.
-- The GitHub Actions workflow exists but Azure SWA CLI reports: `missing property "jobs.build_and_deploy_job"`. Manual deploy still works. The workflow may also need the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN`.
+- The GitHub Actions deploy workflow is manual-only (`workflow_dispatch`) so normal pushes should not trigger failing deploy emails. The job id is `build_and_deploy_job`; manual workflow deploy still requires the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN`.
 - Root `.git` is not reliable in this workspace. Use `publish/` for Git operations unless the repository setup is repaired.
 - Browser cache can show stale deployed assets; use `Ctrl+F5` when checking the public site.
 - NPC avatars are procedural SVGs, not hand-painted or generated raster portraits. They are unique and role-aware but still visually simple.
@@ -239,7 +239,7 @@ No runtime environment variables are needed by the web app itself.
 
 Deployment needs Azure CLI authentication and a Static Web Apps deployment token. Do not commit secrets.
 
-Expected GitHub Actions secret, if workflow deployment is repaired:
+Expected GitHub Actions secret, if the manual workflow deployment is used:
 
 ```text
 AZURE_STATIC_WEB_APPS_API_TOKEN

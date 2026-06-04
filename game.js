@@ -30,6 +30,10 @@ const miniGameOpenButton = document.getElementById("miniGameOpenButton");
 const miniGamePanel = document.getElementById("miniGamePanel");
 const miniGamePanelBody = document.getElementById("miniGamePanelBody");
 const miniGameCloseButton = document.getElementById("miniGameCloseButton");
+const settingsOpenButton = document.getElementById("settingsOpenButton");
+const settingsPanel = document.getElementById("settingsPanel");
+const settingsPanelBody = document.getElementById("settingsPanelBody");
+const settingsCloseButton = document.getElementById("settingsCloseButton");
 const focusText = document.getElementById("focusText");
 const focusBar = document.getElementById("focusBar");
 const xpText = document.getElementById("xpText");
@@ -50,6 +54,7 @@ const RENDER_SCALE = TILE / LOGICAL_TILE;
 const VIEW_W = canvas.width / RENDER_SCALE;
 const VIEW_H = canvas.height / RENDER_SCALE;
 const SAVE_KEY = "citizenshipValleySaveV1";
+const SETTINGS_KEY = "citizenshipValleySettingsV1";
 const SAVE_VERSION = 6;
 const keys = new Set();
 let activeNpc = null;
@@ -61,6 +66,46 @@ let saveReady = false;
 let gameStarted = false;
 let currentProgressTab = "story";
 let activeMiniGame = null;
+let selectedInventoryItemId = null;
+let settings = loadSettings();
+
+function defaultSettings() {
+  return { largeText: false, highContrast: false, reducedMotion: false };
+}
+
+function sanitiseSettings(input) {
+  if (!input || typeof input !== "object") return defaultSettings();
+  return {
+    largeText: Boolean(input.largeText),
+    highContrast: Boolean(input.highContrast),
+    reducedMotion: Boolean(input.reducedMotion)
+  };
+}
+
+function loadSettings() {
+  try {
+    return sanitiseSettings(JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}"));
+  } catch (error) {
+    return defaultSettings();
+  }
+}
+
+function saveSettings() {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch (error) {
+    state.journal = "Settings could not be saved in this browser.";
+  }
+}
+
+function applySettings() {
+  if (!document.body) return;
+  document.body.classList.toggle("large-text", settings.largeText);
+  document.body.classList.toggle("high-contrast", settings.highContrast);
+  document.body.classList.toggle("reduced-motion", settings.reducedMotion);
+}
+
+applySettings();
 
 const ACCENT_COLORS = {
   ember: "#e36b5d",
@@ -326,6 +371,17 @@ const PROFILE_PRESETS = [
   { id: "girlLiberty", label: "Rights Lead", gender: "girl", outfit: "libertyCoat", accent: "ember" }
 ];
 
+const HERO_PRESET_VISUALS = {
+  boySchool: { hair: "short", hairColor: "#5b3525", shoes: "#263036", bag: "#8f5b3f", trim: "#f5f0df", silhouette: "school" },
+  boyCampaign: { hair: "cap", hairColor: "#2b1a14", shoes: "#3b251f", bag: "#4f7b55", trim: "#6fbf73", silhouette: "campaign" },
+  boyCouncil: { hair: "parted", hairColor: "#6a594d", shoes: "#202326", bag: "#8f4f44", trim: "#f2c14e", silhouette: "council" },
+  boyLiberty: { hair: "crest", hairColor: "#1f2f3a", shoes: "#202326", bag: "#466d9f", trim: "#5da9e9", silhouette: "liberty" },
+  girlSchool: { hair: "bob", hairColor: "#7a4b28", shoes: "#263036", bag: "#8f5b3f", trim: "#5da9e9", silhouette: "school" },
+  girlCampaign: { hair: "ponytail", hairColor: "#2b1a14", shoes: "#3b251f", bag: "#4f7b55", trim: "#6fbf73", silhouette: "campaign" },
+  girlCouncil: { hair: "bun", hairColor: "#5b3525", shoes: "#202326", bag: "#8f4f44", trim: "#f2c14e", silhouette: "council" },
+  girlLiberty: { hair: "long", hairColor: "#4b2d2b", shoes: "#202326", bag: "#466d9f", trim: "#e36b5d", silhouette: "liberty" }
+};
+
 const ACHIEVEMENTS = [
   { id: "packedBag", name: "Packed Bag", description: "Start with the backpack, notebook, tea, and Citizen Scroll." },
   { id: "firstStep", name: "First Step", description: "Complete your first regional quest." },
@@ -350,6 +406,46 @@ const ACHIEVEMENTS = [
 
 function defaultProfile() {
   return { name: "Citizen", presetId: "boySchool", gender: "boy", outfit: "schoolJumper", accent: "ember" };
+}
+
+function currentProfilePreset(profile = state.profile || defaultProfile()) {
+  return PROFILE_PRESETS.find((entry) => entry.id === profile.presetId) || PROFILE_PRESETS[0];
+}
+
+function heroVisual(profile = state.profile || defaultProfile()) {
+  const preset = currentProfilePreset(profile);
+  const visual = HERO_PRESET_VISUALS[preset.id] || HERO_PRESET_VISUALS.boySchool;
+  const outfit = ITEMS[profile.outfit] || ITEMS[preset.outfit] || { name: "School Jumper", color: "#2f638f" };
+  const accentId = ACCENT_COLORS[profile.accent] ? profile.accent : preset.accent;
+  return {
+    preset,
+    outfit,
+    gender: profile.gender === "girl" || profile.gender === "boy" ? profile.gender : preset.gender,
+    accent: ACCENT_COLORS[accentId] || ACCENT_COLORS.ember,
+    hair: visual.hair,
+    hairColor: visual.hairColor,
+    shoes: visual.shoes,
+    bag: visual.bag,
+    trim: visual.trim,
+    silhouette: visual.silhouette
+  };
+}
+
+function heroPortraitHtml(sizeClass = "") {
+  const profile = state.profile || defaultProfile();
+  const visual = heroVisual(profile);
+  const style = `--hero-outfit:${visual.outfit.color};--hero-accent:${visual.accent};--hero-hair:${visual.hairColor};--hero-shoes:${visual.shoes};--hero-bag:${visual.bag};--hero-trim:${visual.trim};`;
+  return `
+    <span class="hero-portrait ${sizeClass} hero-hair-${visual.hair} hero-silhouette-${visual.silhouette}" style="${style}" role="img" aria-label="${escapeHtml(profile.name || "Citizen")} portrait">
+      <span class="hero-portrait-shadow"></span>
+      <span class="hero-portrait-bag"></span>
+      <span class="hero-portrait-body"></span>
+      <span class="hero-portrait-accent"></span>
+      <span class="hero-portrait-head"></span>
+      <span class="hero-portrait-hair"></span>
+      <span class="hero-portrait-shoes"></span>
+    </span>
+  `;
 }
 
 function defaultStats() {
@@ -810,6 +906,16 @@ const ITEMS = {
     effect: { storyHint: true },
     description: "A starter scroll. It hints at lost sparks of participation across the valley."
   }
+};
+
+const ITEM_ASSETS = {
+  schoolBackpack: "assets/items/school-backpack.png",
+  notebook: "assets/items/notebook.png",
+  revisionTea: "assets/items/revision-tea.png",
+  citizenScroll: "assets/items/citizen-scroll.png",
+  justiceQuill: "assets/items/justice-quill.png",
+  debateBlade: "assets/items/debate-blade.png",
+  civicGem: "assets/items/civic-gem.png"
 };
 
 const VENDORS = {
@@ -2322,7 +2428,7 @@ function buildQuest(location, topic) {
     question,
     answers,
     correct: 0,
-    reward: { coins: 10, item: "revisionTea" },
+    reward: { coins: 8 },
     feedback: `Correct: ${title} is part of ${location.name}.`,
     location: location.id
   };
@@ -2600,6 +2706,8 @@ function updateHud() {
   renderCharacterPanel();
   const nameSlot = document.getElementById("playerNameText");
   if (nameSlot) nameSlot.textContent = state.profile?.name || "Citizen";
+  const portraitSlot = document.getElementById("playerPortrait");
+  if (portraitSlot) portraitSlot.innerHTML = heroPortraitHtml("is-hud");
   const levelSlot = document.getElementById("playerLevelText");
   if (levelSlot) levelSlot.textContent = `Lvl ${state.stats?.level ?? 1}${state.stats?.statPoints ? ` · ${state.stats.statPoints} pts` : ""}`;
   characterOpenButton?.classList.toggle("has-points", Boolean(state.stats?.statPoints));
@@ -2813,6 +2921,7 @@ function isEquippedItem(id) {
 function itemThumb(id) {
   const item = ITEMS[id];
   if (!item) return "";
+  const asset = ITEM_ASSETS[id];
   const color = item.color || item.thumbnailColor || {
     outfit: "#466d9f",
     tool: "#d7dde0",
@@ -2821,7 +2930,8 @@ function itemThumb(id) {
     quest: "#f2c14e"
   }[item.type] || "#d3a74d";
   return `
-    <span class="item-icon item-thumb item-thumb-${item.type} item-art item-art-${id}" style="--item-color:${color}" aria-label="${escapeHtml(item.name)} image" role="img">
+    <span class="item-icon item-thumb item-thumb-${item.type} item-art item-art-${id}${asset ? " has-asset" : ""}" style="--item-color:${color}" aria-label="${escapeHtml(item.name)} image" role="img">
+      ${asset ? `<img class="item-asset" src="${asset}" alt="" aria-hidden="true" onerror="this.style.display='none';this.parentElement.classList.remove('has-asset')">` : ""}
       <span class="art art-main"></span>
       <span class="art art-a"></span>
       <span class="art art-b"></span>
@@ -2848,19 +2958,88 @@ function renderItemActions(id, item, options = {}) {
   return actions.join("");
 }
 
+function itemTypeLabel(type) {
+  return {
+    quest: "Quest item",
+    consumable: "Consumable",
+    outfit: "Outfit",
+    tool: "Tool",
+    treasure: "Collectible"
+  }[type] || "Item";
+}
+
+function itemEffectSummary(id, item) {
+  const effects = [];
+  if (item.effect?.focus) effects.push(`Restores ${item.effect.focus} Focus`);
+  if (item.effect?.knowledge) effects.push(`Adds ${item.effect.knowledge} Knowledge`);
+  if (item.effect?.openProgress) effects.push("Opens Progress notes");
+  if (item.effect?.storyHint) effects.push("Shows a story hint");
+  if (item.effect?.miniGameBonus) effects.push(`Assists ${MINI_GAMES[item.effect.miniGameBonus]?.title || item.effect.miniGameBonus}`);
+  if (item.effect?.examSections?.length) effects.push(`Assists ${item.effect.examSections.join("/")} exam sections`);
+  if (item.type === "quest") effects.push("Locked story item");
+  if (item.type === "outfit") effects.push("Can be worn as an outfit");
+  if (item.type === "tool") effects.push("Can be held as a tool");
+  if (item.type === "treasure") effects.push("Collectible reward");
+  return effects.length ? effects : ["No active effect yet"];
+}
+
+function renderItemMeta(id, item, count = 1) {
+  const locked = item.type === "quest";
+  const equipped = isEquippedItem(id);
+  return `
+    <div class="item-meta-row">
+      <span class="item-type-pill item-type-${item.type}">${itemTypeLabel(item.type)}</span>
+      ${count > 1 ? `<span class="item-count-pill">Stack x${count}</span>` : ""}
+      ${equipped ? `<span class="item-equipped-pill">Equipped</span>` : ""}
+      ${locked ? `<span class="item-lock" title="This quest item cannot be sold">Locked</span>` : ""}
+    </div>
+  `;
+}
+
 function renderItemRow(id, count, options = {}) {
   const item = ITEMS[id];
   if (!item) return "";
   const countText = count > 1 ? ` x${count}` : "";
+  const selectable = !options.compact;
+  const selected = options.selected ? " is-selected" : "";
   return `
-    <div class="item-row${options.compact ? " item-row-compact" : ""}">
+    <div class="item-row item-row-${item.type}${options.compact ? " item-row-compact" : ""}${selected}"${selectable ? ` data-item-select="${id}" role="button" tabindex="0"` : ""}>
       ${itemThumb(id)}
       <div>
         <strong>${escapeHtml(item.name)}${countText}</strong>
+        ${!options.compact ? renderItemMeta(id, item, count) : ""}
         <small>${escapeHtml(item.description)}</small>
         <div class="item-actions">${renderItemActions(id, item, options)}</div>
       </div>
     </div>
+  `;
+}
+
+function renderItemDetail(id, count = 1) {
+  const item = ITEMS[id];
+  if (!item) {
+    return `
+      <section class="item-detail-panel empty-detail" aria-label="Selected item details">
+        <strong>No item selected</strong>
+        <small>Select an item in the backpack to inspect it.</small>
+      </section>
+    `;
+  }
+  const effects = itemEffectSummary(id, item).map((line) => `<li>${escapeHtml(line)}</li>`).join("");
+  return `
+    <section class="item-detail-panel item-detail-${item.type}" aria-label="Selected item details">
+      <div class="item-detail-top">
+        <div class="item-detail-thumb">${itemThumb(id)}</div>
+        <div>
+          <strong>${escapeHtml(item.name)}</strong>
+          ${renderItemMeta(id, item, count)}
+        </div>
+      </div>
+      <p>${escapeHtml(item.description)}</p>
+      <small>Effects</small>
+      <ul class="item-effect-list">${effects}</ul>
+      <div class="item-actions item-detail-actions">${renderItemActions(id, item)}</div>
+    </section>
   `;
 }
 
@@ -2893,18 +3072,20 @@ function renderEquippedSlot(slot, id) {
 function renderInventoryPanel() {
   if (!inventoryPanelBody) return;
   const bagIds = backpackItemCounts();
-  const bagContent = Object.keys(bagIds).length
-    ? Object.keys(bagIds).map((id) => renderItemRow(id, bagIds[id])).join("")
+  const ids = Object.keys(bagIds);
+  if (!selectedInventoryItemId || !bagIds[selectedInventoryItemId]) selectedInventoryItemId = ids[0] || null;
+  const bagContent = ids.length
+    ? ids.map((id) => renderItemRow(id, bagIds[id], { selected: id === selectedInventoryItemId })).join("")
     : `<p class="empty">Your backpack is empty. Equipped outfit and hand items are shown above.</p>`;
   inventoryPanelBody.innerHTML = `
-    <section class="equipped-panel" aria-label="Equipped items">
+    <section class="backpack-panel inventory-list-column" aria-label="Backpack items">
+      <h3>Equipped</h3>
       ${renderEquippedSlot("outfit", state.equipped.outfit)}
       ${renderEquippedSlot("tool", state.equipped.tool)}
-    </section>
-    <section class="backpack-panel" aria-label="Backpack items">
-      <h3>Inside the backpack</h3>
+      <h3>Backpack items</h3>
       <div class="inventory-list inventory-list-panel">${bagContent}</div>
     </section>
+    ${renderItemDetail(selectedInventoryItemId, selectedInventoryItemId ? bagIds[selectedInventoryItemId] : 0)}
   `;
 }
 
@@ -3346,6 +3527,8 @@ function closeMiniGamePanel() {
 function renderCharacterPanel() {
   if (!characterPanelBody) return;
   const nextXp = xpForNextLevel();
+  const profile = state.profile || defaultProfile();
+  const visual = heroVisual(profile);
   const statCards = STAT_KEYS.map((key) => {
     const value = Math.round(state.stats[key]);
     const contribution = Math.round(value * READINESS_WEIGHTS[key]);
@@ -3361,6 +3544,13 @@ function renderCharacterPanel() {
     `;
   }).join("");
   characterPanelBody.innerHTML = `
+    <section class="character-hero-card">
+      ${heroPortraitHtml("is-large")}
+      <div>
+        <strong>${escapeHtml(profile.name || "Citizen")}</strong>
+        <small>${escapeHtml(visual.preset.label)} · ${escapeHtml(visual.outfit.name)} · ${escapeHtml(visual.silhouette)} silhouette</small>
+      </div>
+    </section>
     <section class="character-summary">
       <div><strong>Level ${state.stats.level}</strong><small>${state.stats.level >= MAX_LEVEL ? "Maximum level" : `${state.stats.xp}/${nextXp} XP to next level`}</small></div>
       <div><strong>${state.stats.statPoints}</strong><small>Unspent points</small></div>
@@ -4549,19 +4739,97 @@ function drawPlayer() {
 }
 
 function drawHeroProfileMarkers(p, bob) {
-  const profile = state.profile || defaultProfile();
-  const accent = ACCENT_COLORS[profile.accent] || ACCENT_COLORS.ember;
-  if (profile.gender === "girl") {
-    rect(p.x + 2, p.y + 3, 26, 4, "#8a3a64");
-    rect(p.x + 6, p.y + 5, 18, 4, "#c25584");
+  const visual = heroVisual();
+  drawHeroHairDetails(p, bob, visual);
+  drawHeroSilhouetteDetails(p, bob, visual);
+  drawHeroBackpackDetails(p, bob, visual);
+  drawHeroAccentDetails(p, bob, visual);
+  drawHeroShoeDetails(p, visual);
+}
+
+function drawHeroHairDetails(p, bob, visual) {
+  const hair = visual.hairColor;
+  if (visual.hair === "cap") {
+    rect(p.x + 5, p.y - 1, 21, 6, visual.accent);
+    rect(p.x + 10, p.y - 5, 14, 4, visual.accent);
+    return;
+  }
+  if (visual.hair === "crest") {
+    rect(p.x + 7, p.y - 4, 5, 10, hair);
+    rect(p.x + 13, p.y - 7, 5, 13, hair);
+    rect(p.x + 19, p.y - 3, 5, 9, hair);
+    return;
+  }
+  if (visual.hair === "bun") {
+    rect(p.x + 4, p.y + 2, 22, 6, hair);
+    rect(p.x + 22, p.y + 3, 7, 7, hair);
+    return;
+  }
+  if (visual.hair === "ponytail") {
+    rect(p.x + 3, p.y + 1, 24, 8, hair);
+    rect(p.x + 23, p.y + 9 + bob, 6, 13, hair);
+    return;
+  }
+  if (visual.hair === "bob" || visual.hair === "long") {
+    rect(p.x + 2, p.y + 2, 26, visual.hair === "long" ? 8 : 5, hair);
+    rect(p.x + 4, p.y + 7, 5, visual.hair === "long" ? 14 : 8, hair);
+    rect(p.x + 21, p.y + 7, 5, visual.hair === "long" ? 14 : 8, hair);
+    return;
+  }
+  rect(p.x + 5, p.y + 1, 21, 5, hair);
+}
+
+function drawHeroSilhouetteDetails(p, bob, visual) {
+  if (visual.silhouette === "council") {
+    rect(p.x + 2, p.y + 25 + bob, 27, 14, "rgba(48,20,22,.72)");
+    rect(p.x + 7, p.y + 26 + bob, 16, 3, visual.trim);
+  }
+  if (visual.silhouette === "campaign") {
+    rect(p.x + 4, p.y + 35, 9, 11, "#3b251f");
+    rect(p.x + 18, p.y + 35, 9, 11, "#3b251f");
+    rect(p.x + 6, p.y + 41, 8, 3, visual.accent);
+    rect(p.x + 20, p.y + 41, 8, 3, visual.accent);
+  }
+  if (visual.silhouette === "liberty") {
+    rect(p.x + 5, p.y + 34 + bob, 21, 8, "rgba(20,42,77,.76)");
+    rect(p.x + 4, p.y + 22 + bob, 3, 14, visual.accent);
+    rect(p.x + 24, p.y + 22 + bob, 3, 14, visual.accent);
+  }
+}
+
+function drawHeroBackpackDetails(p, bob, visual) {
+  if (p.dir === "up") {
+    rect(p.x + 8, p.y + 18 + bob, 16, 20, visual.bag);
+    rect(p.x + 10, p.y + 22 + bob, 12, 8, "rgba(245,240,223,.18)");
+    return;
   }
   if (p.dir === "left") {
-    rect(p.x + 5, p.y + 22 + bob, 5, 10, accent);
-  } else if (p.dir === "right") {
-    rect(p.x + 20, p.y + 22 + bob, 5, 10, accent);
-  } else {
-    rect(p.x + 13, p.y + 22 + bob, 4, 10, accent);
+    rect(p.x + 21, p.y + 20 + bob, 7, 17, visual.bag);
+    return;
   }
+  if (p.dir === "right") {
+    rect(p.x + 3, p.y + 20 + bob, 7, 17, visual.bag);
+    return;
+  }
+  rect(p.x + 5, p.y + 18 + bob, 3, 18, visual.bag);
+  rect(p.x + 23, p.y + 18 + bob, 3, 18, visual.bag);
+}
+
+function drawHeroAccentDetails(p, bob, visual) {
+  if (p.dir === "left") {
+    rect(p.x + 5, p.y + 22 + bob, 5, 10, visual.accent);
+  } else if (p.dir === "right") {
+    rect(p.x + 20, p.y + 22 + bob, 5, 10, visual.accent);
+  } else if (visual.silhouette === "campaign") {
+    rect(p.x + 7, p.y + 25 + bob, 17, 4, visual.accent);
+  } else {
+    rect(p.x + 13, p.y + 22 + bob, 4, 10, visual.accent);
+  }
+}
+
+function drawHeroShoeDetails(p, visual) {
+  rect(p.x + 4, p.y + 44, 11, 3, visual.shoes);
+  rect(p.x + 17, p.y + 44, 11, 3, visual.shoes);
 }
 
 function drawHeroSide(p, outfit, bob, frame, side) {
@@ -4645,10 +4913,19 @@ function drawHeroBack(p, outfit, bob, frame) {
 }
 
 function drawHeroHeldItem(p, side, bob) {
+  if (!state.equipped.tool) return;
   const x = side === 1 ? p.x + 28 : p.x - 8;
   if (state.equipped.tool === "justiceQuill") {
-    rect(x, p.y + 17 + bob, 3, 18, "#f5f0df");
-    rect(x + (side === 1 ? 2 : -5), p.y + 12 + bob, 7, 7, "#466d9f");
+    rect(x, p.y + 13 + bob, 3, 23, "#f5f0df");
+    rect(x + (side === 1 ? 2 : -7), p.y + 7 + bob, 10, 10, "#466d9f");
+    rect(x + (side === 1 ? 5 : -9), p.y + 10 + bob, 4, 4, "#5da9e9");
+    return;
+  }
+  if (state.equipped.tool === "debateBlade") {
+    rect(x, p.y + 15 + bob, 18 * side, 4, "#d7dde0");
+    rect(x + 9 * side, p.y + 11 + bob, 10 * side, 3, "#f5f0df");
+    rect(x - 3 * side, p.y + 14 + bob, 6 * side, 8, "#f2c14e");
+    rect(x - 7 * side, p.y + 17 + bob, 7 * side, 5, "#5b392f");
     return;
   }
   rect(x, p.y + 20 + bob, 14 * side, 3, "#d7dde0");
@@ -4657,16 +4934,21 @@ function drawHeroHeldItem(p, side, bob) {
 }
 
 function drawHeroHeldItemSide(x, y, side, bob) {
+  if (!state.equipped.tool) return;
   const tip = side === 1 ? x + 38 : x - 10;
   const hand = side === 1 ? x + 28 : x + 1;
   if (state.equipped.tool === "justiceQuill") {
-    rect(hand, y + 19 + bob, 3, 18, "#f5f0df");
-    rect(hand + (side === 1 ? 2 : -6), y + 14 + bob, 8, 7, "#466d9f");
+    rect(hand, y + 16 + bob, 3, 22, "#f5f0df");
+    rect(hand + (side === 1 ? 2 : -8), y + 10 + bob, 10, 9, "#466d9f");
+    rect(hand + (side === 1 ? 6 : -10), y + 13 + bob, 4, 4, "#5da9e9");
     return;
   }
-  rect(hand, y + 22 + bob, 10 * side, 3, "#d7dde0");
-  rect(tip - (side === 1 ? 5 : 0), y + 20 + bob, 6, 2, "#f5f0df");
-  rect(hand - (side === 1 ? 2 : -2), y + 21 + bob, 5, 5, "#d3a74d");
+  if (state.equipped.tool === "debateBlade") {
+    rect(hand, y + 20 + bob, 16 * side, 4, "#d7dde0");
+    rect(tip - (side === 1 ? 8 : 0), y + 17 + bob, 9, 3, "#f5f0df");
+    rect(hand - (side === 1 ? 3 : -2), y + 19 + bob, 7, 8, "#f2c14e");
+    rect(hand - (side === 1 ? 7 : -3), y + 22 + bob, 7, 5, "#5b392f");
+  }
 }
 
 function drawSigns() {
@@ -4947,6 +5229,70 @@ function drawKiosk(x, y, label) {
   ctx.fillText(label, x + 26, y + 15);
 }
 
+function drawWorldLabel(x, y, text, accent = "#f2c14e", width = 74) {
+  rect(x - width / 2 + 3, y + 14, width - 6, 5, "rgba(0,0,0,.24)");
+  rect(x - width / 2, y, width, 18, "rgba(17,23,25,.9)");
+  ctx.strokeStyle = accent;
+  ctx.strokeRect(Math.round(x - width / 2), Math.round(y), width, 18);
+  ctx.fillStyle = "#f5f0df";
+  ctx.font = "10px Georgia";
+  ctx.textAlign = "center";
+  ctx.fillText(text, x, y + 12);
+}
+
+function drawMiniGameHostMarkers() {
+  npcs.filter((npc) => npc.miniGameId && MINI_GAMES[npc.miniGameId]).forEach((npc) => {
+    const x = npc.x + 13;
+    const y = npc.y - 36;
+    const pulse = Math.floor(state.player.step / 24) % 2;
+    rect(x - 18, y + 5, 36, 16, "rgba(17,23,25,.92)");
+    ctx.strokeStyle = pulse ? "#5da9e9" : "#f2c14e";
+    ctx.strokeRect(x - 18, y + 5, 36, 16);
+    rect(x - 10, y - 1, 20, 10, "#5da9e9");
+    rect(x - 7, y + 1, 14, 6, "#141c1f");
+    rect(x - 12, y + 2, 4, 4, "#f2c14e");
+    rect(x + 8, y + 2, 4, 4, "#f2c14e");
+    ctx.fillStyle = "#f5f0df";
+    ctx.font = "9px Georgia";
+    ctx.textAlign = "center";
+    ctx.fillText("Game", x, y + 17);
+  });
+}
+
+const APATHY_TRACE_POINTS = {
+  modernBritain: { flag: "challengedRumour", x: 548, y: 190 },
+  rightsLaw: { flag: "defendedRights", x: 566, y: 70 },
+  democracy: { flag: "usedEvidenceInDebate", x: 565, y: 54 },
+  participation: { flag: "helpedVolunteer", x: 604, y: 80 },
+  actionWorkshop: { flag: "plannedAction", x: 462, y: 286 }
+};
+
+function drawApathyTrace(x, y) {
+  ctx.save();
+  ctx.globalAlpha = .42;
+  ctx.fillStyle = "#23172f";
+  ctx.beginPath();
+  ctx.ellipse(x, y + 18, 34, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = .62;
+  ctx.fillStyle = "#3b2752";
+  ctx.beginPath();
+  ctx.ellipse(x - 10, y + 4, 7, 19, -.25, 0, Math.PI * 2);
+  ctx.ellipse(x + 5, y, 8, 23, .18, 0, Math.PI * 2);
+  ctx.ellipse(x + 17, y + 8, 5, 16, .35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = .85;
+  rect(x - 5, y - 9, 4, 4, "#0f1517");
+  rect(x + 6, y - 9, 4, 4, "#0f1517");
+  ctx.restore();
+}
+
+function drawApathyTraces() {
+  const trace = APATHY_TRACE_POINTS[state.currentLocation];
+  if (!trace || state.storyFlags?.[trace.flag]) return;
+  drawApathyTrace(trace.x, trace.y);
+}
+
 function drawFineDetails() {
   if (isInteriorLocation()) return;
   const id = state.currentLocation;
@@ -4965,15 +5311,18 @@ function drawFineDetails() {
     drawKiosk(520, 236, "NEWS");
     drawMarketStall(92, 396, "#466d9f", "Cafe");
     drawMarketStall(668, 388, "#b94e48", "Press");
+    drawWorldLabel(548, 206, "Media Plaza", "#5da9e9", 84);
   }
   if (id === "participation") {
     drawBoat(700, 418);
     drawBoat(58, 84);
     drawMarketStall(242, 396, "#6fbf73", "Leaflets");
+    drawWorldLabel(246, 366, "Petition Hub", "#6fbf73", 82);
   }
   if (id === "actionWorkshop") {
     drawMarketStall(330, 300, "#b98231", "Tools");
     drawKiosk(584, 304, "DATA");
+    drawWorldLabel(458, 264, "Plan Board", "#f2c14e", 78);
   }
   drawRegionLandmarks();
   for (let i = 0; i < 34; i += 1) {
@@ -4989,12 +5338,19 @@ function drawFineDetails() {
     rect(552, 100, 30, 23, "#b98252");
     rect(558, 105, 18, 3, "#704633");
     rect(558, 113, 18, 3, "#704633");
+    drawWorldLabel(566, 64, "Civic Square", "#f2c14e", 82);
   }
+  drawApathyTraces();
 }
 
 function drawRegionLandmarks() {
   const id = state.currentLocation;
   if (id === "modernBritain") {
+    rect(616, 96, 52, 30, "#263036");
+    rect(620, 100, 44, 22, "#5da9e9");
+    rect(624, 104, 10, 8, "#f5f0df");
+    rect(638, 106, 20, 3, "#f5f0df");
+    rect(638, 114, 14, 3, "#f2c14e");
     rect(74, 354, 42, 34, "#8f4f44");
     rect(78, 358, 34, 4, "#e6d3a4");
     rect(82, 366, 26, 2, "#5da9e9");
@@ -5006,6 +5362,11 @@ function drawRegionLandmarks() {
     return;
   }
   if (id === "rightsLaw") {
+    drawWorldLabel(564, 52, "Court Square", "#d7d0c3", 86);
+    rect(648, 100, 4, 36, "#f2c14e");
+    rect(630, 112, 40, 4, "#f2c14e");
+    rect(636, 118, 12, 8, "#d7d0c3");
+    rect(654, 118, 12, 8, "#d7d0c3");
     rect(536, 82, 56, 34, "#d7d0c3");
     rect(532, 78, 64, 6, "#665a7d");
     for (let i = 0; i < 4; i += 1) rect(542 + i * 11, 87, 5, 26, "#8d867d");
@@ -5015,6 +5376,11 @@ function drawRegionLandmarks() {
     return;
   }
   if (id === "democracy") {
+    drawWorldLabel(564, 32, "Ballot Hall", "#f2c14e", 78);
+    rect(636, 108, 46, 30, "#d8b36a");
+    rect(642, 114, 34, 5, "#8f4f44");
+    rect(646, 124, 22, 10, "#f5f0df");
+    rect(652, 128, 4, 4, "#466d9f");
     rect(536, 74, 54, 46, "#d8b36a");
     rect(530, 70, 66, 8, "#8f4f44");
     rect(558, 48, 10, 24, "#d8b36a");
@@ -5026,6 +5392,10 @@ function drawRegionLandmarks() {
     return;
   }
   if (id === "participation") {
+    rect(438, 86, 5, 44, "#4b3128");
+    rect(443, 88, 52, 22, "#6fbf73");
+    rect(450, 95, 34, 3, "#f5f0df");
+    rect(450, 103, 24, 3, "#f2c14e");
     rect(532, 86, 64, 34, "#b94e48");
     rect(536, 90, 56, 4, "#f5f0df");
     rect(538, 99, 50, 3, "#f2c14e");
@@ -5039,6 +5409,10 @@ function drawRegionLandmarks() {
     return;
   }
   if (id === "actionWorkshop") {
+    rect(310, 302, 46, 38, "#d7d0c3");
+    rect(316, 308, 34, 5, "#466d9f");
+    rect(316, 318, 20, 4, "#6fbf73");
+    rect(316, 328, 28, 4, "#f2c14e");
     rect(532, 82, 62, 36, "#9a633f");
     rect(538, 88, 20, 16, "#d7d0c3");
     rect(564, 88, 20, 16, "#d7d0c3");
@@ -5050,6 +5424,11 @@ function drawRegionLandmarks() {
     return;
   }
   if (id === "examHall") {
+    drawWorldLabel(564, 36, "Exam Gate", "#b089d6", 74);
+    rect(636, 118, 56, 34, "#263036");
+    rect(642, 124, 44, 6, "#5da9e9");
+    rect(642, 134, 34, 4, "#f5f0df");
+    rect(642, 143, 25, 4, "#f2c14e");
     rect(536, 72, 56, 48, "#6b5b8f");
     rect(530, 66, 16, 54, "#5c5470");
     rect(582, 66, 16, 54, "#5c5470");
@@ -5092,6 +5471,28 @@ function drawInteractionHint() {
   ctx.font = "13px Georgia";
   ctx.textAlign = "center";
   ctx.fillText(label, x, y + 1);
+}
+
+function drawInteractionRangeHighlight() {
+  const found = findInteractable();
+  if (!found || activeQuestion || !dialogue.classList.contains("hidden")) return;
+  const item = found.item;
+  const x = item.x + 12;
+  const y = item.y + 16;
+  const color = found.type === "npc" && item.miniGameId ? "#5da9e9" : "#f2c14e";
+  ctx.save();
+  ctx.globalAlpha = .72;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(x, y + 22, found.type === "npc" ? 24 : 20, 8, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = .24;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(x, y + 22, found.type === "npc" ? 24 : 20, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawWorld() {
@@ -5143,10 +5544,12 @@ function drawPropLayer() {
 
 function drawCharacterLayer() {
   npcs.forEach(drawPerson);
+  drawMiniGameHostMarkers();
   drawPlayer();
 }
 
 function drawUiWorldLayer() {
+  drawInteractionRangeHighlight();
   drawInteractionHint();
 }
 
@@ -5336,6 +5739,15 @@ inventoryPanelBody?.addEventListener("click", (event) => {
   handleInventoryAction(event);
 });
 
+inventoryPanelBody?.addEventListener("keydown", (event) => {
+  if (!["Enter", " "].includes(event.key)) return;
+  const selectedRow = event.target.closest("[data-item-select]");
+  if (!selectedRow) return;
+  event.preventDefault();
+  selectedInventoryItemId = selectedRow.dataset.itemSelect;
+  renderInventoryPanel();
+});
+
 inventoryOpenButton?.addEventListener("click", () => openInventoryPanel());
 inventoryCloseButton?.addEventListener("click", () => closeInventoryPanel());
 inventoryPanel?.addEventListener("click", (event) => {
@@ -5405,12 +5817,33 @@ miniGamePanel?.addEventListener("click", (event) => {
   }
 });
 
+settingsOpenButton?.addEventListener("click", () => openSettingsPanel());
+settingsCloseButton?.addEventListener("click", () => closeSettingsPanel());
+settingsPanel?.addEventListener("click", (event) => {
+  if (event.target === settingsPanel) {
+    closeSettingsPanel();
+    return;
+  }
+  const toggle = event.target.closest("button[data-setting-toggle]");
+  if (toggle) {
+    toggleSetting(toggle.dataset.settingToggle);
+    return;
+  }
+  if (event.target.closest("button[data-settings-reset-save]")) resetSaveFromSettings();
+});
+
 function handleInventoryAction(event) {
   const button = event.target.closest("button[data-action][data-item]");
   const unequipButton = event.target.closest("button[data-action='unequip'][data-slot]");
-  if (!button && !unequipButton) return;
+  const selectedRow = event.target.closest("[data-item-select]");
+  if (!button && !unequipButton && !selectedRow) return;
   if (unequipButton) {
     unequipItem(unequipButton.dataset.slot);
+    return;
+  }
+  if (!button && selectedRow) {
+    selectedInventoryItemId = selectedRow.dataset.itemSelect;
+    renderInventoryPanel();
     return;
   }
   const { action, item } = button.dataset;
@@ -5425,7 +5858,8 @@ function overlayPanels() {
     progress: progressPanel,
     character: characterPanel,
     story: storyPanel,
-    miniGame: miniGamePanel
+    miniGame: miniGamePanel,
+    settings: settingsPanel
   };
 }
 
@@ -5490,6 +5924,56 @@ function toggleCharacterPanel() {
   if (!characterPanel) return;
   if (characterPanel.classList.contains("hidden")) openCharacterPanel();
   else closeCharacterPanel();
+}
+
+function renderSettingsPanel() {
+  if (!settingsPanelBody) return;
+  const rows = [
+    ["largeText", "Large text", "Increase interface text size for easier reading."],
+    ["highContrast", "High contrast", "Use brighter text and stronger borders."],
+    ["reducedMotion", "Reduced motion", "Minimise interface animation and transitions."]
+  ].map(([key, label, description]) => `
+    <div class="settings-row">
+      <div>
+        <strong>${label}</strong>
+        <small>${description}</small>
+      </div>
+      <button type="button" class="settings-toggle${settings[key] ? " is-on" : ""}" data-setting-toggle="${key}" aria-pressed="${settings[key] ? "true" : "false"}">${settings[key] ? "On" : "Off"}</button>
+    </div>
+  `).join("");
+  settingsPanelBody.innerHTML = `
+    ${rows}
+    <div class="settings-danger">
+      <strong>Reset save</strong>
+      <small>Delete local progress for this browser. Display settings are kept.</small>
+      <button type="button" class="reset-button" data-settings-reset-save>Reset save</button>
+    </div>
+  `;
+}
+
+function openSettingsPanel() {
+  closeOverlays("settings");
+  renderSettingsPanel();
+  settingsPanel?.classList.remove("hidden");
+}
+
+function closeSettingsPanel() {
+  settingsPanel?.classList.add("hidden");
+}
+
+function toggleSetting(key) {
+  if (!(key in settings)) return;
+  settings[key] = !settings[key];
+  saveSettings();
+  applySettings();
+  renderSettingsPanel();
+}
+
+function resetSaveFromSettings() {
+  if (!window.confirm("Delete saved progress and return to the title screen?")) return;
+  localStorage.removeItem(SAVE_KEY);
+  closeOverlays();
+  showTitleScreen({ restart: true });
 }
 
 reviewList?.addEventListener("click", (event) => {

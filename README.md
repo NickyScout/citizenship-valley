@@ -12,6 +12,8 @@ Run local world validation before publishing changes:
 node .\scripts\validate-world.js
 ```
 
+For the full local QA suite, see [docs/QA_RUNBOOK.md](docs/QA_RUNBOOK.md).
+
 Controls:
 
 - `WASD` or arrow keys: move

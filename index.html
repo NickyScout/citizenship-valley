@@ -172,6 +172,20 @@
                     <div id="miniGamePanelBody" class="minigame-layout"></div>
                 </div>
             </div>
+            <div id="settingsPanel" class="menu-overlay hidden" role="dialog" aria-modal="true"
+                aria-labelledby="settingsPanelTitle">
+                <div class="menu-panel settings-panel">
+                    <div class="menu-panel-header">
+                        <div>
+                            <h2 id="settingsPanelTitle">Settings</h2>
+                            <p>Display and save options for this browser.</p>
+                        </div>
+                        <button id="settingsCloseButton" class="icon-close-button" type="button"
+                            aria-label="Close settings">×</button>
+                    </div>
+                    <div id="settingsPanelBody" class="settings-layout"></div>
+                </div>
+            </div>
             <div id="dialogue" class="dialogue hidden" aria-live="polite"></div>
             <div id="choicePanel" class="choice-panel hidden"></div>
             <div id="touchControls" class="touch-controls" aria-label="Touch controls">
@@ -291,6 +305,7 @@
                 <p><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> answer</p>
                 <p><kbd>R</kbd> reset saved progress</p>
                 <p>Use item buttons in the inventory.</p>
+                <button id="settingsOpenButton" class="reset-button" type="button">Open Settings</button>
                 <button id="resetButton" class="reset-button" type="button">New Game</button>
             </details>
         </aside>

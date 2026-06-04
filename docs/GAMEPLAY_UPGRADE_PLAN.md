@@ -6,9 +6,9 @@
 
 ## Текущая позиция
 
-**Мы находимся здесь:** следующий крупный блок — `P2 — QA и автоматизация`, следующий подшаг — Playwright UI-регрессии.
+**Мы находимся здесь:** §20.3 «Предметы и инвентарь» закрыт первым проходом: category frames, selected item detail panel, effect summary и quest lock markers добавлены. Следующий практический шаг — §20.4 «Story и mini-game визуалы».
 
-Все разделы выше маркера `>>> МЫ ЗДЕСЬ` ниже закрыты в текущем реализованном проходе и задеплоены в публичную версию. Подробный журнал шагов ведётся в `docs/GAMEPLAY_PROGRESS_LOG.md`.
+Все разделы выше актуального маркера `>>> МЫ ЗДЕСЬ` ниже закрыты в текущем реализованном проходе и синхронизированы в `publish/`. Публичный Azure deploy после §20.3 не выполнялся; deployment smoke остаётся `not-run` до явного запроса на deploy. Подробный журнал шагов ведётся в `docs/GAMEPLAY_PROGRESS_LOG.md`.
 
 ---
 
@@ -556,13 +556,13 @@
 
 ### P2 — QA и автоматизация
 
->>> МЫ ЗДЕСЬ — следующий крупный шаг плана. Всё выше этой метки уже выполнено в текущем проходе.
+P2 QA automation и QA runbook/release hardening закрыты.
 
 Цель: ускорить безопасную разработку следующих фаз.
 
-Статус: начат первый проход — добавлен `scripts/validate-ui.js`, который проверяет структуру mini-games, уникальность achievements, статические HTML buttons и VM smoke-render для Inventory/Progress/Character/Mini-games.
+Статус: закрыто — `scripts/validate-ui.js` проверяет save migration до `SAVE_VERSION = 6`, структуру mini-games, уникальность achievements, статические HTML buttons и VM smoke-render для Inventory/Progress/Character/Mini-games. `qa-ui-regression.mjs` добавляет headless Chrome/CDP UI-регрессии для New Game/customization, основных меню и прохождения одной mini-game без добавления новой Playwright-зависимости. `scripts/validate-world.js` проверяет pathfinding reachability от spawn до NPC, building doors, interior exits, study stations, travel-gate hosts, mini-game hosts и Exam Hall practice rooms. `qa-visual-smoke.mjs` делает desktop/mobile screenshot smoke, проверяет nonblank canvas, overflow, mobile touch controls и overlay fit. `qa-regional-playthrough.mjs` проходит all post-Village mini-game host NPCs через реальные NPC menu buttons и сохраняет gold результаты для всех 7 mini-games. `qa-regional-quests-playthrough.mjs` проходит 30 post-Village regional quests, travel gates до Exam Hall и финальную Exam Hall gate panel. `docs/QA_RUNBOOK.md` документирует quick/full QA commands, generated artifacts и manual follow-up.
 
-1. Добавить локальный VM-check для save migration v1 → v5.
+1. Добавить локальный VM-check для save migration v1 → текущий `SAVE_VERSION`.
 2. Добавить проверку, что все overlay buttons имеют working handler или `data-*` action.
 3. Добавить проверку, что каждый `MINI_GAMES` entry имеет:
   - title;
@@ -572,10 +572,30 @@
   - valid correct index.
 4. Добавить проверку, что каждый achievement id уникален.
 5. Добавить smoke-check для `renderProgressPanel`, `renderInventoryPanel`, `renderCharacterPanel`, `renderMiniGamePanel` через VM.
-6. Для UI-регрессий использовать Playwright хотя бы на 3 сценария:
+6. Для UI-регрессий использовать Playwright или локальный headless browser/CDP script хотя бы на 3 сценария:
   - New Game → customization → start;
   - open Backpack / Progress / Character / Mini-games;
   - complete one mini-game.
+7. Добавить pathfinding reachability checks от spawn до NPC, doors, gates и mini-game hosts.
+8. Добавить desktop/mobile screenshot smoke для карты, основных overlay и одной mini-game.
+9. Расширить automated playthrough за пределы первой локации: regional mini-game hosts через реальные NPC menu buttons.
+10. Расширить automated playthrough на post-Village regional quests и travel gates до Exam Hall.
+11. Оформить QA runbook/release hardening notes для будущих релизов.
+
+### F5 — Accessibility, polish, release hardening
+
+F5 local release smoke закрыт первым проходом. Текущий рабочий маркер перенесён в §20.4 ниже.
+
+Статус: первый проход закрыт — добавлен Settings overlay с persistent settings (`largeText`, `highContrast`, `reducedMotion`) и reset-save control. Generated post-Village quest rewards no longer spam `Revision Tea`; balance notes are in `docs/BALANCE_REVIEW.md`. Current architecture/QA handoff is refreshed in `docs/AI_HANDOFF.md`, manual/release checks are in `docs/RELEASE_SMOKE_CHECKLIST.md`, visual conventions are in `docs/VISUAL_STYLE_GUIDE.md`, and `qa-release-smoke.mjs` covers local desktop/mobile smoke plus region spot checks. Deployment smoke still requires an explicit deploy request.
+
+1. Settings panel: large text, high contrast, reduced motion, reset save.
+2. Overlay manager и unified panel behavior.
+3. UI smoke tests.
+4. Финальная балансировка XP, Focus, монет и readiness.
+5. Обновить `docs/AI_HANDOFF.md` текущей архитектурой.
+6. Добавить release smoke checklist.
+7. Добавить visual style guide, regional motif labels и mini-game host markers.
+8. Добавить local release smoke automation.
 
 ---
 
@@ -622,11 +642,9 @@
 
 ## 19. Рекомендуемый порядок ближайшей разработки
 
-1. **Mini-games in world** — самый важный шаг, потому что он превратит Phase E из меню в игровой контент.
-2. **Exam Simulation 2.0** — усилит финал и сделает концовки заслуженными.
-3. **Item effects + vendors** — даст смысл экономике и инвентарю.
-4. **Curriculum tracking** — усилит образовательную ценность и поможет игроку видеть подготовку к GCSE.
-5. **QA automation** — снизит риск регрессий перед дальнейшим расширением.
+1. **Next gameplay expansion** — выбрать следующий игровой слой: New Game+, дополнительные развилки или visual asset pass.
+2. **Asset pass** — заменить выбранные primitive props/items на маленькие PNG/WebP assets согласно `docs/VISUAL_STYLE_GUIDE.md`.
+3. **Deployment smoke** — выполнять только после явного deploy-запроса и без вывода токенов.
 
 Критерий успеха следующего крупного релиза: игрок должен пройти путь «регион → NPC → мини-игра → награда → прогресс curriculum/story» без необходимости открывать dev меню или угадывать, где находится новый контент.
 
@@ -637,6 +655,8 @@
 Текущая графика уже работает как функциональный top-down прототип: игрок, NPC, здания, дороги, вода, двери и UI различимы. Следующий шаг — сделать мир более выразительным, чтобы локации запоминались визуально и игрок понимал, где он находится, куда идти и какие объекты важны.
 
 ### 20.1 Общий визуальный стиль
+
+Статус: первый проход закрыт — `docs/VISUAL_STYLE_GUIDE.md` фиксирует style guide; core item thumbnails используют маленькие PNG assets из `assets/items/`; `assets/ui/` и `assets/props/region/` получили seed assets; регионы получили более отличимые silhouette motifs; Apathy Shade заметен в story scenes и оставляет слабые traces в нерешённых регионах.
 
 1. Зафиксировать style guide:
   - размер тайла;
@@ -665,6 +685,8 @@
 
 ### 20.2 Персонаж и кастомизация
 
+Статус: первый проход закрыт — герой получил синхронизированный HUD/Character portrait и canvas visual profile. Preset data теперь влияет на hairstyle, outfit silhouette, shoe colour, backpack colour, trim и accent. `Justice Quill` и `Debate Blade` стали отдельными видимыми held-tool силуэтами, а current interactable получает highlight в мире.
+
 1. Усилить различие пресетов персонажа:
   - разные причёски;
   - разные силуэты одежды;
@@ -683,6 +705,8 @@
 
 ### 20.3 Предметы и инвентарь
 
+Статус: первый проход закрыт — item thumbnails используют asset-backed icons с fallback, Backpack rows получили category frames, выбранный item показывается крупнее справа с description/effects/actions, а quest items имеют lock/unsellable marker.
+
 1. Перейти от CSS-пиксельных миниатюр к asset-based иконкам:
   - единый размер, например 32x32 или 48x48;
   - прозрачный фон;
@@ -699,6 +723,8 @@
 5. В будущем добавить drag-and-drop или быстрый equip, но только после стабилизации кликов на mobile.
 
 ### 20.4 Story и mini-game визуалы
+
+>>> МЫ ЗДЕСЬ — следующий шаг после перезагрузки: графический polish story scenes и mini-game visuals.
 
 1. Для story scenes сделать regional title cards:
   - фон региона;

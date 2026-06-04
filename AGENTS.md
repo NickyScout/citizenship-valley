@@ -58,12 +58,15 @@ http://127.0.0.1:5173/index.html
 Test:
 
 ```powershell
-# No formal test suite exists yet.
-# At minimum, run JavaScript syntax checks:
+# Quick checks:
 $env:PATH = "$PWD\.tools\node-v22.11.0-win-x64;$env:PATH"
 .\.tools\node-v22.11.0-win-x64\node.exe --check game.js
 .\.tools\node-v22.11.0-win-x64\node.exe --check curriculum.js
+node scripts\validate-world.js
+node scripts\validate-ui.js
 ```
+
+Full QA runbook: `docs/QA_RUNBOOK.md`
 
 Lint:
 

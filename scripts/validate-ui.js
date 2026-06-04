@@ -86,9 +86,13 @@ function loadGameVm() {
     globalThis.__UI_VALIDATION__ = {
       ACHIEVEMENTS,
       MINI_GAMES,
+    SAVE_VERSION,
       renderInventoryPanel,
       renderProgressPanel,
       renderCharacterPanel,
+            renderSettingsPanel,
+    migrateSave,
+    serializeGame,
       openMiniGame,
       closeMiniGamePanel,
       openProgressPanel,
@@ -96,6 +100,7 @@ function loadGameVm() {
       progressPanelBody,
       characterPanelBody,
       miniGamePanelBody,
+    settingsPanelBody,
       state
     };
   `;
@@ -146,6 +151,7 @@ function validateRenderSmoke(failures, ui) {
     try {
         ui.renderInventoryPanel();
         if (!ui.inventoryPanelBody.innerHTML.includes("Backpack")) failures.push("renderInventoryPanel did not render backpack content.");
+        if (!ui.inventoryPanelBody.innerHTML.includes("item-detail-panel")) failures.push("renderInventoryPanel did not render selected item detail panel.");
     } catch (error) {
         failures.push(`renderInventoryPanel threw: ${error.message}`);
     }
@@ -165,6 +171,14 @@ function validateRenderSmoke(failures, ui) {
     }
 
     try {
+        ui.renderSettingsPanel();
+        if (!ui.settingsPanelBody.innerHTML.includes("Large text")) failures.push("renderSettingsPanel did not render settings controls.");
+        if (!ui.settingsPanelBody.innerHTML.includes("data-settings-reset-save")) failures.push("renderSettingsPanel did not render reset save control.");
+    } catch (error) {
+        failures.push(`renderSettingsPanel threw: ${error.message}`);
+    }
+
+    try {
         ui.openMiniGame("sourceDetective");
         if (!ui.miniGamePanelBody.innerHTML.includes("minigame-visual")) failures.push("openMiniGame did not render mini-game visual content.");
         ui.closeMiniGamePanel();
@@ -173,9 +187,54 @@ function validateRenderSmoke(failures, ui) {
     }
 }
 
+function validateSaveMigration(failures, ui) {
+    const oldVillageSave = {
+        knowledge: 12,
+        coins: 8,
+        inventory: ["revisionTea"],
+        completed: ["introBoard"],
+        completedQuests: ["mayorVote"],
+        currentLocation: "village",
+        unlockedLocations: ["village"],
+        quest: "Old quest text",
+        journal: "Old journal text",
+        player: { x: 144, y: 404, dir: "down" }
+    };
+
+    const migratedFromV1 = ui.migrateSave(oldVillageSave);
+    if (migratedFromV1.saveVersion !== ui.SAVE_VERSION) failures.push(`v1 save migrated to ${migratedFromV1.saveVersion}, expected ${ui.SAVE_VERSION}.`);
+    if (!migratedFromV1.profile || migratedFromV1.profile.name !== "Citizen") failures.push("v1 save migration did not add a default profile.");
+    if (!migratedFromV1.stats || typeof migratedFromV1.stats.focus !== "number") failures.push("v1 save migration did not add default stats.");
+    ["schoolBackpack", "notebook", "revisionTea", "citizenScroll"].forEach((itemId) => {
+        if (!migratedFromV1.inventory.includes(itemId)) failures.push(`v1 save migration missing starter item ${itemId}.`);
+    });
+    if (!Array.isArray(migratedFromV1.achievements)) failures.push("v1 save migration did not add achievements array.");
+    if (!Array.isArray(migratedFromV1.storySeen)) failures.push("v1 save migration did not add storySeen array.");
+    if (!migratedFromV1.miniGameScores || typeof migratedFromV1.miniGameScores !== "object") failures.push("v1 save migration did not add miniGameScores object.");
+    if (!migratedFromV1.storyFlags || typeof migratedFromV1.storyFlags !== "object") failures.push("v1 save migration did not add storyFlags object.");
+
+    const migratedFromV3 = ui.migrateSave({ saveVersion: 3, achievements: ["firstSteps"], inventory: ["notebook"] });
+    if (migratedFromV3.saveVersion !== ui.SAVE_VERSION) failures.push(`v3 save migrated to ${migratedFromV3.saveVersion}, expected ${ui.SAVE_VERSION}.`);
+    if (!Array.isArray(migratedFromV3.storySeen)) failures.push("v3 save migration did not add storySeen array.");
+    if (migratedFromV3.storyEnding !== null) failures.push("v3 save migration did not default storyEnding to null.");
+    if (!migratedFromV3.miniGameScores || typeof migratedFromV3.miniGameScores !== "object") failures.push("v3 save migration did not add miniGameScores object.");
+    if (!migratedFromV3.storyFlags || typeof migratedFromV3.storyFlags !== "object") failures.push("v3 save migration did not add storyFlags object.");
+
+    const migratedFromV5 = ui.migrateSave({ saveVersion: 5, storyFlags: { challengedRumour: true } });
+    if (migratedFromV5.saveVersion !== ui.SAVE_VERSION) failures.push(`v5 save migrated to ${migratedFromV5.saveVersion}, expected ${ui.SAVE_VERSION}.`);
+    if (!migratedFromV5.storyFlags?.challengedRumour) failures.push("v5 save migration did not preserve existing storyFlags.");
+
+    const currentSave = ui.serializeGame();
+    if (currentSave.saveVersion !== ui.SAVE_VERSION) failures.push(`serializeGame returned version ${currentSave.saveVersion}, expected ${ui.SAVE_VERSION}.`);
+    ["profile", "stats", "miniGameScores", "storyFlags"].forEach((key) => {
+        if (!(key in currentSave)) failures.push(`serializeGame missing ${key}.`);
+    });
+}
+
 function main() {
     const failures = [];
     const ui = loadGameVm();
+    validateSaveMigration(failures, ui);
     validateMiniGames(failures, ui.MINI_GAMES);
     validateAchievements(failures, ui.ACHIEVEMENTS);
     validateStaticButtons(failures);
@@ -186,7 +245,7 @@ function main() {
         failures.forEach((failure) => console.error(`- ${failure}`));
         process.exit(1);
     }
-    console.log(`UI validation passed: ${Object.keys(ui.MINI_GAMES).length} mini-games, ${ui.ACHIEVEMENTS.length} achievements, render smoke checks.`);
+    console.log(`UI validation passed: save migration to v${ui.SAVE_VERSION}, ${Object.keys(ui.MINI_GAMES).length} mini-games, ${ui.ACHIEVEMENTS.length} achievements, render smoke checks.`);
 }
 
 main();

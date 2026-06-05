@@ -5483,6 +5483,12 @@ function drawHeroProfileMarkers(p, bob, frame = 0, moving = false) {
 
 function drawHeroHairDetails(p, bob, visual) {
   const hair = visual.hairColor;
+  if (p.dir === "left" || p.dir === "right") {
+    const backX = p.dir === "right" ? p.x + 7 : p.x + 20;
+    rect(p.x + 8, p.y + 2 + bob, 18, 4, hair);
+    rect(backX, p.y + 5 + bob, 5, 9, hair);
+    return;
+  }
   if (visual.hair === "cap") {
     rect(p.x + 5, p.y - 1 + bob, 21, 6, visual.accent);
     rect(p.x + 10, p.y - 5 + bob, 14, 4, visual.accent);
@@ -5522,13 +5528,9 @@ function drawHeroSilhouetteDetails(p, bob, visual) {
   if (visual.silhouette === "campaign") {
     rect(p.x + 4, p.y + 35, 9, 11, "#3b251f");
     rect(p.x + 18, p.y + 35, 9, 11, "#3b251f");
-    rect(p.x + 6, p.y + 41, 8, 3, visual.accent);
-    rect(p.x + 20, p.y + 41, 8, 3, visual.accent);
   }
   if (visual.silhouette === "liberty") {
     rect(p.x + 5, p.y + 34 + bob, 21, 8, "rgba(20,42,77,.76)");
-    rect(p.x + 4, p.y + 22 + bob, 3, 14, visual.accent);
-    rect(p.x + 24, p.y + 22 + bob, 3, 14, visual.accent);
   }
 }
 
@@ -5545,11 +5547,8 @@ function drawHeroBackpackDetails(p, bob, visual) {
 
 function drawHeroAccentDetails(p, bob, visual) {
   if (p.dir === "left" || p.dir === "right") return;
-  if (visual.silhouette === "campaign") {
-    rect(p.x + 7, p.y + 25 + bob, 17, 4, visual.accent);
-  } else {
-    rect(p.x + 13, p.y + 22 + bob, 4, 10, visual.accent);
-  }
+  rect(p.x + 3, p.y + 17 + bob, 5, 2, visual.accent);
+  rect(p.x + 24, p.y + 17 + bob, 5, 2, visual.accent);
 }
 
 function drawHeroShoeDetails(p, visual, frame = 0, moving = false) {
@@ -5602,7 +5601,7 @@ function drawHeroSideArm(p, bob, frame, moving) {
   const jumperDk = "#2e567a";
   const skin = "#f1c49c";
   const y = p.y + bob;
-  const gripX = s === -1 ? p.x + 2 : p.x + 26;
+  const gripX = s === -1 ? p.x + 2 : p.x + 27;
   const bodyX = p.x + 13;
   const x0 = Math.min(bodyX, gripX);
   const w = Math.abs(gripX - bodyX) + 4;
@@ -5624,7 +5623,7 @@ function drawHeroUkFlag(p, bob) {
     top = p.y - 16 + bob;
     poleH = 44;
   } else if (p.dir === "right") {
-    poleX = p.x + 27;
+    poleX = p.x + 29;
     dir = 1;
     top = p.y - 16 + bob;
     poleH = 44;

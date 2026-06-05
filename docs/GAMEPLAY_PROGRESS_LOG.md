@@ -2,6 +2,26 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Hero front/back accent + side flag polish
+
+Plan area: player feedback — green stripes on belly/legs (up/down) + brown bar in front of the face (right).
+
+What changed:
+- Removed the bright accent stripes that read as “green stripes on belly and legs” in front/back view: dropped the liberty silhouette’s two vertical accent side-stripes and the campaign boot accent lines (kept the dark coat/robe/boot shapes), and replaced the vertical belly accent block with two small shoulder epaulettes (`drawHeroAccentDetails`) that read as uniform trim.
+- Fixed the “brown in front of the face when facing right”: the side flag pole positions were asymmetric (`p.x+27` right vs `p.x+3` left about the 16px centre), so the right-facing pole grazed the face. Moved the right pole to `p.x+29` (mirror of the left) for an equal gap; nudged the gripping hand to `p.x+27` so it still holds the pole.
+- Side view no longer paints the front/back hairstyle overlay over the profile (it could drape a brown panel across the face for long/bob hair). In profile we now recolor only the base sprite’s top + back hair to the chosen hair colour, never the face side.
+- Bumped cache-bust to `2026.06.05.5`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Per-preset captures (boySchool + girlLiberty, forest/green accent, down/up walk + left/right): no green belly/leg stripes (accent is now shoulder epaulettes), flag pole clears the face on both sides, legs read clearly.
+
+Next marker:
+- Sync `publish/`, deploy live for review, then §G3 NPC pass or Option D when ready.
+
 ## 2026-06-05 — Hero side-view clutter removal
 
 Plan area: player feedback — brown artifact when walking right + green stripes on the legs.

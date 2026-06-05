@@ -5514,20 +5514,16 @@ function drawHeroHairDetails(p, bob, visual) {
 }
 
 function drawHeroSilhouetteDetails(p, bob, visual) {
+  if (p.dir === "left" || p.dir === "right") return;
   if (visual.silhouette === "council") {
     rect(p.x + 2, p.y + 25 + bob, 27, 14, "rgba(48,20,22,.72)");
     rect(p.x + 7, p.y + 26 + bob, 16, 3, visual.trim);
   }
   if (visual.silhouette === "campaign") {
-    if (p.dir === "left" || p.dir === "right") {
-      const s = p.dir === "left" ? -1 : 1;
-      rect(p.x + 15 + 4 * s, p.y + 44, 8, 2, visual.accent);
-    } else {
-      rect(p.x + 4, p.y + 35, 9, 11, "#3b251f");
-      rect(p.x + 18, p.y + 35, 9, 11, "#3b251f");
-      rect(p.x + 6, p.y + 41, 8, 3, visual.accent);
-      rect(p.x + 20, p.y + 41, 8, 3, visual.accent);
-    }
+    rect(p.x + 4, p.y + 35, 9, 11, "#3b251f");
+    rect(p.x + 18, p.y + 35, 9, 11, "#3b251f");
+    rect(p.x + 6, p.y + 41, 8, 3, visual.accent);
+    rect(p.x + 20, p.y + 41, 8, 3, visual.accent);
   }
   if (visual.silhouette === "liberty") {
     rect(p.x + 5, p.y + 34 + bob, 21, 8, "rgba(20,42,77,.76)");
@@ -5542,24 +5538,14 @@ function drawHeroBackpackDetails(p, bob, visual) {
     rect(p.x + 10, p.y + 22 + bob, 12, 8, "rgba(245,240,223,.18)");
     return;
   }
-  if (p.dir === "left") {
-    rect(p.x + 21, p.y + 20 + bob, 7, 17, visual.bag);
-    return;
-  }
-  if (p.dir === "right") {
-    rect(p.x + 3, p.y + 20 + bob, 7, 17, visual.bag);
-    return;
-  }
+  if (p.dir === "left" || p.dir === "right") return;
   rect(p.x + 5, p.y + 18 + bob, 3, 18, visual.bag);
   rect(p.x + 23, p.y + 18 + bob, 3, 18, visual.bag);
 }
 
 function drawHeroAccentDetails(p, bob, visual) {
-  if (p.dir === "left") {
-    rect(p.x + 5, p.y + 22 + bob, 5, 10, visual.accent);
-  } else if (p.dir === "right") {
-    rect(p.x + 20, p.y + 22 + bob, 5, 10, visual.accent);
-  } else if (visual.silhouette === "campaign") {
+  if (p.dir === "left" || p.dir === "right") return;
+  if (visual.silhouette === "campaign") {
     rect(p.x + 7, p.y + 25 + bob, 17, 4, visual.accent);
   } else {
     rect(p.x + 13, p.y + 22 + bob, 4, 10, visual.accent);

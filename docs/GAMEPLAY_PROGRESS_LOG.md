@@ -2,6 +2,31 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Hero side-view clutter removal
+
+Plan area: player feedback — brown artifact when walking right + green stripes on the legs.
+
+Root cause: three procedural overlays designed for the front/back body were also drawing in the side profile, where they don't map onto the narrower silhouette:
+- `drawHeroBackpackDetails` drew a large bag rectangle on the back → looked like a floating brown briefcase.
+- `drawHeroSilhouetteDetails` (liberty/council) drew accent stripes/robe panels that ran down onto the legs → green leg stripes.
+- `drawHeroAccentDetails` drew a torso accent block that the swinging arm crossed → split green stripe.
+
+What changed:
+- Gated all three overlays to front/back facings only (`if (p.dir === "left" || p.dir === "right") return;`). The base spritesheet already includes a small side satchel, so a clean, attached bag still reads on the back in profile.
+- Removed the now-redundant campaign side foot-stripe branch.
+- Down/up (front/back) appearance is unchanged — silhouette, accent, and backpack still render there.
+- Bumped cache-bust to `2026.06.05.4`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Per-preset side captures (boySchool + girlLiberty with green accent, idle + walk, left/right): no brown briefcase, no green leg stripes; satchel attaches to the back and flips sides correctly.
+
+Next marker:
+- Sync `publish/`, deploy live for review, then §G3 NPC pass or Option D when ready.
+
 ## 2026-06-05 — Hero side-view artifact fixes
 
 Plan area: player feedback — side-view artifacts (brown square over the face, indistinct legs, brown/green clutter).

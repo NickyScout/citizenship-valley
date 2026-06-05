@@ -2,6 +2,27 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — NPC portraits: atlas slicing + dialogue wiring (§G3 start)
+
+Plan area: §G3 NPC recognisability — replace procedural dialogue avatars with real art.
+
+What changed:
+- Authored `docs/NPC_CHARACTER_GUIDE.md` (31 unique characters: id, name, role, look, recurring-id aliases, atlas spec) — the single source of truth for NPC art. Keep it in sync when changing NPCs.
+- Received two art atlases in `assets/characters/portraits-src/` (NPC-1: 26 cards rows 9/9/8; NPC-2: 4 cards for the Exam Hall set). Note: `elderGrace` (#10) is missing from the supplied art — it falls back to the procedural avatar until drawn.
+- Added `qa-slice-portraits.mjs`: a headless-Chrome card detector/slicer (no new npm deps). Detects card bounds via white gutters, crops a 256×256 head+shoulders square per card, paints over the number badge with the card background, and writes `assets/characters/portraits/<id>.png`. Mapping is by on-card caption order (badge numbers are unreliable). Sliced 30 portraits.
+- Wired portraits into dialogue: `npcPortraitId()` + `NPC_PORTRAIT_IDS`/`NPC_PORTRAIT_ALIASES`; `renderNpcPortrait` returns an `<img>` when a portrait exists, else the existing procedural SVG (safe fallback). Made `npcForTitle` search all locations so portraits resolve regardless of active region. Added `Iona` to `FEMALE_NPC_NAMES`. Added `.npc-portrait-photo`/emblem CSS (reward→★, question→?).
+- `assets/characters/portraits-src/` is excluded from the deployed `dist` (sources not shipped).
+- Bumped cache-bust to `2026.06.05.9`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`, `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Captured NPC dialogue windows (Mayor Ada village + Returning Officer June out-of-region) — both show the correct sliced photo with the mood emblem.
+
+Next marker:
+- Get the `elderGrace` portrait drawn (re-run the slicer), then build recognisable world NPC sprites from portrait + role prop, then ambient walking NPCs with route QA.
+
 ## 2026-06-05 — Hero left-walk above-head artifact (spritesheet bleed)
 
 Plan area: player feedback — a brown bar flickering above the head, remaining ONLY when walking left.

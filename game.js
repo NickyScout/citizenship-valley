@@ -711,7 +711,7 @@ const state = {
 const camera = { x: 0, y: 0 };
 
 const FEMALE_NPC_NAMES = new Set([
-  "Ada", "Priya", "Mina", "Grace", "Farah", "June", "Amina", "Rae", "Tess", "Mira", "Nia"
+  "Ada", "Priya", "Mina", "Grace", "Farah", "June", "Amina", "Rae", "Tess", "Mira", "Nia", "Iona"
 ]);
 
 const SKIN_TONES = ["#f2b785", "#c98b5d", "#8c5d45", "#e0a06d", "#b77452", "#6f4638"];
@@ -4093,7 +4093,13 @@ function findInteractable() {
 }
 
 function npcForTitle(title) {
-  return npcs.find((npc) => npc.name === title || title.includes(npc.name));
+  if (!title) return null;
+  const pools = [npcs, ...Object.values(WORLD).map((w) => w.npcs || [])];
+  for (const pool of pools) {
+    const hit = pool.find((npc) => npc.name === title || title.includes(npc.name));
+    if (hit) return hit;
+  }
+  return null;
 }
 
 function hashText(text = "") {
@@ -4157,8 +4163,39 @@ function roleAccessory(role) {
   return `<circle cx="160" cy="132" r="17" fill="#6fbf73" stroke="#f5f0df" stroke-width="3"/><path d="M152 132 H168 M160 124 V140" ${common}/>`;
 }
 
+const NPC_PORTRAIT_DIR = "assets/characters/portraits/";
+// Recurring roles share one portrait file (same person in two locations).
+const NPC_PORTRAIT_ALIASES = {
+  campaignPriya2: "priya",
+  justiceRowan2: "rowan",
+  plannerNoor2: "noor",
+  examMira2: "examinerMira"
+};
+// Portraits that exist on disk (sliced from the art atlas). elderGrace is not yet drawn.
+const NPC_PORTRAIT_IDS = new Set([
+  "mayor", "priya", "sam", "rowan", "noor", "editorVale", "historianIona", "aidMina", "dataOmar",
+  "advocateFarah", "sergeantBlake", "mediatorChen", "youthEllis", "speakerLark", "mpRivers", "managerSol", "officerJune", "heraldEwan",
+  "unionMorgan", "charityAmina", "lobbyistPax", "moderatorRae", "surveyorTess", "statJules", "organiserKai", "examinerMira",
+  "timeAsh", "sourceNia", "coachLeon", "scribePip"
+]);
+
+function npcPortraitId(npc) {
+  const id = npc?.id;
+  if (!id) return null;
+  const canon = NPC_PORTRAIT_ALIASES[id] || id;
+  return NPC_PORTRAIT_IDS.has(canon) ? canon : null;
+}
+
+
 function renderNpcPortrait(title, mood = "talk") {
   const npc = npcForTitle(title) || activeNpc || null;
+  const portraitId = npcPortraitId(npc);
+  if (portraitId) {
+    let emblem = "";
+    if (mood === "reward" || mood === "correct") emblem = `<span class="npc-portrait-emblem is-spark">★</span>`;
+    else if (mood === "question" || mood === "unsure") emblem = `<span class="npc-portrait-emblem is-ask">?</span>`;
+    return `<div class="npc-portrait-photo npc-portrait-${mood}"><img src="${NPC_PORTRAIT_DIR}${portraitId}.png" alt="${title}" loading="lazy" onerror="this.parentNode.dataset.failed='1'">${emblem}</div>`;
+  }
   const spec = avatarSpec(npc);
   const hair = spec.feminine
     ? `<path d="M70 76 Q75 37 108 35 Q143 39 145 79 L137 112 Q128 62 106 61 Q84 62 77 112 Z" fill="${spec.hair}"/>`

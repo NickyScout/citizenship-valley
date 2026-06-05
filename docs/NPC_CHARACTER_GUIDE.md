@@ -224,3 +224,13 @@
 
   Канонические `id` 28–31 жёстко связаны с темами Exam Hall в `game.js` — переименовывать нельзя. План: перерисовать 28–31 под канон, либо подобрать визуально близкие (реквизит не идеален). **Статус: PENDING DECISION.**
 - TODO при подключении арта: добавить `Iona` в `FEMALE_NPC_NAMES`; прописать алиасы `campaignPriya2→priya`, `justiceRowan2→rowan`, `plannerNoor2→noor`, `examMira2→examinerMira`.
+
+**2026-06-05 (уточнение) — второй атлас получен, портреты нарезаны и подключены.**
+
+- Источники: `assets/characters/portraits-src/NPC-1.png` (1525×898, 26 карт в рядах 9/9/8) и `NPC-2.png` (1484×680, 4 карты 28–31, перерисованы под канон Ash/Nia/Leon/Pip ✅).
+- ⚠️ **`elderGrace` (Community Elder Grace, #10) ОТСУТСТВУЕТ** в NPC-1: ряд 1 заканчивается на Data Clerk Omar, ряд 2 начинается с Advocate Farah. Нужна дорисовка одной карты (см. §5 «10. Community Elder Grace»). Сейчас Grace падает на процедурный fallback.
+- На картах номерные плашки сбиты — маппинг сделан по ПОДПИСЯМ (имёнам) на картах, не по плашкам.
+- Нарезано **30 портретов** → `assets/characters/portraits/<id>.png` (256×256, голова+плечи; номерная плашка закрашена, рамка обрезана). Скрипт нарезки — `qa-slice-portraits.mjs` (оставлен для дорисовки Grace / перенарезки).
+- Подключено в диалоги: `renderNpcPortrait` рисует `<img>` при наличии портрета (`npcPortraitId` + `NPC_PORTRAIT_IDS`/`NPC_PORTRAIT_ALIASES`), иначе fallback на процедурный SVG. `npcForTitle` теперь ищет глобально (по всем локациям). `Iona` добавлена в `FEMALE_NPC_NAMES`. mood reward/correct → звёздная эмблема, question/unsure → `?`.
+- `portraits-src/` исключается из `dist` при сборке (исходники не деплоятся).
+- Статус: **DONE (30/31; нужен Grace).**

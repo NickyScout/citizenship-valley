@@ -28,7 +28,8 @@ Resume point after the planned PC restart:
 - Map Phase 4 added PNG runtime assets plus SVG source assets for the most visible trigger props under `assets/props/region/`; canvas rendering uses `PROP_ASSETS` with primitive fallback.
 - Map Phase 5 added `scripts/qa-route-audit.js`, `docs/MAP_ROUTE_QA.md`, and `qa-route-audit-result.json`; route QA passed for all 7 exterior regions.
 - Focused QA after §20.4 passed: `node --check game.js`, `node --check curriculum.js`, `node scripts\validate-ui.js`, `node scripts\validate-world.js`, `node qa-ui-regression.mjs`, and `node qa-visual-smoke.mjs`.
-- `publish/` has been synced with the latest code, styles, validators, docs, and assets. Public Azure deploy was not run after §20.4/Map Phase 1; deployment smoke remains `not-run` until explicitly requested.
+- `publish/` was committed/pushed and the public Azure Static Web Apps site was deployed after G0/G1/G2 (`b11ff46`). Live markers checked: deployed `game.js` contains `HERO_ASSETS`/`TILE_ASSETS`, and live hero/tile SVG assets are available.
+- Important user preference: after every completed game-development stage, publish the changes to the public Azure Static Web Apps site for the user's visual review/testing. Do not stop at local validation or GitHub push.
 - Root `C:\PROJECTS\Citizenship Game` is not a Git repo. Use `publish/` for Git status, commits, and pushes.
 
 ## 1. Project Purpose
@@ -46,7 +47,7 @@ This is a static HTML/CSS/JavaScript canvas game. There is no bundler, framework
 - `game.js` contains the game loop, canvas rendering, world data, NPCs, quests, movement, inventory, mini-games, story state, save/load, and UI event handling.
 - `curriculum.js` defines the external curriculum guide and enriches quest explanations through `window.GCSE_CURRICULUM_INDEX`.
 - Browser progress is saved in `localStorage` under `citizenshipValleySaveV1`; the current save version is `SAVE_VERSION = 6`. Browser display settings are saved separately under `citizenshipValleySettingsV1`.
-- Azure Static Web Apps hosts the public static site, but the latest §20.4 local changes have not been deployed publicly yet.
+- Azure Static Web Apps hosts the public static site. Current workflow expectation: after each completed implementation stage, validate locally, sync `publish/`, commit/push from `publish/`, deploy to production SWA, and verify live markers/assets. Do not print deployment tokens.
 
 Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `1.5x` so visible tiles are `48px`. The camera follows the player. The draw pipeline is split into layers: ground, paths, buildings, props, characters, and world UI.
 
@@ -151,19 +152,19 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
 
 ## 5. Current TODO List
 
-- Resume after §22 Map Phase 5: graphics/map route QA is locally clean. Public Azure deploy was still not run; deployment smoke remains explicit-request only.
+- Resume after G2: graphics foundation, terrain tileset, and hero spritesheet first passes are complete, pushed, and deployed publicly for visual review. Next practical stage is G3 NPC recognisability + background life.
 - Move NPCs/props/signposts in small regional passes to improve spawn -> landmark -> NPC cluster -> building/interior -> mini-game host -> travel gate readability.
 - Re-run `node scripts\audit-map.js --write` and `node scripts\validate-world.js` after map data changes.
 - Keep automated QA current when changing gameplay, UI, maps, save/load, or content.
 - Run quick QA for focused UI changes and full QA before handoff/release candidates.
 - Update `docs/VISUAL_STYLE_GUIDE.md`, `docs/GAMEPLAY_PROGRESS_LOG.md`, and `docs/GAMEPLAY_UPGRADE_PLAN.md` after each graphics subsection.
-- Sync root changes into `publish/` after validated work. Do not deploy to Azure unless the user explicitly requests deploy.
+- Sync root changes into `publish/` after validated work, commit/push from `publish/`, deploy to Azure Static Web Apps production, and verify the live site after every completed game-development stage.
 - Later backlog: move more hardcoded world/quest/NPC data out of `game.js`, improve curriculum coverage against the exact exam board specification, and verify the manual GitHub Actions deploy once the SWA token secret is configured.
 
 ## 6. Known Bugs or Failing Tests
 
 - No blocking automated QA issues are known at this handoff. Focused local QA after §20.4 completed with `blockingIssues: 0` for UI regression and visual smoke.
-- Public Azure deployment was not run after §20.4, so the live site may not contain the latest story/mini-game visual changes until an explicit deploy is performed.
+- No blocking automated QA issues are known after the latest live deploy. Browser cache can still show stale deployed assets; use `Ctrl+F5` when checking the public site.
 - `node --check game.js` and similar shell syntax checks can fail in this OneDrive/Codex sandbox with `EPERM` path access errors, even when the JS parses correctly. A workaround used successfully was reading file content through the Node REPL and running `new Function(source)`.
 - The GitHub Actions deploy workflow is manual-only (`workflow_dispatch`) so normal pushes should not trigger failing deploy emails. The job id is `build_and_deploy_job`; manual workflow deploy still requires the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN`.
 - Root `.git` is not reliable in this workspace. Use `publish/` for Git operations unless the repository setup is repaired.
@@ -290,14 +291,13 @@ Do not store or print the SWA deployment token.
 - Preserve pixel-art feel in canvas rendering, while replacing the highest-value placeholders with small PNG/WebP assets under `assets/`.
 - Keep travel gates gated by quest completion plus three correct answers, reinforcing mastery before progression.
 - Avoid adding a framework until the static JS file becomes too difficult to maintain.
-- Do not deploy or print SWA deployment tokens unless the user explicitly asks for deployment.
+- Deployment is expected after each completed game-development stage for user visual testing. Do not print SWA deployment tokens; keep them in local variables only.
 
 ## 10. Next Recommended Task
 
-Choose one of three follow-ups:
+Next follow-up:
 
-1. Run a manual/local route spot-check using Dev Travel and the screenshots if you want a human visual pass before release.
-2. Deploy publicly and run deployment smoke if the user explicitly asks for a live update.
-3. Start the next gameplay expansion now that the map/visual route release candidate is locally QA-clean.
+1. Start G3 — NPC recognisability + background life.
+2. After G3 implementation, run validation, sync `publish/`, commit/push, deploy to the public Azure Static Web Apps site, and verify live markers/assets for user visual testing.
 
 Keep `scripts/qa-route-audit.js --write`, `node scripts\validate-world.js`, `node qa-visual-smoke.mjs`, and regional playthrough scripts in the release checklist after future map changes.

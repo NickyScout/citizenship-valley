@@ -2,6 +2,28 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Hero walk + flag refinement
+
+Plan area: player feedback on the hero — head artifact when facing up/side, and weak side-walk leg/arm motion.
+
+What changed:
+- Raised the carried Union Jack well clear of the head for every facing (pole +cloth lifted ~5px) so the fluttering cloth no longer grazes the head when walking up or sideways; flag pole now anchors near the hand per direction. Down-facing look preserved.
+- Removed the static per-frame legs and the static near-arm from the side rows of `hero-base-spritesheet.svg` so the overlay fully owns side-view limbs.
+- Rewrote the side branch of `drawHeroShoeDetails()` into a wide fore/aft leg scissor (`drawHeroSideLeg` helper) and added `drawHeroSideArm()` — a swinging near arm + hand — so legs and arms clearly move when walking left/right.
+- Bob-aligned `drawHeroHairDetails()` (all hairstyles now follow the head bob) to remove a 1px hair jitter.
+- Bumped cache-bust to `2026.06.05.2` (returning visitors should hard-refresh for the updated spritesheet SVG).
+
+Validation:
+- `node --check game.js`
+- SVG well-formed check
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Deterministic per-direction hero captures (down/up/left/right, walk frames) confirmed: flag clears the head, side legs scissor, side arm swings.
+
+Next marker:
+- Sync `publish/`, deploy live for review, then §G3 NPC pass or Option D when ready.
+
 ## 2026-06-05 — Option C terrain autotiling + cast shadows
 
 Plan area: procedural autotiling of terrain edges + grounding shadows (§G1 tail / Option C).

@@ -4908,17 +4908,17 @@ function locColors() {
 }
 
 const REGION_ATMOSPHERE = {
-  village:        { grade: [126, 184, 96],  gradeAlpha: .09, vignette: .26, particle: "pollen",  pColor: "rgba(247,242,198,", pCount: 26 },
-  modernBritain:  { grade: [92, 132, 184],  gradeAlpha: .11, vignette: .30, particle: "dust",    pColor: "rgba(220,230,246,", pCount: 22 },
-  rightsLaw:      { grade: [120, 110, 156], gradeAlpha: .12, vignette: .34, particle: "dust",    pColor: "rgba(226,221,242,", pCount: 18 },
-  democracy:      { grade: [204, 172, 92],  gradeAlpha: .10, vignette: .28, particle: "pollen",  pColor: "rgba(250,236,192,", pCount: 22 },
-  participation:  { grade: [72, 162, 172],  gradeAlpha: .11, vignette: .26, particle: "sparkle", pColor: "rgba(202,246,250,", pCount: 26 },
-  actionWorkshop: { grade: [152, 178, 98],  gradeAlpha: .10, vignette: .26, particle: "pollen",  pColor: "rgba(242,246,202,", pCount: 22 },
-  examHall:       { grade: [120, 100, 162], gradeAlpha: .13, vignette: .38, particle: "dust",    pColor: "rgba(226,216,246,", pCount: 18 },
-  townHallInterior: { grade: [156, 122, 78], gradeAlpha: .15, vignette: .42, particle: "dust",   pColor: "rgba(247,227,182,", pCount: 12 },
-  libraryInterior:  { grade: [120, 132, 162], gradeAlpha: .15, vignette: .42, particle: "dust",  pColor: "rgba(236,236,246,", pCount: 12 },
-  courtInterior:    { grade: [132, 122, 152], gradeAlpha: .15, vignette: .44, particle: "dust",  pColor: "rgba(236,229,246,", pCount: 12 },
-  parkInterior:     { grade: [132, 178, 112], gradeAlpha: .13, vignette: .40, particle: "pollen", pColor: "rgba(242,246,206,", pCount: 14 }
+  village: { grade: [126, 184, 96], gradeAlpha: .09, vignette: .26, particle: "pollen", pColor: "rgba(247,242,198,", pCount: 26 },
+  modernBritain: { grade: [92, 132, 184], gradeAlpha: .11, vignette: .30, particle: "dust", pColor: "rgba(220,230,246,", pCount: 22 },
+  rightsLaw: { grade: [120, 110, 156], gradeAlpha: .12, vignette: .34, particle: "dust", pColor: "rgba(226,221,242,", pCount: 18 },
+  democracy: { grade: [204, 172, 92], gradeAlpha: .10, vignette: .28, particle: "pollen", pColor: "rgba(250,236,192,", pCount: 22 },
+  participation: { grade: [72, 162, 172], gradeAlpha: .11, vignette: .26, particle: "sparkle", pColor: "rgba(202,246,250,", pCount: 26 },
+  actionWorkshop: { grade: [152, 178, 98], gradeAlpha: .10, vignette: .26, particle: "pollen", pColor: "rgba(242,246,202,", pCount: 22 },
+  examHall: { grade: [120, 100, 162], gradeAlpha: .13, vignette: .38, particle: "dust", pColor: "rgba(226,216,246,", pCount: 18 },
+  townHallInterior: { grade: [156, 122, 78], gradeAlpha: .15, vignette: .42, particle: "dust", pColor: "rgba(247,227,182,", pCount: 12 },
+  libraryInterior: { grade: [120, 132, 162], gradeAlpha: .15, vignette: .42, particle: "dust", pColor: "rgba(236,236,246,", pCount: 12 },
+  courtInterior: { grade: [132, 122, 152], gradeAlpha: .15, vignette: .44, particle: "dust", pColor: "rgba(236,229,246,", pCount: 12 },
+  parkInterior: { grade: [132, 178, 112], gradeAlpha: .13, vignette: .40, particle: "pollen", pColor: "rgba(242,246,206,", pCount: 14 }
 };
 
 const atmosphereGradientCache = {};
@@ -5477,39 +5477,40 @@ function drawHeroProfileMarkers(p, bob, frame = 0, moving = false) {
   drawHeroSilhouetteDetails(p, bob, visual);
   drawHeroBackpackDetails(p, bob, visual);
   drawHeroAccentDetails(p, bob, visual);
+  if (p.dir === "left" || p.dir === "right") drawHeroSideArm(p, bob, frame, moving);
   drawHeroUkFlag(p, bob);
 }
 
 function drawHeroHairDetails(p, bob, visual) {
   const hair = visual.hairColor;
   if (visual.hair === "cap") {
-    rect(p.x + 5, p.y - 1, 21, 6, visual.accent);
-    rect(p.x + 10, p.y - 5, 14, 4, visual.accent);
+    rect(p.x + 5, p.y - 1 + bob, 21, 6, visual.accent);
+    rect(p.x + 10, p.y - 5 + bob, 14, 4, visual.accent);
     return;
   }
   if (visual.hair === "crest") {
-    rect(p.x + 7, p.y - 4, 5, 10, hair);
-    rect(p.x + 13, p.y - 7, 5, 13, hair);
-    rect(p.x + 19, p.y - 3, 5, 9, hair);
+    rect(p.x + 7, p.y - 4 + bob, 5, 10, hair);
+    rect(p.x + 13, p.y - 7 + bob, 5, 13, hair);
+    rect(p.x + 19, p.y - 3 + bob, 5, 9, hair);
     return;
   }
   if (visual.hair === "bun") {
-    rect(p.x + 4, p.y + 2, 22, 6, hair);
-    rect(p.x + 22, p.y + 3, 7, 7, hair);
+    rect(p.x + 4, p.y + 2 + bob, 22, 6, hair);
+    rect(p.x + 22, p.y + 3 + bob, 7, 7, hair);
     return;
   }
   if (visual.hair === "ponytail") {
-    rect(p.x + 3, p.y + 1, 24, 8, hair);
+    rect(p.x + 3, p.y + 1 + bob, 24, 8, hair);
     rect(p.x + 23, p.y + 9 + bob, 6, 13, hair);
     return;
   }
   if (visual.hair === "bob" || visual.hair === "long") {
-    rect(p.x + 2, p.y + 2, 26, visual.hair === "long" ? 8 : 5, hair);
-    rect(p.x + 4, p.y + 7, 5, visual.hair === "long" ? 14 : 8, hair);
-    rect(p.x + 21, p.y + 7, 5, visual.hair === "long" ? 14 : 8, hair);
+    rect(p.x + 2, p.y + 2 + bob, 26, visual.hair === "long" ? 8 : 5, hair);
+    rect(p.x + 4, p.y + 7 + bob, 5, visual.hair === "long" ? 14 : 8, hair);
+    rect(p.x + 21, p.y + 7 + bob, 5, visual.hair === "long" ? 14 : 8, hair);
     return;
   }
-  rect(p.x + 5, p.y + 1, 21, 5, hair);
+  rect(p.x + 5, p.y + 1 + bob, 21, 5, hair);
 }
 
 function drawHeroSilhouetteDetails(p, bob, visual) {
@@ -5567,14 +5568,13 @@ function drawHeroShoeDetails(p, visual, frame = 0, moving = false) {
   const stride = moving ? frame : 0;
   if (p.dir === "left" || p.dir === "right") {
     const s = p.dir === "left" ? -1 : 1;
-    const fwdFront = stride === 1 ? 3 : stride === 3 ? -2 : 0;
-    const fwdBack = stride === 1 ? -2 : stride === 3 ? 3 : 0;
-    const dropFront = stride === 1 ? 2 : 0;
-    const dropBack = stride === 3 ? 2 : 0;
-    rect(p.x + 11 - s * 2, p.y + 36, 8, 8 + dropBack, trouserDk);
-    rect(p.x + 10 - s * 2 + fwdBack * s, p.y + 44 + dropBack, 11, 3, shoe);
-    rect(p.x + 12 + s * 2, p.y + 36, 8, 8 + dropFront, trouser);
-    rect(p.x + 11 + s * 2 + fwdFront * s, p.y + 44 + dropFront, 11, 3, shoe);
+    const ph = moving ? frame : -1;
+    const bob = ph === 1 || ph === 3 ? 1 : 0;
+    const frontDx = (ph === 0 ? 5 : ph === 2 ? -5 : 0) * s;
+    const backDx = (ph === 0 ? -5 : ph === 2 ? 5 : 0) * s;
+    const baseY = p.y + bob;
+    drawHeroSideLeg(p.x + 12, baseY, backDx, trouserDk, "#1c2228");
+    drawHeroSideLeg(p.x + 15, baseY, frontDx, trouser, shoe);
     return;
   }
   const stepL = stride === 1 ? 5 : 0;
@@ -5585,16 +5585,37 @@ function drawHeroShoeDetails(p, visual, frame = 0, moving = false) {
   rect(p.x + 17, p.y + 44 + stepR, 11, 3, shoe);
 }
 
+function drawHeroSideLeg(hipX, y, footDx, trouserColor, shoeColor) {
+  rect(hipX, y + 36, 7, 6, trouserColor);
+  rect(hipX + Math.round(footDx * 0.5), y + 41, 7, 5, trouserColor);
+  rect(hipX + footDx, y + 45, 10, 3, shoeColor);
+}
+
+function drawHeroSideArm(p, bob, frame, moving) {
+  const s = p.dir === "left" ? -1 : 1;
+  const ph = moving ? frame : -1;
+  const swing = (ph === 0 ? -4 : ph === 2 ? 4 : 0) * s;
+  const jumper = "#3f6f97";
+  const jumperDk = "#2e567a";
+  const skin = "#f1c49c";
+  const shoulderX = p.x + 14 + s * 4;
+  const y = p.y + bob;
+  rect(shoulderX - 1, y + 17, 5, 3, jumperDk);
+  rect(shoulderX, y + 18, 4, 8, jumper);
+  rect(shoulderX + Math.round(swing * 0.5), y + 25, 4, 6, jumperDk);
+  rect(shoulderX + swing, y + 30, 4, 4, skin);
+}
+
 function drawHeroUkFlag(p, bob) {
   const moving = isHeroMoving();
   const phase = settings.reducedMotion ? null : animationClockMs / (moving ? 95 : 240);
   let poleX;
   let dir;
   if (p.dir === "left") {
-    poleX = p.x + 5;
+    poleX = p.x + 10;
     dir = -1;
   } else if (p.dir === "right") {
-    poleX = p.x + 25;
+    poleX = p.x + 18;
     dir = 1;
   } else if (p.dir === "up") {
     poleX = p.x + 24;
@@ -5603,9 +5624,9 @@ function drawHeroUkFlag(p, bob) {
     poleX = p.x + 25;
     dir = 1;
   }
-  const top = p.y - 9 + bob;
-  rect(poleX, top, 2, 30, "#7a5a34");
-  rect(poleX, top, 2, 12, "#8a6a40");
+  const top = p.y - 14 + bob;
+  rect(poleX, top, 2, 38, "#7a5a34");
+  rect(poleX, top, 2, 14, "#8a6a40");
   rect(poleX - 1, top - 3, 4, 4, "#e8c45a");
   const fw = 15;
   const fh = 10;

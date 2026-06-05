@@ -2,6 +2,30 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Hero cross-projection consistency
+
+Plan area: player feedback — a “black cap” present only up/down, gone left/right, plus movement flicker; request to make all clothing/body/hair consistent across front/back/left/right.
+
+Root cause: the hero customization overlays (hair style, silhouette robe/apron/coat, backpack, accent epaulettes) were drawn ONLY in front/back view. Side view showed just the plain base sprite. So each preset looked like a different person depending on facing, and dark-haired presets (e.g. liberty `#1f2f3a`) painted a near-black hair cap front/back but plain brown sides — the “cap in up/down only”. Changing direction while walking made these elements pop in/out (the “movement artifact”).
+
+What changed (consistent in ALL four facings now):
+- `drawHeroHairColor`: recolors the base sprite’s hair to the chosen colour with per-facing footprints that match the head silhouette exactly (no poke-out), plus a uniform sheen/shadow line. Same hair colour front/back/left/right.
+- `drawHeroCap`: a peaked cap in the accent colour rendered in all four facings (dome + direction-appropriate peak), replacing the old front/back-only tall block.
+- `drawHeroAccentBand`: a neck scarf in the accent colour in all four facings.
+- `drawHeroShoeDetails`: side back foot now uses the chosen shoe colour (was a hard-coded dark navy), so footwear colour matches front/back.
+- Removed the front/back-only `drawHeroSilhouetteDetails` (robe/apron/coat), `drawHeroBackpackDetails`, and `drawHeroAccentDetails` overlays that caused the inconsistency. Overworld preset identity now comes from consistent hair colour, cap (campaign), scarf colour, and shoe colour; the portrait UI keeps full-fidelity customization. The base sprite’s own side satchel still reads naturally in profile.
+- Bumped cache-bust to `2026.06.05.7`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Built four-direction reference montages (down/up/left/right) for boySchool, boyCampaign, girlCouncil, boyLiberty (kept in `qa-screenshots/ref-*-idle.png`); confirmed each preset reads as the same character in every facing — same hair colour, cap, scarf, jumper, and shoe colour.
+
+Next marker:
+- Sync `publish/`, deploy live for review, then §G3 NPC pass or Option D when ready.
+
 ## 2026-06-05 — Hero above-head movement artifact fix
 
 Plan area: player feedback — a stepped artifact above the head that appears ONLY while walking (worst facing left), gone when idle.

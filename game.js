@@ -5473,77 +5473,103 @@ function drawHeroSpriteAsset(p, fallbackFrame, fallbackBob) {
 function drawHeroProfileMarkers(p, bob, frame = 0, moving = false) {
   const visual = heroVisual();
   drawHeroShoeDetails(p, visual, frame, moving);
-  drawHeroHairDetails(p, bob, visual);
-  drawHeroSilhouetteDetails(p, bob, visual);
-  drawHeroBackpackDetails(p, bob, visual);
-  drawHeroAccentDetails(p, bob, visual);
+  drawHeroHairColor(p, bob, visual);
+  drawHeroCap(p, bob, visual);
+  drawHeroAccentBand(p, bob, visual);
   if (p.dir === "left" || p.dir === "right") drawHeroSideArm(p, bob, frame, moving);
   drawHeroUkFlag(p, bob);
 }
 
-function drawHeroHairDetails(p, bob, visual) {
+// Recolor the base sprite's hair to the chosen colour, consistently in all four
+// facings. Footprints match the spritesheet head silhouette so nothing pokes out.
+function drawHeroHairColor(p, bob, visual) {
+  if (visual.hair === "cap") return;
   const hair = visual.hairColor;
-  if (p.dir === "left" || p.dir === "right") return;
-  if (visual.hair === "cap") {
-    rect(p.x + 5, p.y - 1 + bob, 21, 6, visual.accent);
-    rect(p.x + 10, p.y - 5 + bob, 14, 4, visual.accent);
-    return;
-  }
-  if (visual.hair === "crest") {
-    rect(p.x + 7, p.y - 4 + bob, 5, 10, hair);
-    rect(p.x + 13, p.y - 7 + bob, 5, 13, hair);
-    rect(p.x + 19, p.y - 3 + bob, 5, 9, hair);
-    return;
-  }
-  if (visual.hair === "bun") {
-    rect(p.x + 4, p.y + 2 + bob, 22, 6, hair);
-    rect(p.x + 22, p.y + 3 + bob, 7, 7, hair);
-    return;
-  }
-  if (visual.hair === "ponytail") {
-    rect(p.x + 3, p.y + 1 + bob, 24, 8, hair);
-    rect(p.x + 23, p.y + 9 + bob, 6, 13, hair);
-    return;
-  }
-  if (visual.hair === "bob" || visual.hair === "long") {
-    rect(p.x + 2, p.y + 2 + bob, 26, visual.hair === "long" ? 8 : 5, hair);
-    rect(p.x + 4, p.y + 7 + bob, 5, visual.hair === "long" ? 14 : 8, hair);
-    rect(p.x + 21, p.y + 7 + bob, 5, visual.hair === "long" ? 14 : 8, hair);
-    return;
-  }
-  rect(p.x + 5, p.y + 1 + bob, 21, 5, hair);
-}
-
-function drawHeroSilhouetteDetails(p, bob, visual) {
-  if (p.dir === "left" || p.dir === "right") return;
-  if (visual.silhouette === "council") {
-    rect(p.x + 2, p.y + 25 + bob, 27, 14, "rgba(48,20,22,.72)");
-    rect(p.x + 7, p.y + 26 + bob, 16, 3, visual.trim);
-  }
-  if (visual.silhouette === "campaign") {
-    rect(p.x + 4, p.y + 35, 9, 11, "#3b251f");
-    rect(p.x + 18, p.y + 35, 9, 11, "#3b251f");
-  }
-  if (visual.silhouette === "liberty") {
-    rect(p.x + 5, p.y + 34 + bob, 21, 8, "rgba(20,42,77,.76)");
-  }
-}
-
-function drawHeroBackpackDetails(p, bob, visual) {
+  const sheen = "rgba(255,255,255,.16)";
+  const shade = "rgba(0,0,0,.18)";
+  const y = p.y + bob;
   if (p.dir === "up") {
-    rect(p.x + 8, p.y + 18 + bob, 16, 20, visual.bag);
-    rect(p.x + 10, p.y + 22 + bob, 12, 8, "rgba(245,240,223,.18)");
+    rect(p.x + 6, y + 3, 20, 12, hair);
+    rect(p.x + 6, y + 3, 20, 1, sheen);
+    rect(p.x + 6, y + 14, 20, 1, shade);
     return;
   }
-  if (p.dir === "left" || p.dir === "right") return;
-  rect(p.x + 5, p.y + 18 + bob, 3, 18, visual.bag);
-  rect(p.x + 23, p.y + 18 + bob, 3, 18, visual.bag);
+  if (p.dir === "right") {
+    rect(p.x + 8, y + 2, 18, 5, hair);
+    rect(p.x + 8, y + 6, 4, 7, hair);
+    rect(p.x + 8, y + 2, 18, 1, sheen);
+    rect(p.x + 8, y + 6, 18, 1, shade);
+    return;
+  }
+  if (p.dir === "left") {
+    rect(p.x + 6, y + 2, 18, 5, hair);
+    rect(p.x + 20, y + 6, 4, 7, hair);
+    rect(p.x + 6, y + 2, 18, 1, sheen);
+    rect(p.x + 6, y + 6, 18, 1, shade);
+    return;
+  }
+  rect(p.x + 6, y + 2, 20, 5, hair);
+  rect(p.x + 6, y + 6, 3, 6, hair);
+  rect(p.x + 23, y + 6, 3, 6, hair);
+  rect(p.x + 6, y + 2, 20, 1, sheen);
+  rect(p.x + 6, y + 6, 20, 1, shade);
 }
 
-function drawHeroAccentDetails(p, bob, visual) {
-  if (p.dir === "left" || p.dir === "right") return;
-  rect(p.x + 3, p.y + 17 + bob, 5, 2, visual.accent);
-  rect(p.x + 24, p.y + 17 + bob, 5, 2, visual.accent);
+// A peaked cap (accent colour) that sits on the head in all four facings.
+function drawHeroCap(p, bob, visual) {
+  if (visual.hair !== "cap") return;
+  const c = visual.accent;
+  const cd = "rgba(0,0,0,.22)";
+  const sheen = "rgba(255,255,255,.18)";
+  const y = p.y + bob;
+  if (p.dir === "up") {
+    rect(p.x + 5, y + 1, 22, 6, c);
+    rect(p.x + 5, y + 1, 22, 1, sheen);
+    rect(p.x + 5, y + 6, 22, 1, cd);
+    return;
+  }
+  if (p.dir === "right") {
+    rect(p.x + 7, y + 1, 19, 5, c);
+    rect(p.x + 24, y + 5, 6, 2, c);
+    rect(p.x + 7, y + 1, 19, 1, sheen);
+    rect(p.x + 7, y + 5, 19, 1, cd);
+    return;
+  }
+  if (p.dir === "left") {
+    rect(p.x + 6, y + 1, 19, 5, c);
+    rect(p.x + 2, y + 5, 6, 2, c);
+    rect(p.x + 6, y + 1, 19, 1, sheen);
+    rect(p.x + 6, y + 5, 19, 1, cd);
+    return;
+  }
+  rect(p.x + 5, y + 1, 22, 5, c);
+  rect(p.x + 7, y + 6, 18, 2, c);
+  rect(p.x + 5, y + 1, 22, 1, sheen);
+  rect(p.x + 5, y + 5, 22, 1, cd);
+}
+
+// A neck scarf in the accent colour, drawn consistently in all four facings.
+function drawHeroAccentBand(p, bob, visual) {
+  const c = visual.accent;
+  const cd = "rgba(0,0,0,.2)";
+  const y = p.y + bob;
+  if (p.dir === "up") {
+    rect(p.x + 7, y + 16, 18, 2, c);
+    rect(p.x + 7, y + 17, 18, 1, cd);
+    return;
+  }
+  if (p.dir === "right") {
+    rect(p.x + 9, y + 16, 13, 2, c);
+    rect(p.x + 9, y + 18, 4, 2, c);
+    return;
+  }
+  if (p.dir === "left") {
+    rect(p.x + 11, y + 16, 13, 2, c);
+    rect(p.x + 19, y + 18, 4, 2, c);
+    return;
+  }
+  rect(p.x + 7, y + 16, 18, 2, c);
+  rect(p.x + 13, y + 18, 4, 3, c);
 }
 
 function drawHeroShoeDetails(p, visual, frame = 0, moving = false) {
@@ -5571,7 +5597,7 @@ function drawHeroShoeDetails(p, visual, frame = 0, moving = false) {
       backDx = 1 * s;
     }
     const baseY = p.y + legBob;
-    drawHeroSideLeg(p.x + 12, baseY, backDx, trouserDk, "#1b2127");
+    drawHeroSideLeg(p.x + 12, baseY, backDx, trouserDk, shoe);
     drawHeroSideLeg(p.x + 15, baseY, frontDx, trouser, shoe);
     return;
   }

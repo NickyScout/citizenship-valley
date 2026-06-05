@@ -2,6 +2,26 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Option B cohesive art atlas first pass
+
+Plan area: cohesive art atlas (тайлы + герой + дерево) ahead of §G3/G4.
+
+What changed:
+- Rewrote all six terrain tiles (`tile-grass`, `tile-road`, `tile-plaza`, `tile-water`, `tile-dock`, `tile-wall`) from flat 1–2 colour fills into cohesive multi-tone pixel-art with a unified palette and top-left lighting (lush grass with blades/flowers, warm gravel road, dressed-stone paving, rippled water, planked dock, mossy stone wall).
+- Rebuilt the hero spritesheet `<defs>` bodies (front/side/back) with a dark outline and three-tone shading (jumper light/shadow, face shade, satchel), keeping the same frame geometry so customization overlays and held tools still render on top.
+- Upgraded the procedural `drawTreeTile()` from blocky rects to a rounded, layered, shaded canopy with trunk shading in the cohesive green palette.
+- No code wiring changed for tiles/hero (pure asset swaps); procedural fallbacks and Reduced Motion behaviour are unchanged.
+
+Validation:
+- `node --check game.js`
+- SVG well-formed check (7 files)
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+
+Next marker:
+- Sync `publish/`, deploy live, then Option C (terrain autotiling) or §G3 NPC pass when ready.
+
 ## 2026-06-05 — Option A atmosphere/lighting first pass
 
 Plan area: atmosphere pass (свет/настроение/жизнь) ahead of §G3.

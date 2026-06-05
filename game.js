@@ -5054,19 +5054,32 @@ function drawTile(ch, x, y, row = 0, col = 0, map = currentMap()) {
 }
 
 function drawTreeTile(x, y) {
+  const cx = x + 16;
   ctx.save();
-  ctx.globalAlpha = .2;
+  ctx.globalAlpha = .22;
   ctx.fillStyle = "#16240f";
   ctx.beginPath();
-  ctx.ellipse(x + 17, y + 28, 12, 3.5, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx + 1, y + 29, 12, 3.5, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
-  rect(x + 12, y + 12, 8, 19, "#6a4634");
-  rect(x + 9, y + 22, 14, 5, "#4b3128");
-  rect(x + 3, y + 5, 26, 15, "#2f7b42");
-  rect(x + 7, y + 1, 18, 12, "#3fa457");
-  rect(x + 12, y + 6, 16, 12, "#256737");
-  rect(x + 8, y + 4, 5, 4, "#78c86d");
+  rect(x + 13, y + 16, 6, 14, "#6a4a32");
+  rect(x + 13, y + 16, 2, 14, "#7e5a3e");
+  rect(x + 17, y + 16, 2, 14, "#553823");
+  const blob = (bx, by, r, color) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  blob(cx, y + 11, 12, "#2f6f39");
+  blob(cx - 5, y + 12, 7, "#367c41");
+  blob(cx + 5, y + 12, 7, "#367c41");
+  blob(cx, y + 8, 9, "#46924f");
+  blob(cx - 4, y + 8, 5, "#5aa85e");
+  blob(cx + 3, y + 6, 4, "#74c06e");
+  ctx.fillStyle = "#9bd888";
+  ctx.fillRect(cx - 6, y + 5, 2, 2);
+  ctx.fillRect(cx + 1, y + 3, 2, 2);
 }
 
 function drawBuilding(x, y, w, h, wall, roof, label) {

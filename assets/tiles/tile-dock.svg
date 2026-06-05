@@ -1,6 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <rect width="32" height="32" fill="#8f5b3f"/>
-  <path d="M0 4h32M0 15h32M0 28h32" stroke="#c98a60" stroke-width="3"/>
-  <path d="M5 3v26M25 3v26" stroke="#5c362d" stroke-width="2"/>
-  <path d="M3 8h7M15 20h6M24 10h4" stroke="#e0a36d" stroke-width="2" opacity="0.55"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <rect width="32" height="32" fill="#9a6a43"/>
+  <rect x="0" y="1" width="32" height="6" fill="#a9764c"/>
+  <rect x="0" y="17" width="32" height="6" fill="#a9764c"/>
+  <g fill="#5f3f28"><rect x="0" y="0" width="32" height="2"/><rect x="0" y="15" width="32" height="2"/><rect x="0" y="31" width="32" height="1"/></g>
+  <g fill="#c08a55" opacity="0.85"><rect x="0" y="2" width="32" height="1"/><rect x="0" y="17" width="32" height="1"/></g>
+  <g fill="#6f4a2d"><rect x="11" y="2" width="1" height="13"/><rect x="23" y="2" width="1" height="13"/><rect x="5" y="17" width="1" height="14"/><rect x="18" y="17" width="1" height="14"/></g>
+  <g fill="#4a3120"><rect x="3" y="4" width="1" height="1"/><rect x="14" y="4" width="1" height="1"/><rect x="26" y="4" width="1" height="1"/><rect x="8" y="20" width="1" height="1"/><rect x="21" y="20" width="1" height="1"/><rect x="29" y="20" width="1" height="1"/></g>
+  <g fill="#85562f" opacity="0.6"><rect x="2" y="9" width="9" height="1"/><rect x="16" y="11" width="10" height="1"/><rect x="6" y="25" width="11" height="1"/><rect x="20" y="27" width="9" height="1"/></g>
 </svg>

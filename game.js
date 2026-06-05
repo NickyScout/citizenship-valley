@@ -5461,7 +5461,7 @@ function isHeroMoving() {
 function drawHeroSpriteAsset(p, fallbackFrame, fallbackBob) {
   const direction = ["up", "left", "right", "down"].includes(p.dir) ? p.dir : "down";
   const frame = isHeroMoving() ? heroBaseSprite.frameIndex(animationClockMs) : 0;
-  if (!heroBaseSprite.draw(p.x, p.y, { state: direction, frame, width: 32, height: 48 })) return false;
+  if (!heroBaseSprite.draw(Math.round(p.x), Math.round(p.y), { state: direction, frame, width: 32, height: 48 })) return false;
   const bob = isHeroMoving() ? (frame === 1 || frame === 3 ? 1 : 0) : fallbackBob;
   drawHeroProfileMarkers(p, bob, frame, isHeroMoving());
   if (p.dir === "left") drawHeroHeldItem(p, -1, bob);
@@ -5483,12 +5483,7 @@ function drawHeroProfileMarkers(p, bob, frame = 0, moving = false) {
 
 function drawHeroHairDetails(p, bob, visual) {
   const hair = visual.hairColor;
-  if (p.dir === "left" || p.dir === "right") {
-    const backX = p.dir === "right" ? p.x + 7 : p.x + 20;
-    rect(p.x + 8, p.y + 2 + bob, 18, 4, hair);
-    rect(backX, p.y + 5 + bob, 5, 9, hair);
-    return;
-  }
+  if (p.dir === "left" || p.dir === "right") return;
   if (visual.hair === "cap") {
     rect(p.x + 5, p.y - 1 + bob, 21, 6, visual.accent);
     rect(p.x + 10, p.y - 5 + bob, 14, 4, visual.accent);

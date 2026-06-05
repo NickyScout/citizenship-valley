@@ -2,6 +2,29 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Hero above-head movement artifact fix
+
+Plan area: player feedback — a stepped artifact above the head that appears ONLY while walking (worst facing left), gone when idle.
+
+Root cause (two compounding bugs):
+1. Sub-pixel desync: the hero base spritesheet was drawn at the raw fractional player position (`heroBaseSprite.draw(p.x, p.y, ...)` → `drawImage` does no rounding), while every procedural overlay uses `rect()` which pixel-rounds. While walking, `p.x/p.y` are fractional and changing, so sprite and overlays drifted apart by ~1px and the overlay edges “shelved”. When idle the position is static, so no visible seam.
+2. Mirrored side hair overlay: the side-view hair recolor I added in 06.05.5 used non-mirrored geometry, but the left-facing sprite is drawn mirrored (`scale(-1)`), so the back-hair chunk poked ~1px past the head silhouette as a ledge — hence “especially left”.
+
+What changed:
+- Draw the hero base sprite at `Math.round(p.x), Math.round(p.y)` so it pixel-aligns with the rounded `rect()` overlays in every frame (kills the sub-pixel seam for hair, flag, legs, arm, accent alike).
+- Removed the side-view hair recolor overlay branch entirely; the base spritesheet already carries correctly-placed hair for all four facings, so profile hair is clean (only trade-off: profile hair shows the sprite’s default brown rather than the chosen colour — no artifact).
+- Bumped cache-bust to `2026.06.05.6`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Sub-pixel reproduction: captured the hero at fractional positions (x.33/x.66) walking left and down — confirmed the above-head shelf is present before the fix and gone after.
+
+Next marker:
+- Sync `publish/`, deploy live for review, then §G3 NPC pass or Option D when ready.
+
 ## 2026-06-05 — Hero front/back accent + side flag polish
 
 Plan area: player feedback — green stripes on belly/legs (up/down) + brown bar in front of the face (right).

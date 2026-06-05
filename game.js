@@ -5082,6 +5082,78 @@ function drawTreeTile(x, y) {
   ctx.fillRect(cx + 1, y + 3, 2, 2);
 }
 
+function paintUnionJack(x, y, w, h) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.fillStyle = "#012169";
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = h * 0.34;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + w, y + h);
+  ctx.moveTo(x + w, y);
+  ctx.lineTo(x, y + h);
+  ctx.stroke();
+  ctx.strokeStyle = "#c8102e";
+  ctx.lineWidth = h * 0.16;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + w, y + h);
+  ctx.moveTo(x + w, y);
+  ctx.lineTo(x, y + h);
+  ctx.stroke();
+  const vw = h * 0.4;
+  const hh = h * 0.4;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(x + w / 2 - vw / 2, y, vw, h);
+  ctx.fillRect(x, y + h / 2 - hh / 2, w, hh);
+  const vw2 = vw * 0.55;
+  const hh2 = hh * 0.55;
+  ctx.fillStyle = "#c8102e";
+  ctx.fillRect(x + w / 2 - vw2 / 2, y, vw2, h);
+  ctx.fillRect(x, y + h / 2 - hh2 / 2, w, hh2);
+  ctx.restore();
+}
+
+function drawWavingUnionJack(x, y, w, h, phase, dir) {
+  if (phase === null) {
+    paintUnionJack(x, y, w, h);
+    return;
+  }
+  const strips = 5;
+  for (let i = 0; i < strips; i += 1) {
+    const t = (i + 0.5) / strips;
+    const distFromPole = dir === 1 ? t : 1 - t;
+    const off = Math.sin(phase + distFromPole * 4) * 1.8 * distFromPole;
+    const sx = x + (w * i) / strips - 0.5;
+    const sw = w / strips + 1;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(sx, y - 4, sw, h + 8);
+    ctx.clip();
+    paintUnionJack(x, y + off, w, h);
+    ctx.restore();
+  }
+}
+
+function isCivicBuilding(label) {
+  const l = (label || "").toLowerCase();
+  return ["hall", "court", "parliament", "police", "election", "council", "rights", "museum", "devolve", "petition", "union", "party", "government", "civic"].some((k) => l.includes(k));
+}
+
+function drawBuildingFlag(x, y, w, h) {
+  const poleX = x + 8;
+  const poleTop = y - 58;
+  rect(poleX, poleTop, 3, 60, "#6b5a44");
+  rect(poleX, poleTop, 3, 26, "#7c6a50");
+  rect(poleX - 1, poleTop - 4, 5, 4, "#e8c45a");
+  const phase = settings.reducedMotion ? null : animationClockMs / 210 + (x + y) * 0.05;
+  drawWavingUnionJack(poleX + 3, poleTop + 2, 26, 16, phase, 1);
+}
+
 function drawBuilding(x, y, w, h, wall, roof, label) {
   rect(x + 5, y + h - 2, w + 10, 9, "rgba(0, 0, 0, .32)");
   rect(x - 7, y + h + 5, w + 16, 5, "rgba(0, 0, 0, .18)");
@@ -5140,6 +5212,7 @@ function drawBuilding(x, y, w, h, wall, roof, label) {
   ctx.textAlign = "center";
   ctx.fillText(label, x + w / 2, signY + 9);
   drawBuildingOrnaments(x, y, w, h, label);
+  if (isCivicBuilding(label)) drawBuildingFlag(x, y, w, h);
 }
 
 function drawPerson(person) {
@@ -5251,7 +5324,7 @@ function drawPlayer() {
   } else {
     drawHeroFront(p, outfit, bob, frame);
   }
-  drawHeroProfileMarkers(p, bob);
+  drawHeroProfileMarkers(p, bob, frame, isHeroMoving());
 }
 
 function isHeroMoving() {
@@ -5264,20 +5337,21 @@ function drawHeroSpriteAsset(p, fallbackFrame, fallbackBob) {
   const frame = isHeroMoving() ? heroBaseSprite.frameIndex(animationClockMs) : 0;
   if (!heroBaseSprite.draw(p.x, p.y, { state: direction, frame, width: 32, height: 48 })) return false;
   const bob = isHeroMoving() ? (frame === 1 || frame === 3 ? 1 : 0) : fallbackBob;
-  drawHeroProfileMarkers(p, bob);
+  drawHeroProfileMarkers(p, bob, frame, isHeroMoving());
   if (p.dir === "left") drawHeroHeldItem(p, -1, bob);
   else if (p.dir === "right") drawHeroHeldItem(p, 1, bob);
   else if (p.dir === "down") drawHeroHeldItem(p, 1, bob);
   return true;
 }
 
-function drawHeroProfileMarkers(p, bob) {
+function drawHeroProfileMarkers(p, bob, frame = 0, moving = false) {
   const visual = heroVisual();
+  drawHeroShoeDetails(p, visual, frame, moving);
   drawHeroHairDetails(p, bob, visual);
   drawHeroSilhouetteDetails(p, bob, visual);
   drawHeroBackpackDetails(p, bob, visual);
   drawHeroAccentDetails(p, bob, visual);
-  drawHeroShoeDetails(p, visual);
+  drawHeroUkFlag(p, bob);
 }
 
 function drawHeroHairDetails(p, bob, visual) {
@@ -5360,9 +5434,57 @@ function drawHeroAccentDetails(p, bob, visual) {
   }
 }
 
-function drawHeroShoeDetails(p, visual) {
-  rect(p.x + 4, p.y + 44, 11, 3, visual.shoes);
-  rect(p.x + 17, p.y + 44, 11, 3, visual.shoes);
+function drawHeroShoeDetails(p, visual, frame = 0, moving = false) {
+  const trouser = "#2b333d";
+  const trouserDk = "#222a33";
+  const shoe = visual.shoes;
+  const stride = moving ? frame : 0;
+  if (p.dir === "left" || p.dir === "right") {
+    const s = p.dir === "left" ? -1 : 1;
+    const fwdFront = stride === 1 ? 3 : stride === 3 ? -2 : 0;
+    const fwdBack = stride === 1 ? -2 : stride === 3 ? 3 : 0;
+    const dropFront = stride === 1 ? 2 : 0;
+    const dropBack = stride === 3 ? 2 : 0;
+    rect(p.x + 11 - s * 2, p.y + 36, 8, 8 + dropBack, trouserDk);
+    rect(p.x + 10 - s * 2 + fwdBack * s, p.y + 44 + dropBack, 11, 3, shoe);
+    rect(p.x + 12 + s * 2, p.y + 36, 8, 8 + dropFront, trouser);
+    rect(p.x + 11 + s * 2 + fwdFront * s, p.y + 44 + dropFront, 11, 3, shoe);
+    return;
+  }
+  const stepL = stride === 1 ? 5 : 0;
+  const stepR = stride === 3 ? 5 : 0;
+  rect(p.x + 5, p.y + 36, 8, 8 + stepL, trouser);
+  rect(p.x + 4, p.y + 44 + stepL, 11, 3, shoe);
+  rect(p.x + 18, p.y + 36, 8, 8 + stepR, trouserDk);
+  rect(p.x + 17, p.y + 44 + stepR, 11, 3, shoe);
+}
+
+function drawHeroUkFlag(p, bob) {
+  const moving = isHeroMoving();
+  const phase = settings.reducedMotion ? null : animationClockMs / (moving ? 95 : 240);
+  let poleX;
+  let dir;
+  if (p.dir === "left") {
+    poleX = p.x + 5;
+    dir = -1;
+  } else if (p.dir === "right") {
+    poleX = p.x + 25;
+    dir = 1;
+  } else if (p.dir === "up") {
+    poleX = p.x + 24;
+    dir = 1;
+  } else {
+    poleX = p.x + 25;
+    dir = 1;
+  }
+  const top = p.y - 9 + bob;
+  rect(poleX, top, 2, 30, "#7a5a34");
+  rect(poleX, top, 2, 12, "#8a6a40");
+  rect(poleX - 1, top - 3, 4, 4, "#e8c45a");
+  const fw = 15;
+  const fh = 10;
+  const fx = dir === 1 ? poleX + 2 : poleX - fw;
+  drawWavingUnionJack(fx, top + 1, fw, fh, phase, dir);
 }
 
 function drawHeroSide(p, outfit, bob, frame, side) {

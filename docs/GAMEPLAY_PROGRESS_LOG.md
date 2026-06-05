@@ -2,6 +2,26 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — UK symbolism + walk dynamics
+
+Plan area: player feedback after Option B — more walking dynamism and visible UK (GCSE Citizenship) symbolism.
+
+What changed:
+- Added a reusable canvas Union Jack renderer: `paintUnionJack()` (blue field, white + red saltire, white + red cross) and `drawWavingUnionJack()` (vertical strip ripple that fades to zero at the pole).
+- Gave the hero a Union Jack on a pole carried in-hand via `drawHeroUkFlag()`, positioned per facing direction; it flutters gently when idle and faster while walking. Gated flat (no ripple) under Reduced Motion.
+- Reworked the static foot overlay into animated lower legs + feet (`drawHeroShoeDetails(p, visual, frame, moving)`): alternating step-down for front/back facing and a fore/aft scissor for side facing, synced to the walk frame so legs now read as stepping. Threaded `frame`/`moving` through `drawHeroProfileMarkers()` from both the sprite and procedural draw paths.
+- Hung Union Jacks on civic/government buildings (`isCivicBuilding()` keyword match + `drawBuildingFlag()` flagpole) — e.g. Town Hall, Court, Parliament, City Hall, Museum, Police, Election, Petitions, Union Hall.
+- Bumped app version to `2026.06.05.1`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots; hero flag + Court flag visible on desktop and mobile)
+
+Next marker:
+- Sync `publish/`, deploy live for review, then Option C (terrain autotiling) when ready.
+
 ## 2026-06-05 — Option B cohesive art atlas first pass
 
 Plan area: cohesive art atlas (тайлы + герой + дерево) ahead of §G3/G4.

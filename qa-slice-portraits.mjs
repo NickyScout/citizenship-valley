@@ -11,21 +11,27 @@ const userDataDir = path.join(process.env.TEMP || root, `citizenship-slice-${Dat
 const srcDir = 'assets/characters/portraits-src';
 const outDir = path.join(root, 'assets/characters/portraits');
 
-// Mapping is by ON-CARD CAPTION order (the number badges on the art are unreliable).
-// NPC-1 has 26 cards in rows of 9/9/8 — Community Elder Grace (elderGrace) is NOT present.
+// Atlases have NO number badges; captions are at the BOTTOM of each card.
+// Both are uniform grids, so we slice mathematically (no gutter detection — the
+// page background is warm cream, not pure white). Order per docs/NPC_CHARACTER_GUIDE.md §4.
+// NPC-1 = 7×4 grid (28 cards, ids 1..28, includes elderGrace).
+// NPC-2 = 2×2 grid (Ash dup + the 3 missing: sourceNia, coachLeon, scribePip).
 const SOURCES = [
     {
         file: 'NPC-1.png',
-        rows: [9, 9, 8],
+        cols: 7,
+        rows: 4,
         ids: [
-            'mayor', 'priya', 'sam', 'rowan', 'noor', 'editorVale', 'historianIona', 'aidMina', 'dataOmar',
-            'advocateFarah', 'sergeantBlake', 'mediatorChen', 'youthEllis', 'speakerLark', 'mpRivers', 'managerSol', 'officerJune', 'heraldEwan',
-            'unionMorgan', 'charityAmina', 'lobbyistPax', 'moderatorRae', 'surveyorTess', 'statJules', 'organiserKai', 'examinerMira'
+            'mayor', 'priya', 'sam', 'rowan', 'noor', 'editorVale', 'historianIona',
+            'aidMina', 'dataOmar', 'elderGrace', 'advocateFarah', 'sergeantBlake', 'mediatorChen', 'youthEllis',
+            'speakerLark', 'mpRivers', 'managerSol', 'officerJune', 'heraldEwan', 'unionMorgan', 'charityAmina',
+            'lobbyistPax', 'moderatorRae', 'surveyorTess', 'statJules', 'organiserKai', 'examinerMira', 'timeAsh'
         ]
     },
     {
         file: 'NPC-2.png',
-        rows: [4],
+        cols: 2,
+        rows: 2,
         ids: ['timeAsh', 'sourceNia', 'coachLeon', 'scribePip']
     }
 ];
@@ -52,64 +58,44 @@ cdp.id = 0;
 async function evalJs(expression, awaitPromise = true) { const result = await cdp('Runtime.evaluate', { expression, awaitPromise, returnByValue: true, userGesture: true }); if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || JSON.stringify(result.exceptionDetails)); return result.result.value; }
 async function waitFor(fn, label, timeout = 15000) { const s = Date.now(); let last; while (Date.now() - s < timeout) { try { last = await fn(); if (last) return last; } catch (e) { last = e; } await delay(120); } throw new Error(`Timed out: ${label}: ${last?.message || last}`); }
 
-const SLICER = (rowsJson) => `(async () => {
-  const rows = ${rowsJson};
+const SLICER = (cols, rows) => `(async () => {
+  const cols = ${cols}, rows = ${rows};
   const img = document.getElementById('src');
   const W = img.naturalWidth, H = img.naturalHeight;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
   const data = ctx.getImageData(0, 0, W, H).data;
-  const isWhite = (x, y) => { const i = (y * W + x) * 4; return data[i] > 248 && data[i+1] > 247 && data[i+2] > 244; };
-  const rowWhite = (y) => { let w = 0, n = 0; for (let x = 0; x < W; x += 2) { n++; if (isWhite(x, y)) w++; } return w / n; };
-  const colWhite = (x, y0, y1) => { let w = 0, n = 0; for (let y = y0; y < y1; y += 2) { n++; if (isWhite(x, y)) w++; } return w / n; };
-  const bands = [];
-  let inBand = false, bandStart = 0;
-  for (let y = 0; y < H; y++) {
-    const content = rowWhite(y) < 0.9;
-    if (content && !inBand) { inBand = true; bandStart = y; }
-    else if (!content && inBand) { inBand = false; if (y - bandStart > H * 0.08) bands.push([bandStart, y]); }
-  }
-  if (inBand && H - bandStart > H * 0.08) bands.push([bandStart, H]);
-  const cards = [];
-  for (let r = 0; r < rows.length; r++) {
-    const band = bands[r]; if (!band) continue;
-    const [y0, y1] = band;
-    const cols = [];
-    let inCol = false, colStart = 0;
-    for (let x = 0; x < W; x++) {
-      const content = colWhite(x, y0, y1) < 0.9;
-      if (content && !inCol) { inCol = true; colStart = x; }
-      else if (!content && inCol) { inCol = false; if (x - colStart > W * 0.02) cols.push([colStart, x]); }
-    }
-    if (inCol && W - colStart > W * 0.02) cols.push([colStart, W]);
-    for (const [x0, x1] of cols) cards.push({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
-  }
+  // background = warm cream page colour; detect the content bounding box to trim any outer margin
+  const isBg = (x, y) => { const i = (y * W + x) * 4; return data[i] > 240 && data[i+1] > 238 && data[i+2] > 236; };
+  const rowBg = (y) => { let b = 0, n = 0; for (let x = 0; x < W; x += 3) { n++; if (isBg(x, y)) b++; } return b / n; };
+  const colBg = (x) => { let b = 0, n = 0; for (let y = 0; y < H; y += 3) { n++; if (isBg(x, y)) b++; } return b / n; };
+  let top = 0; while (top < H && rowBg(top) > 0.985) top++;
+  let bot = H - 1; while (bot > top && rowBg(bot) > 0.985) bot--;
+  let left = 0; while (left < W && colBg(left) > 0.985) left++;
+  let right = W - 1; while (right > left && colBg(right) > 0.985) right--;
+  const gx = left, gy = top, gw = (right - left + 1), gh = (bot - top + 1);
+  const cellW = gw / cols, cellH = gh / rows;
   const results = [];
-  for (const card of cards) {
-    const inset = Math.round(card.w * 0.025);
-    const side = Math.min(card.w - inset * 2, Math.round(card.h * 0.6));
-    const sx = card.x + Math.round((card.w - side) / 2);
-    const sy = card.y + inset;
-    const oc = document.createElement('canvas'); oc.width = 256; oc.height = 256;
-    const octx = oc.getContext('2d');
-    octx.imageSmoothingEnabled = true; octx.imageSmoothingQuality = 'high';
-    octx.drawImage(c, sx, sy, side, side, 0, 0, 256, 256);
-    // pick the lightest (cream background) sample from the top of the card, avoiding hair
-    let best = [246, 241, 233], bestLum = -1;
-    for (const fx of [0.1, 0.3, 0.5, 0.7, 0.9]) {
-      const px = card.x + Math.round(card.w * fx), py = card.y + Math.round(card.h * 0.04);
-      const pi = (py * W + px) * 4;
-      const lum = Math.min(data[pi], data[pi+1], data[pi+2]);
-      if (lum > bestLum) { bestLum = lum; best = [data[pi], data[pi+1], data[pi+2]]; }
+  for (let r = 0; r < rows; r++) {
+    for (let cc = 0; cc < cols; cc++) {
+      const cardX = gx + cc * cellW, cardY = gy + r * cellH;
+      // captions sit in the bottom band of each card; a larger TOP inset also clears
+      // any sliver of the previous row's caption bleeding in from grid rounding.
+      const insetX = Math.max(2, Math.round(cellW * 0.04));
+      const insetTop = Math.round(cellH * 0.105);
+      const captionFrac = 0.15;
+      const artH = cellH * (1 - captionFrac) - insetTop;
+      const side = Math.min(cellW - insetX * 2, Math.round(artH));
+      const sx = Math.round(cardX + (cellW - side) / 2);
+      const sy = Math.round(cardY + insetTop);
+      const oc = document.createElement('canvas'); oc.width = 256; oc.height = 256;
+      const octx = oc.getContext('2d');
+      octx.imageSmoothingEnabled = true; octx.imageSmoothingQuality = 'high';
+      octx.drawImage(c, sx, sy, side, side, 0, 0, 256, 256);
+      results.push(oc.toDataURL('image/png').split(',')[1]);
     }
-    octx.fillStyle = 'rgb(' + best[0] + ',' + best[1] + ',' + best[2] + ')';
-    const scale = 256 / side;
-    const fillW = Math.round((card.x + card.w * 0.26 - sx) * scale);
-    const fillH = Math.round(card.h * 0.16 * scale);
-    if (fillW > 0) octx.fillRect(0, 0, fillW, fillH);
-    results.push(oc.toDataURL('image/png').split(',')[1]);
   }
-  return JSON.stringify({ count: results.length, pngs: results });
+  return JSON.stringify({ count: results.length, grid: { gx, gy, gw, gh }, pngs: results });
 })()`;
 
 let chrome;
@@ -132,9 +118,9 @@ async function run() {
     for (const src of SOURCES) {
         await evalJs(`new Promise((res, rej) => { const im = document.getElementById('src'); im.onload = () => res(true); im.onerror = rej; im.src = '/${srcDir}/${src.file}?cb=' + Date.now(); })`);
         await delay(150);
-        const parsed = JSON.parse(await evalJs(SLICER(JSON.stringify(src.rows))));
+        const parsed = JSON.parse(await evalJs(SLICER(src.cols, src.rows)));
         if (parsed.count !== src.ids.length) {
-            console.error(`WARNING ${src.file}: detected ${parsed.count} cards but mapped ${src.ids.length} ids`);
+            console.error(`WARNING ${src.file}: produced ${parsed.count} crops but mapped ${src.ids.length} ids`);
         }
         parsed.pngs.forEach((b64, i) => {
             const id = src.ids[i];

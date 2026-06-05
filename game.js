@@ -4171,9 +4171,9 @@ const NPC_PORTRAIT_ALIASES = {
   plannerNoor2: "noor",
   examMira2: "examinerMira"
 };
-// Portraits that exist on disk (sliced from the art atlas). elderGrace is not yet drawn.
+// Portraits that exist on disk (sliced from the art atlas).
 const NPC_PORTRAIT_IDS = new Set([
-  "mayor", "priya", "sam", "rowan", "noor", "editorVale", "historianIona", "aidMina", "dataOmar",
+  "mayor", "priya", "sam", "rowan", "noor", "editorVale", "historianIona", "aidMina", "dataOmar", "elderGrace",
   "advocateFarah", "sergeantBlake", "mediatorChen", "youthEllis", "speakerLark", "mpRivers", "managerSol", "officerJune", "heraldEwan",
   "unionMorgan", "charityAmina", "lobbyistPax", "moderatorRae", "surveyorTess", "statJules", "organiserKai", "examinerMira",
   "timeAsh", "sourceNia", "coachLeon", "scribePip"

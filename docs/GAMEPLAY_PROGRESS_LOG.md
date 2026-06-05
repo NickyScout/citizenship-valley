@@ -2,6 +2,74 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — G2 hero spritesheet first pass
+
+Plan area: §G2 — Главный герой: спрайт-лист и анимации.
+
+What changed:
+- Added `assets/characters/hero-base-spritesheet.svg`, a lightweight 4-direction × 4-frame hero spritesheet.
+- Added `HERO_ASSETS` and `heroBaseSprite` in `game.js`, using the G0 `AnimatedSprite` helper.
+- Added `isHeroMoving()` and `drawHeroSpriteAsset()` so walking uses animated spritesheet frames while idle uses frame 0.
+- Preserved the old `drawHeroFront` / `drawHeroBack` / `drawHeroSide` path as a fallback when the asset is unavailable.
+- Kept current customization overlays (`hair`, outfit silhouette, backpack, accent, shoes) and held tools visible on top of the spritesheet.
+- Extended `scripts/validate-world.js` to check `HERO_ASSETS` file existence.
+
+Validation:
+- `node --check game.js`
+- `node --check curriculum.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node scripts\qa-route-audit.js --write`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+
+Next marker:
+- Sync `publish/`, then start §G3 NPC recognisability + background life when ready.
+
+## 2026-06-05 — G1 terrain tileset first pass
+
+Plan area: §G1 — Террейн и тайлсет.
+
+What changed:
+- Added base terrain SVG assets under `assets/tiles/`: grass, road, plaza, water, dock, and wall.
+- Added `TILE_ASSETS` and asset-backed tile drawing in `game.js`, using the existing shared image cache from G0 and preserving the primitive `drawTile` fallback.
+- Added `tileKind`, `tileAtMap`, `drawTileAsset`, `drawTileVariation`, and `drawTileEdges` so water, roads, and plazas gain lightweight edge overlays and deterministic surface variation without changing map data.
+- Kept tree drawing as a procedural overlay on grass so existing `T` map tiles remain compatible.
+- Extended `scripts/validate-world.js` to check `TILE_ASSETS` file existence.
+
+Validation:
+- `node --check game.js`
+- `node --check curriculum.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node scripts\qa-route-audit.js --write`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+
+Next marker:
+- Sync `publish/`, then start §G2 hero sprite/animation when ready.
+
+## 2026-06-05 — G0 render foundation first pass
+
+Plan area: §G0 — Фундамент рендера и ассет-пайплайн.
+
+What changed:
+- Added shared asset image loading via `imageCache` and `getAssetImage`, then reused it for `PROP_ASSETS` while preserving primitive fallback behaviour.
+- Added an `AnimatedSprite` helper class for future character/terrain/minigame sprite sheets. It is currently foundation-only and does not replace existing art.
+- Added safe frame timing (`nowMs`, `frameDeltaMs`, `animationClockMs`) in `loop()` for future delta-time animation work without changing the existing frame-based player movement.
+- Added an empty `drawAmbientLayer()` hook that respects Reduced Motion and is wired between prop rendering and character rendering.
+- Changed `drawCharacterLayer()` to y-sort NPCs and the player before drawing, so future larger sprites can overlap by depth more naturally.
+
+Validation:
+- `node --check game.js`
+- `node --check curriculum.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+
+Next marker:
+- Sync `publish/`, then start §G1 terrain/tileset when ready.
+
 ## 2026-06-05 — Plan reboot for the new graphics generation
 
 Plan area: full-game analysis + new plan authoring (no code changes).

@@ -6,7 +6,7 @@
 
 ## Текущая позиция
 
-**Мы находимся здесь:** `>>> МЫ ЗДЕСЬ` — §G0 «Фундамент рендера и ассет-пайплайн» ещё не начат. Ни один из этапов нового плана (G0–G9) не реализован. Сначала — анализ ниже и согласование приоритетов, затем поэтапная реализация с QA-гейтом и синхронизацией в `publish/` после каждого этапа.
+**Мы находимся здесь:** §G2 «Главный герой: спрайт-лист и анимации» закрыт первым asset-backed проходом: добавлен базовый hero spritesheet, `HERO_ASSETS`, `AnimatedSprite`-рендер героя с fallback на старый procedural draw, сохранены customization overlays и held-tool слой. `>>> МЫ ЗДЕСЬ` — следующий практический этап §G3 «NPC: распознаваемость + фоновая жизнь».
 
 Принципы работы те же, что и раньше: static HTML/CSS/JS без фреймворков и сборщиков, лёгкий бандл для Azure Static Web Apps, обратная совместимость сейвов через `migrateSave`, сохранение клавиатурного управления и dev travel menu, прогон локальных проверок перед завершением. Публичный deploy — только по явному запросу.
 
@@ -168,10 +168,14 @@
 
 ## 6. Графика мини-игр
 
-1. Тематические **фоны и арт** для каждой из 7 мини-игр (`assets/ui/` или новая `assets/minigames/`): газетные карточки + reliable/unreliable штампы (Source Detective), пары прав/обязанностей (Rights Match), карта гавани и лодка (Petition Regatta), бюллетени и стол подсчёта (Ballot Count), карточки Argument/Evidence/Rebuttal/Empathy (Debate Arena), доска Research→Plan→Action→Evaluate (Campaign Planner), экзаменационный бланк + источник (Exam Simulation).
+1. Тематические **фоны и арт** для каждой из 7 текущих мини-игр (`assets/ui/` или новая `assets/minigames/`): газетные карточки + reliable/unreliable штампы (Source Detective), пары прав/обязанностей (Rights Match), карта гавани и лодка (Petition Regatta), бюллетени и стол подсчёта (Ballot Count), карточки Argument/Evidence/Rebuttal/Empathy (Debate Arena), доска Research→Plan→Action→Evaluate (Campaign Planner), экзаменационный бланк + источник (Exam Simulation).
 2. Лёгкие **canvas-анимации** там, где уместно (регата, подсчёт голосов, медаль-экран).
 3. **Medal screen** с настоящим визуальным наградным блоком (бронза/серебро/золото).
-4. Мини-игры отличаются и текстом, и layout-паттерном, и артом.
+4. Добавить **2 новые мини-игры в стиле Hangman**, но адаптированные под GCSE Citizenship, а не как обычное угадывание слов:
+   - **Keyword Rescue** — игрок открывает ключевые термины по буквам (`democracy`, `accountability`, `devolution`, `rule of law`, `representation`) и после слова выбирает правильное определение/пример. Ошибки визуально «затуманивают» civic noticeboard, правильные буквы возвращают sparks.
+   - **Caseword Court** — судебно-правовая версия: игрок восстанавливает термин или короткую фразу из Rights & Law / Exam Skills (`human rights`, `civil law`, `jury`, `appeal`, `evidence`) и затем связывает её с ситуацией. Вместо виселицы использовать age-appropriate визуал: courtroom evidence board / scales balance / fading case file.
+5. Для Hangman-style игр нужны отдельные визуалы: буквенная сетка, подсказка-тема, безопасный progress/error meter, предметная сцена региона, экран разбора «почему это слово важно».
+6. Мини-игры отличаются и текстом, и layout-паттерном, и артом.
 
 Файлы: `game.js` (`renderMiniGameVisual`, `renderMiniGameMedal`, `renderMiniGamePanel`), `styles.css`, ассеты. Инвариант: `qa-regional-playthrough.mjs` проходит каждую игру через реальные NPC-кнопки.
 
@@ -181,12 +185,13 @@
 
 Цель — чтобы обучение было разнообразным и интереснее, а не «один MCQ у каждого NPC».
 
-1. **Разные форматы взаимодействия** вместо единого вопроса: упорядочивание шагов, сопоставление пар, выбор доказательства, оценка надёжности источника, сценарные развилки, сборка ответа из частей (PEEL).
+1. **Разные форматы взаимодействия** вместо единого вопроса: упорядочивание шагов, сопоставление пар, выбор доказательства, оценка надёжности источника, сценарные развилки, сборка ответа из частей (PEEL), Hangman-style восстановление ключевых терминов.
 2. Сделать так, чтобы региональные квесты использовали **разные типы проверки** (сейчас `makeNpc` даёт всем одинаковый generic-check). Привязать к теме и `examSkill` из `curriculum.js`.
 3. **Объяснение «почему»**: после ответа показывать развёрнутое корректное пояснение из `curriculum.js` (оно там уже есть и качественное).
 4. **Интервальное повторение / review**: лёгкий механизм «вернись и закрепи» по слабым темам; отметки mastery по curriculum areas (вкладка Curriculum уже есть).
 5. **Подсказки и поддержка**: hint-токены/Focus как ресурс подсказки (уже частично есть), без штрафа за обучение.
 6. **Разнообразие активности**: больше коротких «гражданских мини-сценариев» и моральных развилок с разным акцентом наград (story flags уже есть).
+7. Для двух Hangman-style мини-игр важно соблюдать учебную цель: после угадывания слово не считается завершённым, пока игрок не выбрал/собрал правильное определение, пример или экзаменационный контекст. Это превращает механику из словаря в проверку понимания.
 
 Файлы: `curriculum.js` (использование метаданных, тексты), `game.js` (квесты/проверки, `renderProgressCurriculum`, review-механизм). Инвариант: `node --check curriculum.js`, `scripts/validate-world.js` (структура квестов) проходят; обучающий контент остаётся точным и age-appropriate.
 
@@ -241,14 +246,20 @@
 Каждый этап — отдельная задача: маленькие, ревью-пригодные изменения, QA-гейт (§9), синхронизация в `publish/`. Этапы упорядочены по приоритету пользователя (игровое поле — первым).
 
 ### Этап G0 — Фундамент рендера и ассет-пайплайн
+Статус: первый технический проход закрыт — добавлены общий `imageCache`/`getAssetImage`, `AnimatedSprite`, безопасный frame clock (`nowMs`, `frameDeltaMs`, `animationClockMs`), пустой `drawAmbientLayer()` с учётом Reduced Motion и y-сортировка персонажей в `drawCharacterLayer`. Видимый арт и логика движения не менялись.
+
 - `AnimatedSprite` + общий image-loader с fallback; delta-time в `loop()`; z-сортировка персонажей; ambient-слой (пустой каркас).
 - QA: `node --check`, world/ui validate, visual smoke (без визуальных регрессий).
 
 ### Этап G1 — Террейн и тайлсет (TOP)
+Статус: первый asset-backed проход закрыт — `assets/tiles/` получил базовые SVG tiles (`grass`, `road`, `plaza`, `water`, `dock`, `wall`), `game.js` получил `TILE_ASSETS`, `tileKind`, `drawTileAsset`, `drawTileEdges` и `drawTileVariation`, а `scripts/validate-world.js` проверяет наличие tile assets. ASCII-карты и коллизии не менялись.
+
 - Тайлсеты + автотайлинг кромок + вариативность + тени/вода; fallback на `drawTile`.
 - QA: per-region visual smoke; карты не изменены → reachability та же.
 
 ### Этап G2 — Главный герой: спрайт-лист и анимации (TOP)
+Статус: первый asset-backed проход закрыт — `assets/characters/hero-base-spritesheet.svg` добавляет 4 направления × 4 кадра, `game.js` получил `HERO_ASSETS`, `heroBaseSprite`, `isHeroMoving` и `drawHeroSpriteAsset`. Если spritesheet не загружен, остаётся старый `drawHero*` fallback; текущие hairstyle/outfit/accent/backpack/shoes overlays и held tools продолжают рисоваться поверх hero asset.
+
 - Спрайт-лист героя, idle/walk(/run), тень, held-tool слой, тинтинг по кастомизации; fallback на `drawHero*`.
 - QA: customization→visual маппинг, синхронизация портрета, ui validate.
 
@@ -270,10 +281,11 @@
 
 ### Этап G7 — Мини-игры
 - Тематический арт карточек/досок, canvas-анимации, medal screen.
-- QA: regional playthrough всех 7 игр.
+- Добавить 2 Hangman-style мини-игры: `Keyword Rescue` для civic vocabulary и `Caseword Court` для Rights & Law / Exam Skills. Обе используют безопасную визуальную метафору без виселицы и завершаются проверкой понимания термина.
+- QA: regional playthrough всех текущих и новых мини-игр.
 
 ### Этап G8 — Обучение: глубина и разнообразие
-- Разные форматы проверки, объяснения «почему», review/mastery, разнообразные мини-сценарии.
+- Разные форматы проверки, объяснения «почему», review/mastery, разнообразные мини-сценарии, Hangman-style vocabulary practice с обязательным definition/example follow-up.
 - QA: curriculum check, validate-world квесты; контент точный и age-appropriate.
 
 ### Этап G9 — Атмосфера и полировка

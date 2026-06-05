@@ -4,7 +4,10 @@
 
 Resume point after the planned PC restart:
 
-- Active roadmap marker: the previous plan (RPG phases A–F + Map Phase 1–5) is closed and archived as `docs/GAMEPLAY_UPGRADE_OLD.md`. A new graphics-generation plan `docs/GAMEPLAY_UPGRADE_PLAN.md` (stages G0–G9, game-field graphics as the top priority) is written; no G-stage is started yet. All previously shipped systems remain the foundation.
+- Active roadmap marker: the previous plan (RPG phases A–F + Map Phase 1–5) is closed and archived as `docs/GAMEPLAY_UPGRADE_OLD.md`. The new graphics-generation plan `docs/GAMEPLAY_UPGRADE_PLAN.md` is active; G0, G1, and G2 are closed as first technical/asset-backed passes. The next practical stage is G3 NPC recognisability + background life. All previously shipped systems remain the foundation.
+- G0 added a shared `imageCache`/`getAssetImage`, an `AnimatedSprite` helper, safe frame timing (`nowMs`, `frameDeltaMs`, `animationClockMs`), an empty `drawAmbientLayer()` that respects Reduced Motion, and y-sorted character rendering. It intentionally did not change visible art or movement logic.
+- G1 added `TILE_ASSETS` for base SVG tiles under `assets/tiles/`, asset-backed tile rendering with primitive fallback, light deterministic terrain variation, water/road/plaza edge overlays, and `scripts/validate-world.js` checks for tile asset file existence. ASCII maps and collision data were not changed.
+- G2 added `assets/characters/hero-base-spritesheet.svg`, `HERO_ASSETS`, `heroBaseSprite`, `isHeroMoving`, and `drawHeroSpriteAsset`. The hero now tries an asset-backed 4-direction/4-frame spritesheet first, then falls back to the old procedural `drawHero*`; customization overlays and held tools remain visible on top.
 - Sections §20.1, §20.2, §20.3, and §20.4 are closed as first-pass graphics/readability work.
 - §20.1 added `docs/VISUAL_STYLE_GUIDE.md`, item PNG assets, seed UI/region prop assets, stronger regional motifs, and subtle Apathy traces.
 - §20.2 added shared hero visual presets for HUD portrait, Character panel, and canvas sprite; held tools now render as distinct quill/blade silhouettes.

@@ -242,12 +242,20 @@ function propTouchesTile(layout, prop, tile, logicalTile) {
 function validateWorld() {
     const data = loadGameData();
     const failures = [];
-    const { WORLD_LAYOUTS, WORLD, QUESTS, MINI_GAMES, BUILDING_DOORS, INTERIOR_EXITS, STUDY_STATIONS, PROP_ASSETS, locationOrder, props, EXAM_PRACTICE_ROOMS, LOGICAL_TILE, curriculumIndex, regionBuildingLabel, state } = data;
+    const { WORLD_LAYOUTS, WORLD, QUESTS, MINI_GAMES, BUILDING_DOORS, INTERIOR_EXITS, STUDY_STATIONS, PROP_ASSETS, TILE_ASSETS, HERO_ASSETS, locationOrder, props, EXAM_PRACTICE_ROOMS, LOGICAL_TILE, curriculumIndex, regionBuildingLabel, state } = data;
 
     if (!Array.isArray(locationOrder) || locationOrder.length === 0) failures.push("locationOrder must list at least one location.");
 
     Object.entries(PROP_ASSETS || {}).forEach(([type, assetPath]) => {
         if (!fs.existsSync(path.join(projectRoot, assetPath))) failures.push(`Prop asset ${type} points to missing file ${assetPath}.`);
+    });
+
+    Object.entries(TILE_ASSETS || {}).forEach(([type, assetPath]) => {
+        if (!fs.existsSync(path.join(projectRoot, assetPath))) failures.push(`Tile asset ${type} points to missing file ${assetPath}.`);
+    });
+
+    Object.entries(HERO_ASSETS || {}).forEach(([type, assetPath]) => {
+        if (!fs.existsSync(path.join(projectRoot, assetPath))) failures.push(`Hero asset ${type} points to missing file ${assetPath}.`);
     });
 
     const questIds = new Set(Object.keys(QUESTS));

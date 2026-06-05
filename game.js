@@ -68,6 +68,71 @@ let currentProgressTab = "story";
 let activeMiniGame = null;
 let selectedInventoryItemId = null;
 let settings = loadSettings();
+let lastFrameTimestamp = null;
+let frameDeltaMs = 1000 / 60;
+let animationClockMs = 0;
+
+const imageCache = {};
+
+function nowMs() {
+  if (typeof performance !== "undefined" && typeof performance.now === "function") return performance.now();
+  return Date.now();
+}
+
+function getAssetImage(src) {
+  if (!src || typeof Image === "undefined") return null;
+  if (!imageCache[src]) {
+    const image = new Image();
+    image.src = src;
+    imageCache[src] = image;
+  }
+  return imageCache[src];
+}
+
+class AnimatedSprite {
+  constructor({ src, frameWidth, frameHeight, frames = 1, fps = 6, rows = {} }) {
+    this.src = src;
+    this.frameWidth = frameWidth;
+    this.frameHeight = frameHeight;
+    this.frames = Math.max(1, frames);
+    this.fps = Math.max(1, fps);
+    this.rows = rows;
+  }
+
+  image() {
+    return getAssetImage(this.src);
+  }
+
+  isReady() {
+    const image = this.image();
+    return Boolean(image && image.complete && image.naturalWidth);
+  }
+
+  frameIndex(elapsedMs = animationClockMs) {
+    return Math.floor((elapsedMs / 1000) * this.fps) % this.frames;
+  }
+
+  draw(x, y, options = {}) {
+    const image = this.image();
+    if (!image || !image.complete || !image.naturalWidth) return false;
+    const row = this.rows[options.state || "default"] || 0;
+    const frame = options.frame ?? this.frameIndex(options.elapsedMs);
+    const width = options.width || this.frameWidth;
+    const height = options.height || this.frameHeight;
+    ctx.drawImage(
+      image,
+      (frame % this.frames) * this.frameWidth,
+      row * this.frameHeight,
+      this.frameWidth,
+      this.frameHeight,
+      x,
+      y,
+      width,
+      height
+    );
+    return true;
+  }
+}
 
 function defaultSettings() {
   return { largeText: false, highContrast: false, reducedMotion: false };
@@ -984,7 +1049,27 @@ const PROP_ASSETS = {
   podium: "assets/props/region/trigger-debate-podium.png"
 };
 
-const propAssetImages = {};
+const TILE_ASSETS = {
+  grass: "assets/tiles/tile-grass.svg",
+  road: "assets/tiles/tile-road.svg",
+  plaza: "assets/tiles/tile-plaza.svg",
+  water: "assets/tiles/tile-water.svg",
+  dock: "assets/tiles/tile-dock.svg",
+  wall: "assets/tiles/tile-wall.svg"
+};
+
+const HERO_ASSETS = {
+  base: "assets/characters/hero-base-spritesheet.svg"
+};
+
+const heroBaseSprite = new AnimatedSprite({
+  src: HERO_ASSETS.base,
+  frameWidth: 32,
+  frameHeight: 48,
+  frames: 4,
+  fps: 7,
+  rows: { down: 0, left: 1, right: 2, up: 3 }
+});
 
 const VENDORS = {
   mayor: {
@@ -4830,7 +4915,67 @@ function drawPixelPattern(x, y, w, h, colors, density, salt) {
   }
 }
 
-function drawTile(ch, x, y) {
+function tileKind(ch) {
+  if (ch === "#") return "wall";
+  if (ch === "~") return "water";
+  if (ch === "=") return "dock";
+  if (ch === ",") return "road";
+  if (ch === ":") return "plaza";
+  return "grass";
+}
+
+function tileAtMap(map, row, col) {
+  if (!map[row]) return "#";
+  return map[row][col] || "#";
+}
+
+function drawTileAsset(kind, x, y) {
+  const image = getAssetImage(TILE_ASSETS[kind]);
+  if (!image || !image.complete || !image.naturalWidth) return false;
+  ctx.drawImage(image, x, y, LOGICAL_TILE, LOGICAL_TILE);
+  return true;
+}
+
+function drawTileVariation(kind, x, y, row, col) {
+  if (kind !== "grass" && kind !== "road" && kind !== "plaza") return;
+  const noise = hashNoise(col, row, 19);
+  if (kind === "grass" && noise > .72) {
+    rect(x + 6 + Math.floor(noise * 10), y + 7, 3, 2, "rgba(215,242,139,.85)");
+    rect(x + 21, y + 21 + Math.floor(noise * 4), 4, 2, "rgba(67,124,69,.75)");
+  }
+  if (kind === "road" && noise > .68) rect(x + 6, y + 24, 10, 2, "rgba(70,58,48,.22)");
+  if (kind === "plaza" && noise > .76) rect(x + 18, y + 6, 8, 1, "rgba(255,255,255,.18)");
+}
+
+function drawTileEdges(kind, x, y, row, col, map) {
+  const top = tileKind(tileAtMap(map, row - 1, col));
+  const right = tileKind(tileAtMap(map, row, col + 1));
+  const bottom = tileKind(tileAtMap(map, row + 1, col));
+  const left = tileKind(tileAtMap(map, row, col - 1));
+
+  if (kind === "water") {
+    ctx.fillStyle = "rgba(159, 224, 223, .52)";
+    if (top !== "water") ctx.fillRect(x, y, LOGICAL_TILE, 3);
+    if (right !== "water") ctx.fillRect(x + LOGICAL_TILE - 3, y, 3, LOGICAL_TILE);
+    if (bottom !== "water") ctx.fillRect(x, y + LOGICAL_TILE - 3, LOGICAL_TILE, 3);
+    if (left !== "water") ctx.fillRect(x, y, 3, LOGICAL_TILE);
+    return;
+  }
+
+  if ((kind === "road" || kind === "plaza") && top === "grass") rect(x, y, LOGICAL_TILE, 2, "rgba(71, 92, 58, .25)");
+  if ((kind === "road" || kind === "plaza") && right === "grass") rect(x + LOGICAL_TILE - 2, y, 2, LOGICAL_TILE, "rgba(71, 92, 58, .25)");
+  if ((kind === "road" || kind === "plaza") && bottom === "grass") rect(x, y + LOGICAL_TILE - 2, LOGICAL_TILE, 2, "rgba(71, 92, 58, .25)");
+  if ((kind === "road" || kind === "plaza") && left === "grass") rect(x, y, 2, LOGICAL_TILE, "rgba(71, 92, 58, .25)");
+}
+
+function drawTile(ch, x, y, row = 0, col = 0, map = currentMap()) {
+  const kind = tileKind(ch);
+  if (drawTileAsset(kind, x, y)) {
+    drawTileVariation(kind, x, y, row, col);
+    drawTileEdges(kind, x, y, row, col, map);
+    if (ch === "T") drawTreeTile(x, y);
+    return;
+  }
   const visual = locColors();
   if (ch === "#") {
     rect(x, y, LOGICAL_TILE, LOGICAL_TILE, "#3f4738");
@@ -4884,13 +5029,17 @@ function drawTile(ch, x, y) {
     rect(px, py, 3, 2, i % 2 ? "#d7f28b" : "#4f8f4a");
   }
   if (ch === "T") {
-    rect(x + 12, y + 12, 8, 19, "#6a4634");
-    rect(x + 9, y + 22, 14, 5, "#4b3128");
-    rect(x + 3, y + 5, 26, 15, "#2f7b42");
-    rect(x + 7, y + 1, 18, 12, "#3fa457");
-    rect(x + 12, y + 6, 16, 12, "#256737");
-    rect(x + 8, y + 4, 5, 4, "#78c86d");
+    drawTreeTile(x, y);
   }
+}
+
+function drawTreeTile(x, y) {
+  rect(x + 12, y + 12, 8, 19, "#6a4634");
+  rect(x + 9, y + 22, 14, 5, "#4b3128");
+  rect(x + 3, y + 5, 26, 15, "#2f7b42");
+  rect(x + 7, y + 1, 18, 12, "#3fa457");
+  rect(x + 12, y + 6, 16, 12, "#256737");
+  rect(x + 8, y + 4, 5, 4, "#78c86d");
 }
 
 function drawBuilding(x, y, w, h, wall, roof, label) {
@@ -5052,6 +5201,7 @@ function drawPlayer() {
   const p = state.player;
   const frame = Math.floor(p.step / 10) % 4;
   const bob = frame === 1 || frame === 3 ? 1 : 0;
+  if (drawHeroSpriteAsset(p, frame, bob)) return;
   const outfit = ITEMS[state.equipped.outfit] || ITEMS.schoolJumper;
   const side = p.dir === "left" ? -1 : 1;
   if (p.dir === "left" || p.dir === "right") {
@@ -5062,6 +5212,23 @@ function drawPlayer() {
     drawHeroFront(p, outfit, bob, frame);
   }
   drawHeroProfileMarkers(p, bob);
+}
+
+function isHeroMoving() {
+  if (activeQuestion || !choicePanel.classList.contains("hidden") || !dialogue.classList.contains("hidden")) return false;
+  return keys.has("arrowleft") || keys.has("a") || keys.has("arrowright") || keys.has("d") || keys.has("arrowup") || keys.has("w") || keys.has("arrowdown") || keys.has("s");
+}
+
+function drawHeroSpriteAsset(p, fallbackFrame, fallbackBob) {
+  const direction = ["up", "left", "right", "down"].includes(p.dir) ? p.dir : "down";
+  const frame = isHeroMoving() ? heroBaseSprite.frameIndex(animationClockMs) : 0;
+  if (!heroBaseSprite.draw(p.x, p.y, { state: direction, frame, width: 32, height: 48 })) return false;
+  const bob = isHeroMoving() ? (frame === 1 || frame === 3 ? 1 : 0) : fallbackBob;
+  drawHeroProfileMarkers(p, bob);
+  if (p.dir === "left") drawHeroHeldItem(p, -1, bob);
+  else if (p.dir === "right") drawHeroHeldItem(p, 1, bob);
+  else if (p.dir === "down") drawHeroHeldItem(p, 1, bob);
+  return true;
 }
 
 function drawHeroProfileMarkers(p, bob) {
@@ -5468,13 +5635,7 @@ function propAssetBounds(prop) {
 
 function propAssetImage(type) {
   const src = PROP_ASSETS[type];
-  if (!src || typeof Image === "undefined") return null;
-  if (!propAssetImages[type]) {
-    const image = new Image();
-    image.src = src;
-    propAssetImages[type] = image;
-  }
-  return propAssetImages[type];
+  return getAssetImage(src);
 }
 
 function drawPropAsset(prop) {
@@ -6069,13 +6230,15 @@ function drawWorld() {
   drawPathLayer();
   drawBuildingLayer(visual);
   drawPropLayer();
+  drawAmbientLayer();
   drawCharacterLayer();
   drawUiWorldLayer();
 }
 
 function drawGroundLayer() {
-  currentMap().forEach((row, r) => {
-    [...row].forEach((ch, c) => drawTile(ch, c * LOGICAL_TILE, r * LOGICAL_TILE));
+  const map = currentMap();
+  map.forEach((row, r) => {
+    [...row].forEach((ch, c) => drawTile(ch, c * LOGICAL_TILE, r * LOGICAL_TILE, r, c, map));
   });
 }
 
@@ -6111,10 +6274,21 @@ function drawPropLayer() {
   drawFineDetails();
 }
 
+function drawAmbientLayer() {
+  if (settings.reducedMotion) return;
+}
+
 function drawCharacterLayer() {
-  npcs.forEach(drawPerson);
+  const renderables = [
+    ...npcs.map((npc) => ({ type: "npc", y: npc.y + 48, entity: npc })),
+    { type: "player", y: state.player.y + state.player.h, entity: state.player }
+  ].sort((a, b) => a.y - b.y);
+
+  renderables.forEach((renderable) => {
+    if (renderable.type === "player") drawPlayer();
+    else drawPerson(renderable.entity);
+  });
   drawMiniGameHostMarkers();
-  drawPlayer();
 }
 
 function drawUiWorldLayer() {
@@ -6151,6 +6325,12 @@ function drawScreenUi() {
 }
 
 function loop() {
+  const timestamp = nowMs();
+  if (lastFrameTimestamp === null) lastFrameTimestamp = timestamp;
+  frameDeltaMs = Math.min(100, Math.max(0, timestamp - lastFrameTimestamp));
+  lastFrameTimestamp = timestamp;
+  animationClockMs += frameDeltaMs;
+
   movePlayer();
   if (messageTimer > 0) {
     messageTimer -= 1;

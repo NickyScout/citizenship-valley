@@ -4959,9 +4959,24 @@ function drawTileAsset(kind, x, y) {
 function drawTileVariation(kind, x, y, row, col) {
   if (kind !== "grass" && kind !== "road" && kind !== "plaza") return;
   const noise = hashNoise(col, row, 19);
-  if (kind === "grass" && noise > .72) {
-    rect(x + 6 + Math.floor(noise * 10), y + 7, 3, 2, "rgba(215,242,139,.85)");
-    rect(x + 21, y + 21 + Math.floor(noise * 4), 4, 2, "rgba(67,124,69,.75)");
+  if (kind === "grass") {
+    if (noise > .72) {
+      rect(x + 6 + Math.floor(noise * 10), y + 7, 3, 2, "rgba(215,242,139,.85)");
+      rect(x + 21, y + 21 + Math.floor(noise * 4), 4, 2, "rgba(67,124,69,.75)");
+    }
+    if (noise > .58) {
+      const bx = x + 4 + Math.floor(hashNoise(col, row, 27) * 22);
+      const by = y + 18 + Math.floor(hashNoise(row, col, 29) * 10);
+      rect(bx, by, 1, 4, "rgba(58,108,58,.55)");
+      rect(bx + 2, by + 1, 1, 3, "rgba(74,134,72,.5)");
+    }
+    if (noise > .9) {
+      const fx = x + 7 + Math.floor(hashNoise(col, row, 41) * 16);
+      const fy = y + 9 + Math.floor(hashNoise(row, col, 43) * 14);
+      rect(fx, fy, 2, 2, "#f4e7a8");
+      rect(fx + 3, fy + 1, 2, 2, "#eef4f7");
+      rect(fx + 1, fy + 3, 1, 2, "#5aa14a");
+    }
   }
   if (kind === "road" && noise > .68) rect(x + 6, y + 24, 10, 2, "rgba(70,58,48,.22)");
   if (kind === "plaza" && noise > .76) rect(x + 18, y + 6, 8, 1, "rgba(255,255,255,.18)");
@@ -4974,18 +4989,114 @@ function drawTileEdges(kind, x, y, row, col, map) {
   const left = tileKind(tileAtMap(map, row, col - 1));
 
   if (kind === "water") {
-    ctx.fillStyle = "rgba(159, 224, 223, .52)";
-    if (top !== "water") ctx.fillRect(x, y, LOGICAL_TILE, 3);
-    if (right !== "water") ctx.fillRect(x + LOGICAL_TILE - 3, y, 3, LOGICAL_TILE);
-    if (bottom !== "water") ctx.fillRect(x, y + LOGICAL_TILE - 3, LOGICAL_TILE, 3);
-    if (left !== "water") ctx.fillRect(x, y, 3, LOGICAL_TILE);
+    drawWaterFoam(x, y, top, right, bottom, left, row, col);
     return;
   }
 
-  if ((kind === "road" || kind === "plaza") && top === "grass") rect(x, y, LOGICAL_TILE, 2, "rgba(71, 92, 58, .25)");
-  if ((kind === "road" || kind === "plaza") && right === "grass") rect(x + LOGICAL_TILE - 2, y, 2, LOGICAL_TILE, "rgba(71, 92, 58, .25)");
-  if ((kind === "road" || kind === "plaza") && bottom === "grass") rect(x, y + LOGICAL_TILE - 2, LOGICAL_TILE, 2, "rgba(71, 92, 58, .25)");
-  if ((kind === "road" || kind === "plaza") && left === "grass") rect(x, y, 2, LOGICAL_TILE, "rgba(71, 92, 58, .25)");
+  const wTop = top === "water";
+  const wRight = right === "water";
+  const wBottom = bottom === "water";
+  const wLeft = left === "water";
+  if (kind === "grass") {
+    if (wTop || wRight || wBottom || wLeft) {
+      drawBeachEdges(x, y, wTop, wRight, wBottom, wLeft, row, col);
+    } else {
+      const tl = tileKind(tileAtMap(map, row - 1, col - 1)) === "water";
+      const tr = tileKind(tileAtMap(map, row - 1, col + 1)) === "water";
+      const bl = tileKind(tileAtMap(map, row + 1, col - 1)) === "water";
+      const br = tileKind(tileAtMap(map, row + 1, col + 1)) === "water";
+      if (tl || tr || bl || br) drawBeachCorners(x, y, tl, tr, bl, br);
+    }
+  }
+
+  if (kind === "road" || kind === "plaza") {
+    drawPavingEdges(x, y, top, right, bottom, left, row, col);
+  }
+}
+
+function drawWaterFoam(x, y, top, right, bottom, left, row, col) {
+  const T = LOGICAL_TILE;
+  const foam = "rgba(236,248,244,.82)";
+  const foam2 = "rgba(188,234,238,.5)";
+  if (top !== "water") { rect(x, y, T, 3, foam); rect(x, y + 3, T, 2, foam2); }
+  if (bottom !== "water") { rect(x, y + T - 3, T, 3, foam); rect(x, y + T - 5, T, 2, foam2); }
+  if (left !== "water") { rect(x, y, 3, T, foam); rect(x + 3, y, 2, T, foam2); }
+  if (right !== "water") { rect(x + T - 3, y, 3, T, foam); rect(x + T - 5, y, 2, T, foam2); }
+  if (!settings.reducedMotion) {
+    const pulse = 0.5 + 0.5 * Math.sin(animationClockMs / 520 + (row + col) * 0.7);
+    const a = (0.22 + 0.4 * pulse).toFixed(2);
+    const shimmer = `rgba(255,255,255,${a})`;
+    if (top !== "water") rect(x, y, T, 1, shimmer);
+    if (bottom !== "water") rect(x, y + T - 1, T, 1, shimmer);
+    if (left !== "water") rect(x, y, 1, T, shimmer);
+    if (right !== "water") rect(x + T - 1, y, 1, T, shimmer);
+  }
+}
+
+function drawBeachEdges(x, y, wTop, wRight, wBottom, wLeft, row, col) {
+  const T = LOGICAL_TILE;
+  const sand = "#d8c089";
+  const sandLt = "#ead8a6";
+  const sandDk = "#bd9f60";
+  const band = 8;
+  if (wTop) { rect(x, y, T, band, sand); rect(x, y, T, 2, sandLt); rect(x, y + band - 2, T, 2, sandDk); }
+  if (wBottom) { rect(x, y + T - band, T, band, sand); rect(x, y + T - 2, T, 2, sandLt); rect(x, y + T - band, T, 2, sandDk); }
+  if (wLeft) { rect(x, y, band, T, sand); rect(x, y, 2, T, sandLt); rect(x + band - 2, y, 2, T, sandDk); }
+  if (wRight) { rect(x + T - band, y, band, T, sand); rect(x + T - 2, y, 2, T, sandLt); rect(x + T - band, y, 2, T, sandDk); }
+  if (hashNoise(col, row, 31) > .45) {
+    const px = x + 5 + Math.floor(hashNoise(col, row, 5) * (T - 10));
+    const py = y + 5 + Math.floor(hashNoise(row, col, 7) * (T - 10));
+    rect(px, py, 2, 2, "rgba(122,98,58,.5)");
+  }
+}
+
+function drawBeachCorners(x, y, tl, tr, bl, br) {
+  const T = LOGICAL_TILE;
+  const sand = "#d8c089";
+  const s = 7;
+  if (tl) rect(x, y, s, s, sand);
+  if (tr) rect(x + T - s, y, s, s, sand);
+  if (bl) rect(x, y + T - s, s, s, sand);
+  if (br) rect(x + T - s, y + T - s, s, s, sand);
+}
+
+function drawPavingEdges(x, y, top, right, bottom, left, row, col) {
+  const T = LOGICAL_TILE;
+  const shade = "rgba(45,62,32,.22)";
+  const blade = "#5aa14a";
+  const bladeLt = "#82c468";
+  if (top === "grass") {
+    rect(x, y, T, 2, shade);
+    for (let i = 3; i < T - 3; i += 7) {
+      if (hashNoise(col, row * 4 + i, 17) < .5) continue;
+      rect(x + i, y, 2, 4, blade);
+      rect(x + i + 1, y, 1, 2, bladeLt);
+    }
+  }
+  if (bottom === "grass") {
+    rect(x, y + T - 2, T, 2, shade);
+    for (let i = 3; i < T - 3; i += 7) {
+      if (hashNoise(col, row * 4 + i, 19) < .5) continue;
+      rect(x + i, y + T - 4, 2, 4, blade);
+      rect(x + i + 1, y + T - 2, 1, 2, bladeLt);
+    }
+  }
+  if (left === "grass") {
+    rect(x, y, 2, T, shade);
+    for (let i = 3; i < T - 3; i += 7) {
+      if (hashNoise(col * 4 + i, row, 21) < .5) continue;
+      rect(x, y + i, 4, 2, blade);
+      rect(x, y + i + 1, 2, 1, bladeLt);
+    }
+  }
+  if (right === "grass") {
+    rect(x + T - 2, y, 2, T, shade);
+    for (let i = 3; i < T - 3; i += 7) {
+      if (hashNoise(col * 4 + i, row, 23) < .5) continue;
+      rect(x + T - 4, y + i, 4, 2, blade);
+      rect(x + T - 2, y + i + 1, 2, 1, bladeLt);
+    }
+  }
 }
 
 function drawTile(ch, x, y, row = 0, col = 0, map = currentMap()) {
@@ -5056,10 +5167,14 @@ function drawTile(ch, x, y, row = 0, col = 0, map = currentMap()) {
 function drawTreeTile(x, y) {
   const cx = x + 16;
   ctx.save();
-  ctx.globalAlpha = .22;
+  ctx.globalAlpha = .18;
   ctx.fillStyle = "#16240f";
   ctx.beginPath();
-  ctx.ellipse(cx + 1, y + 29, 12, 3.5, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx + 4, y + 30, 12, 4, -0.22, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = .26;
+  ctx.beginPath();
+  ctx.ellipse(cx + 1, y + 29, 9, 3.2, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
   rect(x + 13, y + 16, 6, 14, "#6a4a32");
@@ -5155,6 +5270,17 @@ function drawBuildingFlag(x, y, w, h) {
 }
 
 function drawBuilding(x, y, w, h, wall, roof, label) {
+  ctx.save();
+  ctx.globalAlpha = .16;
+  ctx.fillStyle = "#1a2410";
+  ctx.beginPath();
+  ctx.moveTo(x + 10, y + h + 1);
+  ctx.lineTo(x + w + 6, y + h + 1);
+  ctx.lineTo(x + w + 20, y + h + 13);
+  ctx.lineTo(x + 24, y + h + 13);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
   rect(x + 5, y + h - 2, w + 10, 9, "rgba(0, 0, 0, .32)");
   rect(x - 7, y + h + 5, w + 16, 5, "rgba(0, 0, 0, .18)");
   rect(x + w - 20, y - 42, 12, 22, "#5b3434");

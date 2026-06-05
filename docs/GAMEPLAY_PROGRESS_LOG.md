@@ -2,6 +2,30 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Option C terrain autotiling + cast shadows
+
+Plan area: procedural autotiling of terrain edges + grounding shadows (§G1 tail / Option C).
+
+What changed:
+- Reworked `drawTileEdges()` into a neighbour-aware autotiling pass that branches on tile kind and the four orthogonal (plus diagonal, for corners) neighbours.
+- Added `drawWaterFoam()`: foam band on every water edge facing land (dock/grass/wall), with a Reduced-Motion-gated shimmer line that gently pulses.
+- Added `drawBeachEdges()` + `drawBeachCorners()`: sandy beach band (light/mid/dark tones + pebble speckle) on grass tiles bordering water, including small convex sand nubs where only a diagonal neighbour is water.
+- Added `drawPavingEdges()`: soft shadow line plus overhanging green grass-blade tufts on road/plaza tiles where they meet grass (replaces the old flat dark edge line).
+- Enriched `drawTileVariation()` for grass with extra blade clumps and occasional tiny flower clusters (deterministic via `hashNoise`).
+- Gave `drawTreeTile()` a directional cast shadow (soft skewed ellipse to the lower-right) over the existing tight contact shadow, matching the top-left light.
+- Added a subtle directional cast shadow parallelogram at the base of every building in `drawBuilding()`.
+- Bumped cache-bust query strings (`styles.css`/`curriculum.js`/`game.js`) to `2026.06.05.1` so returning visitors fetch fresh assets.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Extra harbor-region capture (participation) to confirm shoreline foam + sand beaches render correctly.
+
+Next marker:
+- Sync `publish/`, deploy live for review, then §G3 NPC pass or Option D (2.5D) when ready.
+
 ## 2026-06-05 — UK symbolism + walk dynamics
 
 Plan area: player feedback after Option B — more walking dynamism and visible UK (GCSE Citizenship) symbolism.

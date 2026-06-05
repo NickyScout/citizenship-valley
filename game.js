@@ -5519,10 +5519,15 @@ function drawHeroSilhouetteDetails(p, bob, visual) {
     rect(p.x + 7, p.y + 26 + bob, 16, 3, visual.trim);
   }
   if (visual.silhouette === "campaign") {
-    rect(p.x + 4, p.y + 35, 9, 11, "#3b251f");
-    rect(p.x + 18, p.y + 35, 9, 11, "#3b251f");
-    rect(p.x + 6, p.y + 41, 8, 3, visual.accent);
-    rect(p.x + 20, p.y + 41, 8, 3, visual.accent);
+    if (p.dir === "left" || p.dir === "right") {
+      const s = p.dir === "left" ? -1 : 1;
+      rect(p.x + 15 + 4 * s, p.y + 44, 8, 2, visual.accent);
+    } else {
+      rect(p.x + 4, p.y + 35, 9, 11, "#3b251f");
+      rect(p.x + 18, p.y + 35, 9, 11, "#3b251f");
+      rect(p.x + 6, p.y + 41, 8, 3, visual.accent);
+      rect(p.x + 20, p.y + 41, 8, 3, visual.accent);
+    }
   }
   if (visual.silhouette === "liberty") {
     rect(p.x + 5, p.y + 34 + bob, 21, 8, "rgba(20,42,77,.76)");
@@ -5569,11 +5574,24 @@ function drawHeroShoeDetails(p, visual, frame = 0, moving = false) {
   if (p.dir === "left" || p.dir === "right") {
     const s = p.dir === "left" ? -1 : 1;
     const ph = moving ? frame : -1;
-    const bob = ph === 1 || ph === 3 ? 1 : 0;
-    const frontDx = (ph === 0 ? 5 : ph === 2 ? -5 : 0) * s;
-    const backDx = (ph === 0 ? -5 : ph === 2 ? 5 : 0) * s;
-    const baseY = p.y + bob;
-    drawHeroSideLeg(p.x + 12, baseY, backDx, trouserDk, "#1c2228");
+    const legBob = ph === 1 || ph === 3 ? 1 : 0;
+    let frontDx;
+    let backDx;
+    if (!moving) {
+      frontDx = 4 * s;
+      backDx = -4 * s;
+    } else if (ph === 0) {
+      frontDx = 7 * s;
+      backDx = -4 * s;
+    } else if (ph === 2) {
+      frontDx = -4 * s;
+      backDx = 7 * s;
+    } else {
+      frontDx = 1 * s;
+      backDx = 1 * s;
+    }
+    const baseY = p.y + legBob;
+    drawHeroSideLeg(p.x + 12, baseY, backDx, trouserDk, "#1b2127");
     drawHeroSideLeg(p.x + 15, baseY, frontDx, trouser, shoe);
     return;
   }
@@ -5586,24 +5604,25 @@ function drawHeroShoeDetails(p, visual, frame = 0, moving = false) {
 }
 
 function drawHeroSideLeg(hipX, y, footDx, trouserColor, shoeColor) {
-  rect(hipX, y + 36, 7, 6, trouserColor);
-  rect(hipX + Math.round(footDx * 0.5), y + 41, 7, 5, trouserColor);
-  rect(hipX + footDx, y + 45, 10, 3, shoeColor);
+  rect(hipX, y + 35, 6, 6, trouserColor);
+  rect(hipX + Math.round(footDx * 0.5), y + 40, 6, 6, trouserColor);
+  rect(hipX + footDx, y + 45, 8, 3, shoeColor);
+  rect(hipX + footDx, y + 45, 8, 1, "rgba(255,255,255,.12)");
 }
 
 function drawHeroSideArm(p, bob, frame, moving) {
   const s = p.dir === "left" ? -1 : 1;
-  const ph = moving ? frame : -1;
-  const swing = (ph === 0 ? -4 : ph === 2 ? 4 : 0) * s;
   const jumper = "#3f6f97";
   const jumperDk = "#2e567a";
   const skin = "#f1c49c";
-  const shoulderX = p.x + 14 + s * 4;
   const y = p.y + bob;
-  rect(shoulderX - 1, y + 17, 5, 3, jumperDk);
-  rect(shoulderX, y + 18, 4, 8, jumper);
-  rect(shoulderX + Math.round(swing * 0.5), y + 25, 4, 6, jumperDk);
-  rect(shoulderX + swing, y + 30, 4, 4, skin);
+  const gripX = s === -1 ? p.x + 2 : p.x + 26;
+  const bodyX = p.x + 13;
+  const x0 = Math.min(bodyX, gripX);
+  const w = Math.abs(gripX - bodyX) + 4;
+  rect(x0, y + 24, w, 4, jumper);
+  rect(x0, y + 24, w, 1, jumperDk);
+  rect(gripX, y + 26, 4, 5, skin);
 }
 
 function drawHeroUkFlag(p, bob) {
@@ -5611,12 +5630,18 @@ function drawHeroUkFlag(p, bob) {
   const phase = settings.reducedMotion ? null : animationClockMs / (moving ? 95 : 240);
   let poleX;
   let dir;
+  let top = p.y - 14 + bob;
+  let poleH = 38;
   if (p.dir === "left") {
-    poleX = p.x + 10;
+    poleX = p.x + 3;
     dir = -1;
+    top = p.y - 16 + bob;
+    poleH = 44;
   } else if (p.dir === "right") {
-    poleX = p.x + 18;
+    poleX = p.x + 27;
     dir = 1;
+    top = p.y - 16 + bob;
+    poleH = 44;
   } else if (p.dir === "up") {
     poleX = p.x + 24;
     dir = 1;
@@ -5624,8 +5649,7 @@ function drawHeroUkFlag(p, bob) {
     poleX = p.x + 25;
     dir = 1;
   }
-  const top = p.y - 14 + bob;
-  rect(poleX, top, 2, 38, "#7a5a34");
+  rect(poleX, top, 2, poleH, "#7a5a34");
   rect(poleX, top, 2, 14, "#8a6a40");
   rect(poleX - 1, top - 3, 4, 4, "#e8c45a");
   const fw = 15;

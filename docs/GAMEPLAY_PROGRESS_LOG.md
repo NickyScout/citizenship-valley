@@ -2,6 +2,27 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Hero side-view artifact fixes
+
+Plan area: player feedback — side-view artifacts (brown square over the face, indistinct legs, brown/green clutter).
+
+What changed:
+- Root cause of the “brown square in front of the face”: the carried flag pole ran vertically through the head in side view. Moved the side-view pole to the leading edge beside the head (left `p.x+3`, right `p.x+27`) so it no longer crosses the face; the flag now flies forward like a carried parade flag. Up/down flag placement unchanged.
+- Reworked `drawHeroSideArm()` so the near arm reaches forward and the hand grips the pole base (instead of a floating hand), reading as “carrying the flag”.
+- Fixed indistinct side legs: `drawHeroShoeDetails` side branch now gives an idle two-leg stance (feet apart) and a wider walk scissor; `drawHeroSideLeg` uses narrower feet with a top highlight so the two legs stay distinct in every pose.
+- Removed the campaign silhouette’s two front-facing boots when facing sideways (they doubled over the side legs as brown/green clutter); side view now shows a single accent stripe on the front boot.
+- Bumped cache-bust to `2026.06.05.3`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Per-direction, per-preset hero captures (boySchool + boyCampaign, idle + walk, down/left/right) confirmed: flag clears the face, legs read clearly, no brown/green clutter.
+
+Next marker:
+- Sync `publish/`, deploy live for review, then §G3 NPC pass or Option D when ready.
+
 ## 2026-06-05 — Hero walk + flag refinement
 
 Plan area: player feedback on the hero — head artifact when facing up/side, and weak side-walk leg/arm motion.

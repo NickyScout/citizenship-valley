@@ -66,9 +66,9 @@
   </defs>
 
   <g transform="translate(0 0)"><use href="#shadow"/><use href="#front-base"/><rect x="5" y="37" width="8" height="8" fill="#1f2224"/><rect x="18" y="37" width="8" height="8" fill="#2b2d2f"/><rect x="4" y="44" width="11" height="3" fill="#5b392f"/><rect x="17" y="44" width="11" height="3" fill="#5b392f"/></g>
-  <g transform="translate(32 1)"><use href="#shadow"/><use href="#front-base"/><rect x="5" y="37" width="8" height="11" fill="#1f2224"/><rect x="18" y="37" width="8" height="8" fill="#2b2d2f"/><rect x="4" y="47" width="11" height="3" fill="#5b392f"/><rect x="17" y="44" width="11" height="3" fill="#5b392f"/></g>
+  <g transform="translate(32 1)"><use href="#shadow"/><use href="#front-base"/></g>
   <g transform="translate(64 0)"><use href="#shadow"/><use href="#front-base"/><rect x="5" y="37" width="8" height="8" fill="#1f2224"/><rect x="18" y="37" width="8" height="8" fill="#2b2d2f"/><rect x="4" y="44" width="11" height="3" fill="#5b392f"/><rect x="17" y="44" width="11" height="3" fill="#5b392f"/></g>
-  <g transform="translate(96 1)"><use href="#shadow"/><use href="#front-base"/><rect x="5" y="37" width="8" height="8" fill="#1f2224"/><rect x="18" y="37" width="8" height="11" fill="#2b2d2f"/><rect x="4" y="44" width="11" height="3" fill="#5b392f"/><rect x="17" y="47" width="11" height="3" fill="#5b392f"/></g>
+  <g transform="translate(96 1)"><use href="#shadow"/><use href="#front-base"/></g>
 
   <g transform="translate(0 48)"><use href="#shadow"/><g transform="translate(32 0) scale(-1 1)"><use href="#side-base"/></g></g>
   <g transform="translate(32 49)"><use href="#shadow"/><g transform="translate(32 0) scale(-1 1)"><use href="#side-base"/></g></g>

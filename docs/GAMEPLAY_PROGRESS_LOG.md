@@ -2,6 +2,25 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Hero left-walk above-head artifact (spritesheet bleed)
+
+Plan area: player feedback — a brown bar flickering above the head, remaining ONLY when walking left.
+
+Root cause: spritesheet row bleed. The hero sheet is a tight 4×4 grid of 32×48 cells (rows: down/left/right/up). The front row’s walk “step” frames (1 and 3) baked a longer leg + a dropped shoe that physically extended to y48–51 — 1–4px past the 48px cell bottom — spilling into the cell directly below. The left-facing row sits immediately below the front row, so when the left step frames were drawn, those bleed pixels appeared as a brown bar above the head. Right-facing was unaffected (its row sits below the left row, which has no baked legs); back bled off the bottom of the sheet (harmless). It only showed on step frames, hence “only while walking, especially left”.
+
+What changed:
+- Removed the redundant baked legs/shoes from the front row’s two step frames in `hero-base-spritesheet.svg`. The overlay `drawHeroShoeDetails` already draws identical legs on top of the sprite every frame, so the front/back walk looks exactly the same — but nothing now overflows the cell, so the left row is clean.
+- Bumped cache-bust to `2026.06.05.8`.
+
+Validation:
+- `node --check game.js`, SVG well-formed
+- `node scripts\validate-world.js`, `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Per-frame left-walk captures (frames 0–3, integer + fractional positions) confirmed the above-head bar is gone; front-walk captures confirmed legs still render (via overlay).
+
+Next marker:
+- Sync `publish/`, deploy live, then §G3 NPC pass or Option D when ready.
+
 ## 2026-06-05 — Hero cross-projection consistency
 
 Plan area: player feedback — a “black cap” present only up/down, gone left/right, plus movement flicker; request to make all clothing/body/hair consistent across front/back/left/right.

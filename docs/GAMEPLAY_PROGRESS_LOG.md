@@ -2,6 +2,28 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — NPC background life: ambient walkers (§G3)
+
+Plan area: §G3 background life — make regions feel alive with walking villagers.
+
+What changed:
+- Added an `ambientWalkers` array, fully SEPARATE from the interactive `npcs` array, so ambient villagers never touch interaction ranges, quests, doors/gates, vendor/host anchors, routes or the save schema.
+- `spawnAmbientWalkers()` (called from `setLocation`): seeds 3 walkers on reachable grass tiles only, away from the player spawn (>96px) and each other (>70px), never in interiors. Deterministic-ish placement via `hashNoise` + `isBlocked` rejection.
+- `updateAmbientWalkers(dt)` (called from `loop()` with `frameDeltaMs`): delta-time wander — each walker eases toward a random target within ~56px of its home anchor, collides via `isBlocked`, pauses 0.7–3.4s on arrival, re-targets and turns to face travel. Gated by `settings.reducedMotion` (walkers stand still).
+- `drawAmbientWalker()`: a plain villager in the new outlined+shaded style (no role kit, no quest marker), with a 4-frame leg cycle + head-bob; added to `drawCharacterLayer` and z-sorted by `y` with NPCs and the player.
+- CRITICAL invariant: walkers are NOT solid to the player (player collision checks only tiles/buildings), so they can never block a path. Confirmed by route QA.
+- Bumped cache-bust to `2026.06.05.12`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`, `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Movement check: 3 walkers spawned and moved 34–46px over 140 ticks with changing facings.
+- `node qa-regional-playthrough.mjs` (8 hosts, 7 games, 0 blockers) and `node qa-regional-quests-playthrough.mjs` (6 regions, 30 quests completed, 0 blockers) — reachability and quest flow unchanged.
+
+Next marker:
+- §G3 complete. Next: §G4 building exteriors by purpose, or Option D (2.5D).
+
 ## 2026-06-05 — NPC world bodies: outline, shading + role kits (§G3)
 
 Plan area: §G3 NPC recognisability — make world NPCs read by role, not just coat colour.

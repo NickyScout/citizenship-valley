@@ -60,6 +60,7 @@ const keys = new Set();
 let activeNpc = null;
 let activeQuestion = null;
 let activeCheckIndex = 0;
+const ambientWalkers = [];
 let pendingQuestTurnIn = null;
 let messageTimer = 0;
 let saveReady = false;
@@ -717,6 +718,7 @@ const FEMALE_NPC_NAMES = new Set([
 const SKIN_TONES = ["#f2b785", "#c98b5d", "#8c5d45", "#e0a06d", "#b77452", "#6f4638"];
 const HAIR_COLORS = ["#2b1a14", "#5b3525", "#7a4b28", "#d8a23a", "#1f2f3a", "#6a594d"];
 const JACKET_COLORS = ["#8f4f44", "#466d9f", "#4f7b55", "#b98231", "#665a7d", "#2f4f5f", "#d88c5a"];
+const WALKER_COATS = ["#6f7b8c", "#8a6f9c", "#5f8f6a", "#b07a52", "#7a8fa6", "#9c6f6f", "#6a9c97", "#a98a52"];
 
 function serializeGame() {
   return {
@@ -2681,6 +2683,7 @@ function setLocation(locationId, options = {}) {
   npcs.forEach((npc) => {
     npc.questIds = location.questIds.filter((id) => QUESTS[id].giver === npc.id);
   });
+  spawnAmbientWalkers();
   activeNpc = null;
   activeQuestion = null;
   pendingQuestTurnIn = null;
@@ -6881,14 +6884,165 @@ function drawAtmosphereOverlay() {
   ctx.restore();
 }
 
+// Ambient walkers are decorative villagers, separate from the interactive `npcs`
+// array, so they never affect interaction, quests, doors/gates, routes or saves.
+// They are NOT solid to the player (player collision only checks tiles/buildings),
+// so they can never block a path. Rebuilt on every setLocation; not persisted.
+function spawnAmbientWalkers() {
+  ambientWalkers.length = 0;
+  if (isInteriorLocation()) return;
+  const map = currentMap();
+  const cols = map[0].length;
+  const rows = map.length;
+  const spawn = safeSpawnFor();
+  const count = 3;
+  let tries = 0;
+  while (ambientWalkers.length < count && tries < 220) {
+    tries += 1;
+    const seed = tries * 1.37 + ambientWalkers.length * 11.3;
+    const col = 2 + Math.floor(hashNoise(seed, 1, 41) * (cols - 4));
+    const row = 2 + Math.floor(hashNoise(seed, 2, 41) * (rows - 4));
+    const x = col * LOGICAL_TILE + 5;
+    const y = row * LOGICAL_TILE + 2;
+    if (tileKind(map[row][col]) !== "grass") continue;
+    if (isBlocked(x, y, 22, 32)) continue;
+    if (Math.hypot(x - spawn.x, y - spawn.y) < 96) continue;
+    if (ambientWalkers.some((w) => Math.hypot(x - w.homeX, y - w.homeY) < 70)) continue;
+    const hairs = HAIR_COLORS;
+    const skins = SKIN_TONES;
+    const coat = WALKER_COATS[Math.floor(hashNoise(seed, 3, 41) * WALKER_COATS.length)];
+    const walker = {
+      x, y, homeX: x, homeY: y, tx: x, ty: y,
+      w: 22, h: 32, dir: "down", step: 0, moving: false,
+      pause: 300 + hashNoise(seed, 4, 41) * 1800,
+      speed: 0.04 + hashNoise(seed, 5, 41) * 0.02,
+      coat,
+      coatLt: shadeHex(coat, 20),
+      coatDk: shadeHex(coat, -22),
+      skin: skins[Math.floor(hashNoise(seed, 6, 41) * skins.length)],
+      hair: hairs[Math.floor(hashNoise(seed, 7, 41) * hairs.length)]
+    };
+    pickWalkerTarget(walker);
+    ambientWalkers.push(walker);
+  }
+}
+
+function pickWalkerTarget(w) {
+  const radius = 56;
+  for (let i = 0; i < 8; i += 1) {
+    const ang = Math.random() * Math.PI * 2;
+    const dist = 16 + Math.random() * radius;
+    const tx = w.homeX + Math.cos(ang) * dist;
+    const ty = w.homeY + Math.sin(ang) * dist;
+    if (!isBlocked(tx, ty, w.w, w.h)) {
+      w.tx = tx;
+      w.ty = ty;
+      return;
+    }
+  }
+  w.tx = w.homeX;
+  w.ty = w.homeY;
+}
+
+function updateAmbientWalkers(dt) {
+  if (!ambientWalkers.length || isInteriorLocation()) return;
+  if (settings.reducedMotion) {
+    ambientWalkers.forEach((w) => { w.moving = false; });
+    return;
+  }
+  ambientWalkers.forEach((w) => {
+    if (w.pause > 0) {
+      w.pause -= dt;
+      w.moving = false;
+      return;
+    }
+    const dx = w.tx - w.x;
+    const dy = w.ty - w.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 1.5) {
+      w.pause = 700 + Math.random() * 2600;
+      w.moving = false;
+      pickWalkerTarget(w);
+      return;
+    }
+    const stepPx = Math.min(dist, w.speed * dt);
+    const ux = dx / dist;
+    const uy = dy / dist;
+    const nx = w.x + ux * stepPx;
+    const ny = w.y + uy * stepPx;
+    let moved = false;
+    if (!isBlocked(nx, w.y, w.w, w.h)) { w.x = nx; moved = true; }
+    if (!isBlocked(w.x, ny, w.w, w.h)) { w.y = ny; moved = true; }
+    if (!moved) {
+      w.pause = 300 + Math.random() * 900;
+      pickWalkerTarget(w);
+      w.moving = false;
+      return;
+    }
+    w.dir = Math.abs(ux) > Math.abs(uy) ? (ux < 0 ? "left" : "right") : (uy < 0 ? "up" : "down");
+    w.step += stepPx;
+    w.moving = true;
+  });
+}
+
+function drawAmbientWalker(w) {
+  const x = Math.round(w.x);
+  const y = Math.round(w.y);
+  const outline = "#1b232c";
+  const frame = w.moving ? Math.floor(w.step / 4) % 4 : 0;
+  const bob = frame === 1 || frame === 3 ? 1 : 0;
+  const legA = frame === 1 ? 3 : 0;
+  const legB = frame === 3 ? 3 : 0;
+  ctx.save();
+  ctx.globalAlpha = .26;
+  ctx.fillStyle = "#10160f";
+  ctx.beginPath();
+  ctx.ellipse(x + 12, y + 46, 13, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  rect(x + 6, y + 38, 6, 8 + legA, "#2b2d2f");
+  rect(x + 14, y + 38, 6, 8 + legB, "#22262a");
+  rect(x + 5, y + 45 + legA, 8, 3, "#4a2f25");
+  rect(x + 14, y + 45 + legB, 8, 3, "#4a2f25");
+  const torsoY = y + 16 + bob;
+  rect(x + 3, torsoY - 1, 20, 23, outline);
+  rect(x + 4, torsoY, 18, 21, w.coat);
+  rect(x + 4, torsoY, 4, 21, w.coatLt);
+  rect(x + 18, torsoY, 4, 21, w.coatDk);
+  rect(x + 1, torsoY + 1, 4, 15, outline);
+  rect(x + 2, torsoY + 2, 3, 13, w.coatDk);
+  rect(x + 21, torsoY + 1, 4, 15, outline);
+  rect(x + 22, torsoY + 2, 3, 13, w.coatLt);
+  rect(x + 4, y + 1 + bob, 18, 17, outline);
+  rect(x + 5, y + 2 + bob, 16, 15, w.skin);
+  rect(x + 18, y + 3 + bob, 3, 13, shadeHex(w.skin, -24));
+  if (w.dir === "up") {
+    rect(x + 4, y + 1 + bob, 18, 13, w.hair);
+  } else {
+    rect(x + 4, y + bob, 18, 7, w.hair);
+    rect(x + 4, y + 6 + bob, 3, 8, w.hair);
+    rect(x + 19, y + 6 + bob, 3, 8, w.hair);
+    rect(x + 4, y + bob, 18, 2, shadeHex(w.hair, 32));
+    if (w.dir !== "down") {
+      const ex = w.dir === "left" ? x + 8 : x + 14;
+      rect(ex, y + 9 + bob, 2, 2, "#243140");
+    } else {
+      rect(x + 8, y + 9 + bob, 2, 2, "#243140");
+      rect(x + 15, y + 9 + bob, 2, 2, "#243140");
+    }
+  }
+}
+
 function drawCharacterLayer() {
   const renderables = [
     ...npcs.map((npc) => ({ type: "npc", y: npc.y + 48, entity: npc })),
+    ...ambientWalkers.map((w) => ({ type: "walker", y: w.y + 48, entity: w })),
     { type: "player", y: state.player.y + state.player.h, entity: state.player }
   ].sort((a, b) => a.y - b.y);
 
   renderables.forEach((renderable) => {
     if (renderable.type === "player") drawPlayer();
+    else if (renderable.type === "walker") drawAmbientWalker(renderable.entity);
     else drawPerson(renderable.entity);
   });
   drawMiniGameHostMarkers();
@@ -6936,6 +7090,7 @@ function loop() {
   animationClockMs += frameDeltaMs;
 
   movePlayer();
+  updateAmbientWalkers(frameDeltaMs);
   if (messageTimer > 0) {
     messageTimer -= 1;
     if (messageTimer === 0 && !activeNpc) hideDialogue();

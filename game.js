@@ -4940,6 +4940,15 @@ function rect(x, y, w, h, color) {
   ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
 }
 
+function shadeHex(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const clamp = (v) => Math.max(0, Math.min(255, Math.round(v + amt)));
+  const r = clamp((n >> 16) & 255);
+  const g = clamp((n >> 8) & 255);
+  const b = clamp(n & 255);
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
 function locColors() {
   return currentLocation().visual || WORLD.village.visual;
 }
@@ -5380,32 +5389,169 @@ function drawBuilding(x, y, w, h, wall, roof, label) {
 
 function drawPerson(person) {
   const style = npcStyle(person);
-  rect(person.x - 6, person.y + 37, 36, 8, "rgba(0, 0, 0, .32)");
-  rect(person.x + 2, person.y + 14, 22, 25, style.coat);
-  rect(person.x + 5, person.y + 16, 16, 20, person.color);
-  rect(person.x + 7, person.y + 19, 12, 4, "rgba(255,255,255,.22)");
-  rect(person.x + 4, person.y + 30, 19, 4, "#6d4939");
-  rect(person.x + 11, person.y + 31, 4, 4, style.trim);
-  rect(person.x - 2, person.y + 18, 6, 16, style.sleeve);
-  rect(person.x + 23, person.y + 18, 6, 16, style.sleeve);
-  rect(person.x - 1, person.y + 32, 5, 4, style.skin);
-  rect(person.x + 24, person.y + 32, 5, 4, style.skin);
-  rect(person.x + 5, person.y + 2, 18, 16, style.skin);
-  rect(person.x + 3, person.y, 22, 7, style.hair);
-  rect(person.x + 3, person.y + 6, 4, 9, style.hair);
-  rect(person.x + 21, person.y + 6, 4, 9, style.hair);
-  rect(person.x + 7, person.y + 9, 2, 2, "#202326");
-  rect(person.x + 17, person.y + 9, 2, 2, "#202326");
-  rect(person.x + 11, person.y + 14, 6, 1, "#8f4f44");
-  rect(person.x + 5, person.y + 39, 7, 7, "#202326");
-  rect(person.x + 17, person.y + 39, 7, 7, "#202326");
-  rect(person.x + 4, person.y + 45, 10, 3, "#5b392f");
-  rect(person.x + 16, person.y + 45, 10, 3, "#5b392f");
-  drawNpcAccessory(person);
-  if (!state.completed.has(person.id)) {
-    rect(person.x + 8, person.y - 17, 9, 9, "#f2c14e");
-    rect(person.x + 11, person.y - 6, 3, 3, "#f2c14e");
+  const role = npcRole(person);
+  const x = person.x;
+  const y = person.y;
+  const outline = "#1b232c";
+  ctx.save();
+  ctx.globalAlpha = .28;
+  ctx.fillStyle = "#10160f";
+  ctx.beginPath();
+  ctx.ellipse(x + 12, y + 46, 15, 4.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  rect(x + 5, y + 38, 7, 9, "#2b2d2f");
+  rect(x + 17, y + 38, 7, 9, "#1f2224");
+  rect(x + 4, y + 45, 9, 3, "#4a2f25");
+  rect(x + 16, y + 45, 9, 3, "#4a2f25");
+  rect(x - 2, y + 17, 6, 18, outline);
+  rect(x - 1, y + 18, 5, 16, style.coat);
+  rect(x + 22, y + 17, 6, 18, outline);
+  rect(x + 23, y + 18, 5, 16, style.coat);
+  rect(x - 1, y + 33, 5, 4, style.skin);
+  rect(x + 23, y + 33, 5, 4, style.skin);
+  rect(x + 1, y + 13, 24, 27, outline);
+  rect(x + 2, y + 14, 22, 25, style.coat);
+  rect(x + 2, y + 14, 4, 25, style.coatLt);
+  rect(x + 20, y + 14, 4, 25, style.coatDk);
+  rect(x + 8, y + 16, 10, 20, person.color);
+  rect(x + 8, y + 16, 10, 2, "rgba(255,255,255,.22)");
+  rect(x + 4, y + 31, 18, 3, "#5b3b2c");
+  rect(x + 11, y + 31, 4, 3, style.trim);
+  rect(x + 4, y + 1, 20, 18, outline);
+  rect(x + 5, y + 2, 18, 16, style.skin);
+  rect(x + 20, y + 3, 3, 14, style.skinDk);
+  rect(x + 4, y, 21, 7, style.hair);
+  rect(x + 4, y + 6, 4, 9, style.hair);
+  rect(x + 21, y + 6, 4, 9, style.hair);
+  rect(x + 4, y, 21, 2, style.hairLt);
+  rect(x + 8, y + 9, 2, 2, "#243140");
+  rect(x + 16, y + 9, 2, 2, "#243140");
+  rect(x + 11, y + 14, 5, 1, "#9c5d4a");
+  drawNpcRoleKit(person, role, style);
+  if (!state.completed.has(person.id)) drawNpcQuestMarker(x, y);
+}
+
+// Explicit world-sprite role per NPC id (from docs/NPC_CHARACTER_GUIDE.md), used to
+// pick a recognisable silhouette/prop. Falls back to the keyword heuristic avatarRole.
+const NPC_ROLE = {
+  mayor: "council", priya: "campaign", sam: "book", rowan: "law", noor: "council",
+  editorVale: "media", historianIona: "book", aidMina: "care", dataOmar: "data", elderGrace: "citizen",
+  advocateFarah: "law", sergeantBlake: "police", mediatorChen: "citizen", youthEllis: "care",
+  speakerLark: "law", mpRivers: "democracy", managerSol: "campaign", officerJune: "democracy", heraldEwan: "citizen",
+  unionMorgan: "campaign", charityAmina: "care", lobbyistPax: "citizen", moderatorRae: "media",
+  surveyorTess: "data", statJules: "data", organiserKai: "campaign", examinerMira: "exam",
+  timeAsh: "time", sourceNia: "book", coachLeon: "campaign", scribePip: "book",
+  campaignPriya2: "campaign", justiceRowan2: "law", plannerNoor2: "council", examMira2: "exam"
+};
+
+function npcRole(person) {
+  return (person && NPC_ROLE[person.id]) || avatarRole(person);
+}
+
+function drawNpcRoleKit(p, role, style) {
+  const x = p.x;
+  const y = p.y;
+  const gold = "#f2c14e";
+  const paper = "#f5f0df";
+  const ink = "#243140";
+  const red = "#e36b5d";
+  const white = "#fbf6e9";
+  if (role === "police") {
+    rect(x + 4, y - 6, 20, 10, "#1e2f4a");
+    rect(x + 5, y - 7, 18, 2, "#26395a");
+    rect(x + 12, y - 9, 4, 3, "#16233a");
+    rect(x + 4, y + 4, 20, 3, "#16233a");
+    rect(x + 12, y + 8, 4, 4, gold);
+    return;
   }
+  if (role === "council") {
+    rect(x + 3, y + 15, 21, 2, gold);
+    rect(x + 6, y + 16, 2, 4, gold);
+    rect(x + 19, y + 16, 2, 4, gold);
+    rect(x + 10, y + 19, 6, 5, gold);
+    rect(x + 11, y + 20, 4, 3, "#b8881f");
+    return;
+  }
+  if (role === "law") {
+    rect(x + 1, y + 14, 5, 24, "#2a2533");
+    rect(x + 22, y + 14, 5, 24, "#2a2533");
+    rect(x + 9, y + 15, 8, 7, white);
+    rect(x + 12, y + 15, 2, 7, "#cfc8b6");
+    return;
+  }
+  if (role === "democracy") {
+    rect(x + 15, y + 16, 9, 9, red);
+    rect(x + 17, y + 18, 5, 5, "#f0998d");
+    rect(x + 17, y + 25, 2, 6, gold);
+    rect(x + 20, y + 25, 2, 6, paper);
+    return;
+  }
+  if (role === "media") {
+    rect(x + 12, y + 14, 4, 9, ink);
+    rect(x + 8, y + 21, 12, 8, paper);
+    rect(x + 10, y + 23, 5, 4, "#5da9e9");
+    return;
+  }
+  if (role === "book") {
+    rect(x + 6, y + 8, 12, 2, ink);
+    rect(x - 5, y + 27, 13, 11, "#6f4633");
+    rect(x - 4, y + 28, 5, 9, paper);
+    rect(x + 2, y + 28, 5, 9, "#e7dcc4");
+    rect(x - 1, y + 28, 1, 9, "#b6a98a");
+    return;
+  }
+  if (role === "data") {
+    rect(x + 21, y + 23, 13, 15, "#33424b");
+    rect(x + 23, y + 25, 9, 9, "#e9eef0");
+    rect(x + 24, y + 30, 2, 3, "#6fbf73");
+    rect(x + 27, y + 27, 2, 6, gold);
+    rect(x + 30, y + 25, 2, 8, "#5da9e9");
+    return;
+  }
+  if (role === "care") {
+    rect(x + 3, y + 15, 19, 11, "#3f74c4");
+    rect(x + 9, y + 18, 7, 6, paper);
+    rect(x + 11, y + 20, 3, 3, red);
+    return;
+  }
+  if (role === "campaign") {
+    rect(x + 4, y - 2, 19, 5, style.trim);
+    rect(x + 4, y + 1, 19, 2, "rgba(0,0,0,.22)");
+    rect(x + 2, y - 3, 6, 2, style.trim);
+    rect(x + 22, y + 21, 12, 15, paper);
+    rect(x + 24, y + 24, 8, 2, ink);
+    rect(x + 24, y + 28, 8, 1, "#8f8576");
+    rect(x + 24, y + 31, 6, 1, "#8f8576");
+    return;
+  }
+  if (role === "time") {
+    rect(x + 2, y + 15, 21, 13, "#d8a23a");
+    rect(x + 6, y + 17, 3, 10, "rgba(255,255,255,.5)");
+    rect(x + 16, y + 17, 3, 10, "rgba(255,255,255,.5)");
+    rect(x + 23, y + 27, 10, 10, "#e9eef0");
+    rect(x + 25, y + 29, 6, 6, ink);
+    rect(x + 27, y + 25, 2, 3, "#8f8576");
+    return;
+  }
+  if (role === "exam") {
+    rect(x + 21, y + 23, 12, 16, paper);
+    rect(x + 23, y + 27, 8, 1, ink);
+    rect(x + 23, y + 30, 8, 1, ink);
+    rect(x + 23, y + 33, 5, 1, ink);
+    rect(x + 30, y + 21, 2, 9, red);
+    rect(x + 30, y + 20, 2, 2, "#cfc8b6");
+    return;
+  }
+  rect(x + 5, y + 15, 17, 3, style.trim);
+  rect(x + 9, y + 18, 4, 4, style.trim);
+}
+
+function drawNpcQuestMarker(x, y) {
+  rect(x + 10, y - 18, 5, 9, "#8a6a1e");
+  rect(x + 11, y - 17, 3, 6, "#f2c14e");
+  rect(x + 11, y - 9, 3, 3, "#f2c14e");
+  rect(x + 11, y - 17, 3, 1, "#fff3d0");
 }
 
 function drawBuildingOrnaments(x, y, w, h, label) {
@@ -5445,32 +5591,19 @@ function npcStyle(person) {
   if (name.includes("editor") || name.includes("librarian") || name.includes("source")) coat = "#2f4f5f";
   if (name.includes("mayor") || name.includes("councillor") || name.includes("speaker")) coat = "#5a3f2c";
   if (name.includes("officer") || name.includes("sergeant")) coat = "#1e2f4a";
+  const skin = skins[Math.floor(hashNoise(person.x, person.y, 8) * skins.length)];
+  const hair = hairs[Math.floor(hashNoise(person.y, person.x, 6) * hairs.length)];
   return {
-    skin: skins[Math.floor(hashNoise(person.x, person.y, 8) * skins.length)],
-    hair: hairs[Math.floor(hashNoise(person.y, person.x, 6) * hairs.length)],
+    skin,
+    skinDk: shadeHex(skin, -26),
+    hair,
+    hairLt: shadeHex(hair, 34),
     coat,
+    coatLt: shadeHex(coat, 20),
+    coatDk: shadeHex(coat, -22),
     sleeve: "#3a2b2b",
     trim: "#d3a74d"
   };
-}
-
-function drawNpcAccessory(person) {
-  const name = person.name.toLowerCase();
-  if (name.includes("editor") || name.includes("source") || name.includes("librarian")) {
-    rect(person.x + 23, person.y + 20, 7, 10, "#f5f0df");
-    rect(person.x + 24, person.y + 23, 5, 1, "#4d5a59");
-  } else if (name.includes("justice") || name.includes("advocate") || name.includes("examiner")) {
-    rect(person.x + 3, person.y + 11, 21, 3, "#f2c14e");
-    rect(person.x + 10, person.y - 4, 6, 5, "#f2c14e");
-  } else if (name.includes("campaign") || name.includes("union")) {
-    rect(person.x + 25, person.y + 10, 9, 13, "#e6d3a4");
-    rect(person.x + 27, person.y + 13, 5, 1, "#e36b5d");
-  } else if (name.includes("officer") || name.includes("sergeant")) {
-    rect(person.x + 6, person.y - 2, 14, 5, "#1e2f4a");
-    rect(person.x + 10, person.y - 6, 7, 4, "#f2c14e");
-  } else {
-    rect(person.x + 5, person.y + 22, 17, 2, "#e6d3a4");
-  }
 }
 
 function drawPlayer() {

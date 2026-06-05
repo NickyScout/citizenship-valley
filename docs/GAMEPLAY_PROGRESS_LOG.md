@@ -2,6 +2,28 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — NPC world bodies: outline, shading + role kits (§G3)
+
+Plan area: §G3 NPC recognisability — make world NPCs read by role, not just coat colour.
+
+What changed:
+- Added `shadeHex(hex, amt)` colour helper.
+- Rewrote `drawPerson`: dark outline behind head/torso/arms, two-tone coat (light/shade edges), shirt in the NPC's primary colour, face shade, hair highlight, a soft elliptical contact shadow, and a cleaner gold “!” quest marker (`drawNpcQuestMarker`).
+- Added `drawNpcRoleKit(p, role, style)` — a recognisable silhouette/prop per role: police custodian helmet, council gold chain, law collar-tabs + robe edges, democracy rosette, media press lanyard, book + glasses, data clipboard-with-bars, charity tabard, campaign cap + petition board, invigilator hi-vis vest + stopwatch, examiner mark-scheme + red pen, and a default scarf.
+- Added an explicit `NPC_ROLE` map keyed by NPC id (from `docs/NPC_CHARACTER_GUIDE.md`) with `npcRole()` resolver (falls back to the keyword heuristic `avatarRole`). This fixes mis-roles from the old name heuristic (e.g. “Librarian” Sam was tagged law because his intro says “rights”; now correctly book).
+- `npcStyle` now also returns coat/skin/hair shade tints. Removed the old name-keyed `drawNpcAccessory`.
+- Pure-render change: NPC positions, interaction ranges, quests and save schema are untouched. Z-sorting by `y` was already present in `drawCharacterLayer`.
+- Bumped cache-bust to `2026.06.05.11`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`, `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Captured NPC rows for village / Rights & Law / Democracy / Exam Hall — confirmed each NPC reads by role (police helmet, hi-vis + stopwatch, gold chain, rosette, petition board, book, tabard, mark scheme, collar tabs, data clipboard) and silhouettes vary within a region.
+
+Next marker:
+- §G3 background life: ambient walking NPCs (delta-time `updateNpcs`, patrol zones excluding doors/gates/spawn/study stations) with route QA; quest-givers/vendors/hosts stay anchored.
+
 ## 2026-06-05 — NPC portraits: atlas slicing + dialogue wiring (§G3 start)
 
 Plan area: §G3 NPC recognisability — replace procedural dialogue avatars with real art.

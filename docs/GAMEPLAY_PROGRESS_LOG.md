@@ -2,6 +2,26 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Option A atmosphere/lighting first pass
+
+Plan area: atmosphere pass (свет/настроение/жизнь) ahead of §G3.
+
+What changed:
+- Added `REGION_ATMOSPHERE` config + `currentAtmosphere()` so each region (and interior) defines a colour grade, vignette strength, and ambient particle type.
+- Added a screen-space `drawAtmosphereOverlay()` (region colour grade + soft top light + cached radial vignette), called in `draw()` after the world transform is restored.
+- Filled the previously empty `drawAmbientLayer()` with `drawAmbientParticles()` (pollen/dust/sparkle drifting motes) and `drawChimneySmoke()` (rising puffs from building chimneys).
+- Added a soft contact shadow under trees in `drawTreeTile()`.
+- All animated atmosphere (particles, smoke) stays gated behind `settings.reducedMotion`; the static grade/vignette remain for depth.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+
+Next marker:
+- Sync `publish/`, deploy live, then start Option B (cohesive art atlas) when ready.
+
 ## 2026-06-05 — G2 hero spritesheet first pass
 
 Plan area: §G2 — Главный герой: спрайт-лист и анимации.

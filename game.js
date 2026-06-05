@@ -4907,6 +4907,26 @@ function locColors() {
   return currentLocation().visual || WORLD.village.visual;
 }
 
+const REGION_ATMOSPHERE = {
+  village:        { grade: [126, 184, 96],  gradeAlpha: .09, vignette: .26, particle: "pollen",  pColor: "rgba(247,242,198,", pCount: 26 },
+  modernBritain:  { grade: [92, 132, 184],  gradeAlpha: .11, vignette: .30, particle: "dust",    pColor: "rgba(220,230,246,", pCount: 22 },
+  rightsLaw:      { grade: [120, 110, 156], gradeAlpha: .12, vignette: .34, particle: "dust",    pColor: "rgba(226,221,242,", pCount: 18 },
+  democracy:      { grade: [204, 172, 92],  gradeAlpha: .10, vignette: .28, particle: "pollen",  pColor: "rgba(250,236,192,", pCount: 22 },
+  participation:  { grade: [72, 162, 172],  gradeAlpha: .11, vignette: .26, particle: "sparkle", pColor: "rgba(202,246,250,", pCount: 26 },
+  actionWorkshop: { grade: [152, 178, 98],  gradeAlpha: .10, vignette: .26, particle: "pollen",  pColor: "rgba(242,246,202,", pCount: 22 },
+  examHall:       { grade: [120, 100, 162], gradeAlpha: .13, vignette: .38, particle: "dust",    pColor: "rgba(226,216,246,", pCount: 18 },
+  townHallInterior: { grade: [156, 122, 78], gradeAlpha: .15, vignette: .42, particle: "dust",   pColor: "rgba(247,227,182,", pCount: 12 },
+  libraryInterior:  { grade: [120, 132, 162], gradeAlpha: .15, vignette: .42, particle: "dust",  pColor: "rgba(236,236,246,", pCount: 12 },
+  courtInterior:    { grade: [132, 122, 152], gradeAlpha: .15, vignette: .44, particle: "dust",  pColor: "rgba(236,229,246,", pCount: 12 },
+  parkInterior:     { grade: [132, 178, 112], gradeAlpha: .13, vignette: .40, particle: "pollen", pColor: "rgba(242,246,206,", pCount: 14 }
+};
+
+const atmosphereGradientCache = {};
+
+function currentAtmosphere() {
+  return REGION_ATMOSPHERE[state.currentLocation] || REGION_ATMOSPHERE.village;
+}
+
 function drawPixelPattern(x, y, w, h, colors, density, salt) {
   for (let i = 0; i < density; i += 1) {
     const px = x + Math.floor(hashNoise(i + x, y, salt) * w);
@@ -5034,6 +5054,13 @@ function drawTile(ch, x, y, row = 0, col = 0, map = currentMap()) {
 }
 
 function drawTreeTile(x, y) {
+  ctx.save();
+  ctx.globalAlpha = .2;
+  ctx.fillStyle = "#16240f";
+  ctx.beginPath();
+  ctx.ellipse(x + 17, y + 28, 12, 3.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
   rect(x + 12, y + 12, 8, 19, "#6a4634");
   rect(x + 9, y + 22, 14, 5, "#4b3128");
   rect(x + 3, y + 5, 26, 15, "#2f7b42");
@@ -6276,6 +6303,100 @@ function drawPropLayer() {
 
 function drawAmbientLayer() {
   if (settings.reducedMotion) return;
+  drawAmbientParticles();
+  if (!isInteriorLocation()) drawChimneySmoke();
+}
+
+function drawAmbientParticles() {
+  const atmo = currentAtmosphere();
+  if (!atmo.particle || atmo.particle === "none") return;
+  const t = animationClockMs / 1000;
+  const count = atmo.pCount || 20;
+  ctx.save();
+  for (let i = 0; i < count; i += 1) {
+    const sx = hashNoise(i, 1, 13);
+    const sy = hashNoise(i, 2, 13);
+    const phase = hashNoise(i, 3, 13) * Math.PI * 2;
+    let px = sx * VIEW_W;
+    let py = sy * VIEW_H;
+    let alpha = .4;
+    let size = 2;
+    if (atmo.particle === "pollen") {
+      px += Math.sin(t * .5 + phase) * 10;
+      py = (py - t * 12) % VIEW_H;
+      if (py < 0) py += VIEW_H;
+      alpha = .28 + .26 * (.5 + .5 * Math.sin(t * 1.6 + phase));
+      size = 2 + (i % 2);
+    } else if (atmo.particle === "dust") {
+      px += Math.sin(t * .35 + phase) * 6;
+      py += Math.cos(t * .3 + phase) * 6;
+      alpha = .12 + .12 * (.5 + .5 * Math.sin(t * 1.1 + phase));
+      size = 1 + (i % 2);
+    } else if (atmo.particle === "sparkle") {
+      const tw = .5 + .5 * Math.sin(t * 2.4 + phase);
+      alpha = .1 + .46 * tw * tw;
+      size = 1 + Math.round(tw);
+    }
+    ctx.fillStyle = `${atmo.pColor}${alpha.toFixed(3)})`;
+    ctx.fillRect(Math.round(camera.x + px), Math.round(camera.y + py), size, size);
+  }
+  ctx.restore();
+}
+
+function drawChimneySmoke() {
+  const buildings = currentLayout().buildings || [];
+  if (!buildings.length) return;
+  const t = animationClockMs / 1000;
+  ctx.save();
+  buildings.forEach((b, idx) => {
+    const cx = b.x + b.w - 14;
+    const cy = b.y - 46;
+    for (let p = 0; p < 3; p += 1) {
+      const seed = hashNoise(idx, p, 21);
+      const cycle = (t * .32 + seed) % 1;
+      const puffY = cy - cycle * 30;
+      const puffX = cx + Math.sin(cycle * 4 + seed * 6) * 5;
+      const size = 3 + cycle * 6;
+      const alpha = (1 - cycle) * .2;
+      ctx.fillStyle = `rgba(226,226,232,${alpha.toFixed(3)})`;
+      ctx.beginPath();
+      ctx.arc(puffX, puffY, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+  ctx.restore();
+}
+
+function getAtmosphereVignette(key, strength) {
+  if (atmosphereGradientCache[key]) return atmosphereGradientCache[key];
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const grad = ctx.createRadialGradient(cx, cy * .92, canvas.height * .26, cx, cy, canvas.height * .82);
+  grad.addColorStop(0, "rgba(8,10,14,0)");
+  grad.addColorStop(.7, `rgba(8,10,14,${(strength * .35).toFixed(3)})`);
+  grad.addColorStop(1, `rgba(8,10,14,${strength.toFixed(3)})`);
+  atmosphereGradientCache[key] = grad;
+  return grad;
+}
+
+function drawAtmosphereOverlay() {
+  const atmo = currentAtmosphere();
+  const [r, g, b] = atmo.grade;
+  ctx.save();
+  ctx.fillStyle = `rgba(${r},${g},${b},${atmo.gradeAlpha})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (!atmosphereGradientCache.lightTop) {
+    const lg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    lg.addColorStop(0, "rgba(255,248,222,.10)");
+    lg.addColorStop(.45, "rgba(255,248,222,0)");
+    lg.addColorStop(1, "rgba(18,22,38,.13)");
+    atmosphereGradientCache.lightTop = lg;
+  }
+  ctx.fillStyle = atmosphereGradientCache.lightTop;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = getAtmosphereVignette(`vig_${atmo.vignette}`, atmo.vignette);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
 }
 
 function drawCharacterLayer() {
@@ -6308,6 +6429,7 @@ function draw() {
   ctx.translate(-camera.x, -camera.y);
   drawWorld();
   ctx.restore();
+  drawAtmosphereOverlay();
   drawScreenUi();
 }
 

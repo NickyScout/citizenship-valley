@@ -8,6 +8,7 @@ const PLAYER_H = 32;
 const WALK_STEP = 8;
 const NPC_INTERACTION_DISTANCE = 42;
 const DOOR_INTERACTION_DISTANCE = 48;
+const NPC_DOOR_CONFLICT_DISTANCE = 76;
 const STUDY_STATION_INTERACTION_DISTANCE = 64;
 const INTERIOR_EXIT_INTERACTION_DISTANCE = 54;
 const EXAM_ROOM_INTERACTION_DISTANCE = 78;
@@ -76,6 +77,7 @@ function loadGameData() {
     BUILDING_DOORS,
     INTERIOR_EXITS,
     STUDY_STATIONS,
+    PROP_ASSETS,
       locationOrder,
       signs,
       props,
@@ -131,6 +133,14 @@ function isNearInteractable(playerPosition, item, distance) {
     const bx = item.x + 12;
     const by = item.y + 14;
     return Math.hypot(ax - bx, ay - by) < distance;
+}
+
+function interactableDistance(a, b) {
+    const ax = a.x + 12;
+    const ay = a.y + 14;
+    const bx = b.x + 12;
+    const by = b.y + 14;
+    return Math.hypot(ax - bx, ay - by);
 }
 
 function findReachablePositions(layout, logicalTile) {
@@ -192,8 +202,25 @@ function questLocationId(WORLD, questId, quest) {
 function propBounds(prop) {
     const dimensions = {
         barrel: { w: 22, h: 31 },
+        ballotBox: { w: 46, h: 45 },
+        banner: { w: 64, h: 55 },
+        boat: { w: 66, h: 40 },
+        campaignTable: { w: 60, h: 52 },
         crate: { w: 28, h: 26 },
+        dataCards: { w: 50, h: 39 },
+        debateBench: { w: 66, h: 42 },
+        examDesk: { w: 58, h: 52 },
+        finalGate: { w: 76, h: 58 },
+        kiosk: { w: 52, h: 54 },
         lamp: { w: 21, h: 46 },
+        notice: { w: 40, h: 46 },
+        podium: { w: 52, h: 49 },
+        poster: { w: 38, h: 48 },
+        petitionStand: { w: 52, h: 54 },
+        planningBoard: { w: 63, h: 55 },
+        scales: { w: 50, h: 48 },
+        sourceArchive: { w: 58, h: 49 },
+        surveyBox: { w: 42, h: 41 },
         flowers: { w: 30, h: 24 },
         bench: { w: 66, h: 34 }
     };
@@ -215,9 +242,13 @@ function propTouchesTile(layout, prop, tile, logicalTile) {
 function validateWorld() {
     const data = loadGameData();
     const failures = [];
-    const { WORLD_LAYOUTS, WORLD, QUESTS, MINI_GAMES, BUILDING_DOORS, INTERIOR_EXITS, STUDY_STATIONS, locationOrder, props, EXAM_PRACTICE_ROOMS, LOGICAL_TILE, curriculumIndex, regionBuildingLabel, state } = data;
+    const { WORLD_LAYOUTS, WORLD, QUESTS, MINI_GAMES, BUILDING_DOORS, INTERIOR_EXITS, STUDY_STATIONS, PROP_ASSETS, locationOrder, props, EXAM_PRACTICE_ROOMS, LOGICAL_TILE, curriculumIndex, regionBuildingLabel, state } = data;
 
     if (!Array.isArray(locationOrder) || locationOrder.length === 0) failures.push("locationOrder must list at least one location.");
+
+    Object.entries(PROP_ASSETS || {}).forEach(([type, assetPath]) => {
+        if (!fs.existsSync(path.join(projectRoot, assetPath))) failures.push(`Prop asset ${type} points to missing file ${assetPath}.`);
+    });
 
     const questIds = new Set(Object.keys(QUESTS));
     Object.keys(curriculumIndex).forEach((questId) => {
@@ -268,6 +299,7 @@ function validateWorld() {
         const buildingDoors = (BUILDING_DOORS || []).filter((door) => door.from === locationId);
         const studyStations = STUDY_STATIONS?.[locationId] || [];
         const interiorExit = INTERIOR_EXITS?.[locationId] || null;
+        const locationProps = props.filter((prop) => !prop.location || prop.location === locationId);
 
         if ((location.next || orderIndex < locationOrder.length - 1) && !reachableNpcs.length) failures.push(`Location ${locationId} has no reachable NPC for the travel gate.`);
         buildingDoors.forEach((door) => {
@@ -279,15 +311,25 @@ function validateWorld() {
         });
         if (interiorExit && !canReachInteractable(reachable, { ...interiorExit, w: 28, h: 20 }, INTERIOR_EXIT_INTERACTION_DISTANCE)) failures.push(`Interior exit ${locationId} -> ${interiorExit.target} is not reachable from spawn.`);
 
+        locationProps.filter((prop) => prop.miniGameId).forEach((prop) => {
+            const bounds = propBounds(prop);
+            if (!MINI_GAMES?.[prop.miniGameId]) failures.push(`Mini-game trigger prop ${locationId}:${prop.type} at ${prop.x},${prop.y} references missing mini-game ${prop.miniGameId}.`);
+            if (!canReachInteractable(reachable, bounds, NPC_INTERACTION_DISTANCE)) failures.push(`Mini-game trigger prop ${locationId}:${prop.type} at ${prop.x},${prop.y} is not reachable from spawn.`);
+        });
+
         (location.npcs || []).forEach((npc) => {
             (npc.checks || []).forEach((check, index) => validateAnswerSet(failures, `${locationId} ${npc.id} check ${index + 1}`, check));
             if (!canReachInteractable(reachable, npc, NPC_INTERACTION_DISTANCE)) failures.push(`NPC ${locationId}:${npc.id} is not reachable from spawn.`);
+            buildingDoors.forEach((door) => {
+                const distance = interactableDistance(npc, door);
+                if (distance < NPC_DOOR_CONFLICT_DISTANCE) failures.push(`NPC ${locationId}:${npc.id} is too close to door ${door.id} (${Math.round(distance)}px).`);
+            });
             if (npc.miniGameId) {
                 if (!MINI_GAMES?.[npc.miniGameId]) failures.push(`Mini-game host ${locationId}:${npc.id} references missing mini-game ${npc.miniGameId}.`);
                 if (!canReachInteractable(reachable, npc, NPC_INTERACTION_DISTANCE)) failures.push(`Mini-game host ${locationId}:${npc.id} is not reachable from spawn.`);
             }
             const npcBox = { x: npc.x - 6, y: npc.y - 17, w: 36, h: 65 };
-            props.forEach((prop) => {
+            locationProps.forEach((prop) => {
                 if (rectsOverlap(npcBox, propBounds(prop))) failures.push(`NPC ${locationId}:${npc.id} overlaps ${prop.type} at ${prop.x},${prop.y}.`);
             });
         });
@@ -313,7 +355,7 @@ function validateWorld() {
                 const npcBox = { x: npc.x - 6, y: npc.y - 17, w: 36, h: 65 };
                 if (rectsOverlap(signBox, npcBox)) failures.push(`Building label ${locationId}:${label} overlaps NPC ${npc.id}.`);
             });
-            props.forEach((prop) => {
+            locationProps.forEach((prop) => {
                 if (rectsOverlap(signBox, propBounds(prop))) failures.push(`Building label ${locationId}:${label} overlaps ${prop.type} at ${prop.x},${prop.y}.`);
             });
         });

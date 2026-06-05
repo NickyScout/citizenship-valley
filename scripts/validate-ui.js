@@ -159,6 +159,8 @@ function validateRenderSmoke(failures, ui) {
     try {
         ["story", "quests", "buildings", "miniGames", "curriculum", "achievements"].forEach((tab) => ui.openProgressPanel(tab));
         if (!ui.progressPanelBody.innerHTML.includes("progress-tabs")) failures.push("renderProgressPanel did not render tabs.");
+        ui.openProgressPanel("miniGames");
+        if (!ui.progressPanelBody.innerHTML.includes("Trigger:")) failures.push("renderProgressMiniGames did not render trigger location hints.");
     } catch (error) {
         failures.push(`renderProgressPanel/openProgressPanel threw: ${error.message}`);
     }

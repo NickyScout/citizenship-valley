@@ -24,6 +24,8 @@ Use this for small JavaScript or data-only changes:
 ```powershell
 node --check game.js
 node --check curriculum.js
+node --check scripts\audit-map.js
+node --check scripts\qa-route-audit.js
 node scripts\validate-world.js
 node scripts\validate-ui.js
 ```
@@ -31,8 +33,23 @@ node scripts\validate-ui.js
 What this covers:
 
 - JavaScript parse checks.
+- Map audit generator syntax check.
+- Route QA audit generator syntax check.
 - World structure, quest data, travel gates, NPC placement, building doors, interior exits, study stations, mini-game hosts, and Exam Hall practice room reachability.
+- NPC-door interaction conflict checks, so `E` prompts should not compete between a door and an NPC.
 - UI VM checks for save migration, mini-game definitions, achievement IDs, static buttons, and panel render smoke.
+
+After map data changes, refresh the generated audit:
+
+```powershell
+node scripts\audit-map.js --write
+```
+
+After route-affecting map changes, refresh route QA:
+
+```powershell
+node scripts\qa-route-audit.js --write
+```
 
 ## Browser Regression Checks
 
@@ -70,6 +87,8 @@ Use this before handoff, release, or deployment:
 $env:PATH = "$PWD\.tools\node-v22.11.0-win-x64;$env:PATH"
 node --check game.js
 node --check curriculum.js
+node --check scripts\audit-map.js
+node --check scripts\qa-route-audit.js
 node --check qa-ui-regression.mjs
 node --check qa-visual-smoke.mjs
 node --check qa-regional-playthrough.mjs
@@ -77,6 +96,8 @@ node --check qa-regional-quests-playthrough.mjs
 node --check qa-release-smoke.mjs
 node scripts\validate-world.js
 node scripts\validate-ui.js
+node scripts\audit-map.js --write
+node scripts\qa-route-audit.js --write
 node qa-ui-regression.mjs
 node qa-visual-smoke.mjs
 node qa-regional-playthrough.mjs
@@ -87,6 +108,7 @@ node qa-release-smoke.mjs
 Expected result summary:
 
 - World validation passes with 7 locations and 45 quests.
+- Route QA passes for all 7 exterior regions.
 - UI validation passes with save migration to current `SAVE_VERSION`, 7 mini-games, and 19 achievements.
 - Browser scripts report `blockingIssues: 0`.
 - Visual smoke reports 12 screenshots.
@@ -104,6 +126,7 @@ The QA scripts write local artifacts:
 - `qa-regional-quests-playthrough-result.json`
 - `qa-release-smoke-result.json`
 - `qa-first-location-playthrough-result.json` when the first-location script is run manually
+- `qa-route-audit-result.json`
 - `qa-screenshots/*.png` from visual smoke
 
 These are useful for manual inspection and handoff notes. Refresh them before relying on their contents.

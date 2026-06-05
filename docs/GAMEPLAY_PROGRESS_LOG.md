@@ -2,6 +2,308 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-05 — Plan reboot for the new graphics generation
+
+Plan area: full-game analysis + new plan authoring (no code changes).
+
+What changed:
+- Renamed the previous plan `docs/GAMEPLAY_UPGRADE_PLAN.md` → `docs/GAMEPLAY_UPGRADE_OLD.md` (archived, with an archive banner) in both the root and `publish/docs/` trees.
+- Authored a new `docs/GAMEPLAY_UPGRADE_PLAN.md` focused on a graphics overhaul: §1 current-graphics audit; §2 art direction; §3 game-field graphics (terrain, hero sprite/animation, NPC recognisability + 1–2 walking ambient NPCs, building exteriors, ambience) as the top priority; §4 purpose-specific building interiors; §5 menu/HUD/inventory/Character art; §6 mini-game art; §7 deeper/varied learning; §8 sprite/animation/delta-time foundation; §9 invariants/QA; §10 asset budget; §11 stages G0–G9.
+- No `game.js`/`curriculum.js`/`styles.css` behaviour changed; this is a planning-only step.
+
+Validation:
+- Docs-only change; no code checks required. Existing systems and QA scripts are unchanged.
+
+Next marker:
+- Begin stage G0 (render/animation + asset pipeline foundation) only after priorities/art scope are confirmed with the user.
+
+## 2026-06-05 — Map Phase 5 route QA pass
+
+Plan area: §22 Map Phase 5 — QA маршрутов.
+
+What changed:
+- Added `scripts/qa-route-audit.js`, a VM-based route QA audit that checks reachability from each exterior region spawn to signs/landmarks, NPCs, building doors, mini-game hosts, mini-game trigger props, travel-gate hosts, and Exam Hall practice rooms.
+- Generated `qa-route-audit-result.json` and `docs/MAP_ROUTE_QA.md`.
+- Route QA passed for all 7 exterior regions: every audited sign, NPC, door, mini-game host, trigger prop, travel-gate host, and Exam Hall practice room is reachable from spawn.
+- Regional mini-game host playthrough and release smoke were rerun after the map/asset work.
+
+Validation:
+- `node --check scripts\qa-route-audit.js`
+- `node scripts\qa-route-audit.js --write`
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs`
+- `node qa-regional-playthrough.mjs`
+- `node qa-release-smoke.mjs`
+
+Next marker:
+- Graphics/map route release candidate is locally QA-clean. Next choose either a public deploy smoke, a manual route spot-check, or the next gameplay expansion.
+
+## 2026-06-05 — Map Phase 4 trigger prop asset pass
+
+Plan area: §22 Map Phase 4 — Asset pass.
+
+What changed:
+- Added small PNG runtime assets under `assets/props/region/` for the most visible mini-game trigger props: kiosk, rights notice, petition stand, ballot box, debate podium, planning board, exam desk, and debate bench.
+- Added matching SVG source assets beside each PNG so the pixel-style art remains editable.
+- Added `PROP_ASSETS`, lazy image loading, and `drawPropAsset()` in `game.js`; trigger props now prefer PNG assets and fall back to the existing canvas primitive drawings if an asset is unavailable.
+- `scripts/validate-world.js` now validates that every `PROP_ASSETS` path exists.
+- `scripts/audit-map.js` and `docs/MAP_AUDIT.md` now document trigger prop asset usage.
+
+Validation:
+- `node --check game.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\audit-map.js --write`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue with Map Phase 5 — route QA now that visual anchors, trigger props, and runtime assets are in place.
+
+## 2026-06-05 — Map Phase 3 Progress mini-game hints pass
+
+Plan area: §22 Map Phase 3 — Интеграция мини-игр в локации.
+
+What changed:
+- Progress → Mini-games cards now show trigger prop location hints using `miniGameId` metadata from map props.
+- Cards now show both the NPC host and the map trigger object, plus the same dynamic map marker status (`New`, `Try`, `Bronze`, `Silver`, `Gold`).
+- Added focused VM validation that asserts Progress mini-game cards render trigger location hints.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-ui.js`
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Close out Map Phase 3 with documentation/status updates for the completed mini-game integration pass, then move to Map Phase 4 asset pass or Map Phase 5 route QA.
+
+## 2026-06-05 — Map Phase 3 remaining trigger props pass
+
+Plan area: §22 Map Phase 3 — Интеграция мини-игр в локации.
+
+What changed:
+- Extended explicit trigger prop metadata to the remaining mini-games: `ballotBox` for Ballot Count, `podium` and `debateBench` for Debate Arena, `planningBoard` for Campaign Planner, and `examDesk` for Exam Simulation.
+- Existing `Play` trigger markers now cover all seven mini-games through auditable map props while preserving the NPC menu launch flow.
+- `docs/MAP_AUDIT.md` was regenerated and now lists trigger props for Modern Britain, Rights & Law, Democracy, Participation, Action Workshop, and Exam Hall.
+
+Validation:
+- `node --check game.js`
+- `node scripts\audit-map.js --write`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue Map Phase 3 by adding clearer completion/location hints in Progress → Mini-games, using the trigger prop metadata now present in map data.
+
+## 2026-06-05 — Map Phase 3 first trigger prop slice
+
+Plan area: §22 Map Phase 3 — Интеграция мини-игр в локации.
+
+What changed:
+- Added explicit `miniGameId` metadata to the first three themed trigger props: Modern Britain `kiosk` for Source Detective, Rights & Law `notice` for Rights vs Responsibilities, and Participation `petitionStand` for Petition Regatta.
+- Added `drawMiniGameTriggerMarkers()` so trigger props display a small `Play` marker with the same dynamic status labels as host NPC markers: `New`, `Try`, `Bronze`, `Silver`, or `Gold`.
+- `scripts/validate-world.js` now validates trigger prop mini-game references and reachability from spawn.
+- `scripts/audit-map.js` and `docs/MAP_AUDIT.md` now include a `Mini-game Trigger Props` audit column.
+
+Validation:
+- `node --check game.js`
+- `node --check scripts\audit-map.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\audit-map.js --write`
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue Map Phase 3 by extending explicit trigger props/markers to Ballot Count, Debate Arena, Campaign Planner, and Exam Simulation.
+
+## 2026-06-05 — Map Phase 3 mini-game marker status first pass
+
+Plan area: §22 Map Phase 3 — Интеграция мини-игр в локации.
+
+What changed:
+- Mini-game host world markers now show completion status from `state.miniGameScores`: `New`, `Try`, `Bronze`, `Silver`, or `Gold`.
+- Marker border/accent colour now reflects the current status while keeping the existing NPC menu launch flow unchanged.
+- This reuses existing save data and does not require a save migration.
+- `scripts/audit-map.js` and `docs/MAP_AUDIT.md` now document the dynamic mini-game marker status behavior.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue Map Phase 3 with explicit mini-game trigger props/markers near existing Map Phase 2 anchors, starting with Source Detective, Rights Match, and Petition Regatta.
+
+## 2026-06-05 — Map Phase 2 Exam Hall recomposition first pass
+
+Plan area: §22 Map Phase 2 — Перекомпозиция регионов.
+
+What changed:
+- Exam Hall Castle now has auditable signposts for Final Gate, Exam Desk, Source Archive, and Debate Bench.
+- Added visible exam/source/final route props: `finalGate`, `examDesk`, `sourceArchive`, and `debateBench` around the Final Gate / Examiner Mira / Source Keeper Nia / Coach Leon / practice-room route.
+- `drawProp()` now renders `finalGate`, `examDesk`, `sourceArchive`, and `debateBench` as themed exam props.
+- `scripts/validate-world.js` now knows the Exam Hall prop bounds.
+- `docs/MAP_AUDIT.md` was regenerated and now records Exam Hall signs/props; all exterior regions have first-pass auditable signposts and props.
+- The plan marker moves beyond Map Phase 2 first pass to Map Phase 3: integrate mini-game trigger props and completion markers into the map/progress loop.
+
+Validation:
+- `node --check game.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\audit-map.js --write`
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue with Map Phase 3 — add mini-game trigger props/markers and completion state hints near host NPCs, starting with the existing themed anchors from Map Phase 2.
+
+## 2026-06-05 — Map Phase 2 Action Workshop recomposition first pass
+
+Plan area: §22 Map Phase 2 — Перекомпозиция регионов.
+
+What changed:
+- Action Workshop now has auditable signposts for Plan Board, Campaign Planner, Data Bench, and Lighthouse Bridge.
+- Added visible research/planning/campaign wayfinding props: `planningBoard`, `surveyBox`, `dataCards`, and `campaignTable` around the Plan Board / Councillor Noor / survey-data-action / gate route.
+- `drawProp()` now renders `planningBoard`, `surveyBox`, `dataCards`, and `campaignTable` as themed workshop props.
+- `scripts/validate-world.js` now knows the Action Workshop prop bounds.
+- `docs/MAP_AUDIT.md` was regenerated and now records Action Workshop signs/props instead of showing that region as empty.
+
+Validation:
+- `node --check game.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\audit-map.js --write`
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue Map Phase 2 with Exam Hall Castle: add exam/source/final-gate signposts and a small number of props around Final Gate, Examiner Mira / Exam Simulation, Debate Coach Leon / Debate Arena, practice rooms, and the course-complete route.
+
+## 2026-06-05 — Map Phase 2 Participation Harbour recomposition first pass
+
+Plan area: §22 Map Phase 2 — Перекомпозиция регионов.
+
+What changed:
+- Participation Harbour now has auditable signposts for Petition Pier, Regatta Stand, Volunteer Dock, and Campaign Boat Gate.
+- Added visible harbour/petition wayfinding props: `petitionStand`, `boat`, `banner`, and crate around the Petition Pier / Priya / volunteer-social-action / gate route.
+- `drawProp()` now renders `petitionStand`, `boat`, and `banner` as themed harbour and campaign props.
+- `scripts/validate-world.js` now knows the `petitionStand`, `boat`, and `banner` prop bounds.
+- `docs/MAP_AUDIT.md` was regenerated and now records Participation Harbour signs/props instead of showing that region as empty.
+
+Validation:
+- `node --check game.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\audit-map.js --write`
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue Map Phase 2 with Action Workshop: add research/planning/campaign signposts and a small number of props around Plan Board, Councillor Noor / Campaign Planner, survey/data/action anchors, and the travel-gate route.
+
+## 2026-06-05 — Map Phase 2 Democracy recomposition first pass
+
+Plan area: §22 Map Phase 2 — Перекомпозиция регионов.
+
+What changed:
+- Democracy Capital now has auditable signposts for Ballot Hall, Count Table, Debate Steps, and Ferry Gate.
+- Added visible democracy wayfinding props: `ballotBox`, `podium`, `poster`, and bench around the Ballot Hall / Returning Officer June / Campaign Manager Sol / gate route.
+- `drawProp()` now renders `ballotBox`, `podium`, and `poster` as themed election/debate props.
+- `scripts/validate-world.js` now knows the `ballotBox`, `podium`, and `poster` prop bounds.
+- `docs/MAP_AUDIT.md` was regenerated and now records Democracy Capital signs/props instead of showing that region as empty.
+
+Validation:
+- `node --check game.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\audit-map.js --write`
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue Map Phase 2 with Participation Harbour: add harbour/petition signposts and a small number of props around Petition Pier, Priya / Petition Regatta, volunteer/social action anchors, and the travel-gate route.
+
+## 2026-06-05 — Map Phase 2 Rights & Law recomposition first pass
+
+Plan area: §22 Map Phase 2 — Перекомпозиция регионов.
+
+What changed:
+- Rights & Law Quarter now has auditable signposts for Court Square, Rights Cards, and Clock Lift Gate.
+- Added visible legal wayfinding props: `scales`, `notice`, bench, and lamp around the Court Square / Advocate Farah / gate route.
+- `drawProp()` now renders `scales` and `notice` as themed legal props.
+- `scripts/validate-world.js` now knows the `scales` and `notice` prop bounds.
+- `docs/MAP_AUDIT.md` was regenerated and now records Rights & Law signs/props instead of showing that region as empty.
+
+Validation:
+- `node --check game.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\audit-map.js --write`
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue Map Phase 2 with Democracy Capital: add parliament/election signposts and a small number of props around Ballot Hall, Returning Officer June / Ballot Count, Campaign Manager Sol / Debate Arena, and the travel-gate route.
+
+## 2026-06-05 — Map Phase 2 Modern Britain recomposition first pass
+
+Plan area: §22 Map Phase 2 — Перекомпозиция регионов.
+
+What changed:
+- Modern Britain Borough now has auditable signposts for Media Plaza, Source Kiosk, and Underground Gate.
+- Added visible Modern Britain wayfinding props: a new newspaper/media `kiosk` prop, a bench, lamp, and crate near the plaza/source route.
+- `drawProp()` now renders the `kiosk` as a small newspaper stand, giving Source Detective a stronger world anchor.
+- `scripts/validate-world.js` now filters prop overlap checks by location and knows the `kiosk` prop bounds.
+- `docs/MAP_AUDIT.md` was regenerated and now records Modern Britain signs/props instead of showing that region as empty.
+
+Validation:
+- `node --check game.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\audit-map.js --write`
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue Map Phase 2 with Rights & Law Quarter: add court/legal signposts and a small number of props around Court Square, Advocate Farah, and the travel-gate route.
+
+## 2026-06-05 — Map Phase 1 audit and connectivity pass
+
+Plan area: §22 Map Phase 1 — Audit и карта связности.
+
+What changed:
+- Added `scripts/audit-map.js`, a VM-based map audit generator that reads live world data from `game.js` and writes `docs/MAP_AUDIT.md`.
+- Added `docs/MAP_AUDIT.md` with exterior location table, spawn coordinates, landmarks, NPC positions, building doors, mini-game anchors, travel-gate notes, blocked-zone summaries, interior study routes, Exam Hall practice rooms, and JSON-style region zone sketches.
+- Extended `scripts/validate-world.js` with an NPC-door interaction conflict check so future map edits catch `E` prompt competition between NPCs and building doors.
+- The plan marker moves to §22 Map Phase 2: recomposition of regions using the audit as the baseline.
+
+Validation:
+- `node --check scripts\audit-map.js`
+- `node --check scripts\validate-world.js`
+- `node scripts\audit-map.js --write`
+- `node scripts\validate-world.js`
+
+Next marker:
+- Continue with §22 Map Phase 2 — recomposition one region at a time: route from spawn to landmark, thematic props/signposts, NPC placement, and door approaches.
+
+## 2026-06-05 — Section 20.4 story and mini-game visual pass
+
+Plan area: 20.4 — Story and mini-game visuals.
+
+What changed:
+- Story scenes now render regional title-card details with act label, landmark name, region-specific landmark silhouette, key object label, Apathy Shade, and sparks.
+- Mini-game panels now use themed visual stage layouts for Source Detective, Rights vs Responsibilities, Petition Regatta, Ballot Count, Debate Arena, Campaign Planner, and Exam Simulation.
+- Mini-game completion now includes a visual medal/reward block while keeping textual score and medal lines for accessibility and existing QA automation.
+- The plan marker moves beyond the section 20 graphics pass to map/layout readability work: start with §22 Map Phase 1 audit before recomposing regions.
+
+Validation:
+- `node --check game.js`
+- `node --check curriculum.js`
+- `node scripts\validate-ui.js`
+- `node scripts\validate-world.js`
+- `node qa-ui-regression.mjs`
+- `node qa-visual-smoke.mjs`
+
+Next marker:
+- Continue with §22 Map Phase 1 — audit each location's spawn, landmark, NPCs, doors, travel gate, mini-game trigger, and blocked zones before moving objects.
+
 ## 2026-06-04 — GitHub Actions push notification fix
 
 Why:

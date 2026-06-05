@@ -40,6 +40,13 @@ Every exterior region should have a readable motif near the main play route:
 - `assets/ui/` contains seed UI marker assets, starting with the mini-game marker.
 - `assets/props/region/` contains seed regional prop assets, starting with ballot-booth art.
 - `assets/story/apathy-shade.svg` remains the dedicated Apathy Shade silhouette for story scenes.
+- Mini-game trigger props now use PNG runtime assets under `assets/props/region/` with SVG source files beside them and canvas primitive fallback in `game.js`.
+- Modern Britain currently uses a CSS-rendered `kiosk` prop as the first auditable newspaper/media stand in map data.
+- Rights & Law currently uses CSS-rendered `scales` and `notice` props as auditable legal/court wayfinding objects in map data.
+- Democracy currently uses CSS-rendered `ballotBox`, `podium`, and `poster` props as auditable election/debate wayfinding objects in map data.
+- Participation Harbour currently uses CSS-rendered `petitionStand`, `boat`, and `banner` props as auditable harbour/campaign wayfinding objects in map data.
+- Action Workshop currently uses CSS-rendered `planningBoard`, `surveyBox`, `dataCards`, and `campaignTable` props as auditable research/planning/campaign wayfinding objects in map data.
+- Exam Hall Castle currently uses CSS-rendered `finalGate`, `examDesk`, `sourceArchive`, and `debateBench` props as auditable exam/source/final route objects in map data.
 
 ## Interaction Contrast
 
@@ -69,6 +76,8 @@ Every exterior region should have a readable motif near the main play route:
 
 ## Story And Mini-game Presentation
 
+Current first pass: story scenes render regional title-card details with act label, landmark silhouette, key object label, Apathy Shade, and sparks. Mini-game panels use themed stage layouts, and completion screens show a medal/reward mark alongside text score feedback.
+
 - Story title cards should identify the current region immediately through palette, landmark silhouette, Apathy Shade presence, and act title.
 - Keep story cards compact and readable; do not let decorative art compete with the narrative text or action buttons.
 - Mini-games should differ by layout pattern, not only by title text:
@@ -80,6 +89,10 @@ Every exterior region should have a readable motif near the main play route:
 	- Campaign Planner: board layout with Research, Plan, Action, Evaluate stages.
 	- Exam Simulation: exam paper, source extract, and answer planner.
 - Completion screens should make medal quality visible with a small reward mark, while keeping score breakdown and learning feedback easy to scan.
+- In-world mini-game host markers show dynamic status labels: New, Try, Bronze, Silver, or Gold.
+- Explicit mini-game trigger props can carry `Play` markers with the same dynamic status labels when they define `miniGameId` in map data.
+- Current trigger props cover all seven mini-games: kiosk, notice board, petition stand, ballot box, podium/debate bench, planning board, and exam desk.
+- Progress mini-game cards should mirror map state by showing host, trigger location, and marker status.
 
 ## Item Presentation
 

@@ -62,6 +62,10 @@ Test:
 $env:PATH = "$PWD\.tools\node-v22.11.0-win-x64;$env:PATH"
 .\.tools\node-v22.11.0-win-x64\node.exe --check game.js
 .\.tools\node-v22.11.0-win-x64\node.exe --check curriculum.js
+node --check scripts\audit-map.js
+node --check scripts\qa-route-audit.js
+node scripts\audit-map.js --write
+node scripts\qa-route-audit.js --write
 node scripts\validate-world.js
 node scripts\validate-ui.js
 ```

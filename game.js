@@ -196,6 +196,16 @@ const STORY_BEATS = {
   }
 };
 
+const STORY_VISUALS = {
+  "Citizenship Village": { landmark: "Civic Square", object: "Noticeboard", className: "village" },
+  "Modern Britain Borough": { landmark: "Media Plaza", object: "Press Kiosk", className: "modern" },
+  "Rights & Law Quarter": { landmark: "Court Square", object: "Legal Scales", className: "rights" },
+  "Democracy Capital": { landmark: "Ballot Hall", object: "Parliament Steps", className: "democracy" },
+  "Participation Harbour": { landmark: "Petition Pier", object: "Campaign Boat", className: "participation" },
+  "Action Workshop": { landmark: "Plan Board", object: "Campaign Table", className: "workshop" },
+  "Exam Hall Castle": { landmark: "Final Gate", object: "Exam Desk", className: "exam" }
+};
+
 const STORY_ENDINGS = {
   bronze: {
     title: "Bronze Citizen",
@@ -346,6 +356,51 @@ const MINI_GAMES = {
       { section: "Evaluate", task: "Make a balanced judgement", prompt: "Which conclusion best evaluates whether peaceful protest is useful?", choices: ["It can raise awareness and pressure leaders, but impact depends on evidence, public support, and lawful methods.", "It is always useless.", "It is always successful whatever happens."], correct: 0, explain: "Evaluate answers weigh strengths, limits, and reach a supported judgement." },
       { section: "Source", task: "Judge reliability", prompt: "A social post makes a dramatic claim about migration but has no author, date, data, or source link. What should you do first?", choices: ["Treat it cautiously and check origin, purpose, evidence, and accuracy.", "Share it because it sounds urgent.", "Assume it is reliable because it is short."], correct: 0, explain: "Source questions start by checking origin, purpose, content, accuracy, and relevance." }
     ]
+  }
+};
+
+const MINI_GAME_VISUALS = {
+  sourceDetective: {
+    layout: "source",
+    cue: "Headline desk",
+    labels: ["Source", "Evidence", "Stamp"],
+    result: "Verified evidence mark"
+  },
+  rightsMatch: {
+    layout: "rights",
+    cue: "Rights pair table",
+    labels: ["Right", "Responsibility", "Fairness"],
+    result: "Rights balance mark"
+  },
+  petitionRegatta: {
+    layout: "harbour",
+    cue: "Harbour route",
+    labels: ["Boat", "Signatures", "Hazard"],
+    result: "Petition harbour pennant"
+  },
+  ballotCount: {
+    layout: "ballot",
+    cue: "Counting table",
+    labels: ["Ballots", "Tally", "Winner"],
+    result: "Transparent count mark"
+  },
+  debateArena: {
+    layout: "debate",
+    cue: "Debate card row",
+    labels: ["Argument", "Evidence", "Rebuttal"],
+    result: "Debate rosette"
+  },
+  campaignPlanner: {
+    layout: "campaign",
+    cue: "Campaign board",
+    labels: ["Research", "Plan", "Action", "Evaluate"],
+    result: "Campaign planner badge"
+  },
+  examSimulation: {
+    layout: "exam",
+    cue: "Exam desk",
+    labels: ["Paper", "Source", "Plan"],
+    result: "Exam readiness seal"
   }
 };
 
@@ -917,6 +972,19 @@ const ITEM_ASSETS = {
   debateBlade: "assets/items/debate-blade.png",
   civicGem: "assets/items/civic-gem.png"
 };
+
+const PROP_ASSETS = {
+  ballotBox: "assets/props/region/trigger-ballot-box.png",
+  debateBench: "assets/props/region/trigger-debate-bench.png",
+  examDesk: "assets/props/region/trigger-exam-desk.png",
+  kiosk: "assets/props/region/trigger-kiosk.png",
+  notice: "assets/props/region/trigger-rights-notice.png",
+  petitionStand: "assets/props/region/trigger-petition-stand.png",
+  planningBoard: "assets/props/region/trigger-planning-board.png",
+  podium: "assets/props/region/trigger-debate-podium.png"
+};
+
+const propAssetImages = {};
 
 const VENDORS = {
   mayor: {
@@ -2583,6 +2651,160 @@ const signs = [
     y: 104,
     title: "River Charter",
     body: "Key concept: justice is about fairness, rights, responsibility, and access to the law."
+  },
+  {
+    location: "modernBritain",
+    x: 452,
+    y: 296,
+    title: "Media Plaza",
+    body: "Route note: use the central plaza to reach the press kiosk, museum, and community voices."
+  },
+  {
+    location: "modernBritain",
+    x: 248,
+    y: 220,
+    title: "Source Kiosk",
+    body: "Source Detective starts with Editor Vale. Check origin, purpose, evidence, and accuracy before sharing."
+  },
+  {
+    location: "modernBritain",
+    x: 776,
+    y: 360,
+    title: "Underground Gate",
+    body: "Complete the borough topics, then use any NPC travel gate to move toward Rights & Law Quarter."
+  },
+  {
+    location: "rightsLaw",
+    x: 428,
+    y: 244,
+    title: "Court Square",
+    body: "Route note: the court square links the Rights Aid desk, legal archive, court, and police safeguards."
+  },
+  {
+    location: "rightsLaw",
+    x: 126,
+    y: 196,
+    title: "Rights Cards",
+    body: "Rights vs Responsibilities starts with Advocate Farah. Match freedoms with fairness and responsibility."
+  },
+  {
+    location: "rightsLaw",
+    x: 748,
+    y: 394,
+    title: "Clock Lift Gate",
+    body: "Complete the law quarter topics, then use any NPC travel gate to move toward Democracy Capital."
+  },
+  {
+    location: "democracy",
+    x: 430,
+    y: 326,
+    title: "Ballot Hall",
+    body: "Route note: the ballot hall links Parliament, parties, election counting, and devolution topics."
+  },
+  {
+    location: "democracy",
+    x: 410,
+    y: 392,
+    title: "Count Table",
+    body: "Ballot Count starts with Returning Officer June. Count votes carefully and keep the result transparent."
+  },
+  {
+    location: "democracy",
+    x: 696,
+    y: 248,
+    title: "Debate Steps",
+    body: "Debate Arena starts with Campaign Manager Sol. Use evidence, rebuttal, empathy, and judgement."
+  },
+  {
+    location: "democracy",
+    x: 788,
+    y: 386,
+    title: "Ferry Gate",
+    body: "Complete the capital topics, then use any NPC travel gate to move toward Participation Harbour."
+  },
+  {
+    location: "participation",
+    x: 252,
+    y: 250,
+    title: "Petition Pier",
+    body: "Route note: the pier links Priya, petition strategy, volunteer action, and the harbour travel route."
+  },
+  {
+    location: "participation",
+    x: 218,
+    y: 304,
+    title: "Regatta Stand",
+    body: "Petition Regatta starts with Priya. Gather signatures, avoid misinformation, and follow up clearly."
+  },
+  {
+    location: "participation",
+    x: 632,
+    y: 250,
+    title: "Volunteer Dock",
+    body: "Volunteering and charities turn concern into practical support for communities."
+  },
+  {
+    location: "participation",
+    x: 744,
+    y: 384,
+    title: "Campaign Boat Gate",
+    body: "Complete the harbour topics, then use any NPC travel gate to move toward Action Workshop."
+  },
+  {
+    location: "actionWorkshop",
+    x: 224,
+    y: 254,
+    title: "Plan Board",
+    body: "Route note: the plan board links research, survey evidence, action methods, and campaign evaluation."
+  },
+  {
+    location: "actionWorkshop",
+    x: 170,
+    y: 196,
+    title: "Campaign Planner",
+    body: "Campaign Planner starts with Councillor Noor. Put research, plan, action, and evaluation in order."
+  },
+  {
+    location: "actionWorkshop",
+    x: 608,
+    y: 258,
+    title: "Data Bench",
+    body: "Use survey evidence and data carefully before choosing a campaign action."
+  },
+  {
+    location: "actionWorkshop",
+    x: 756,
+    y: 386,
+    title: "Lighthouse Bridge",
+    body: "Complete the workshop topics, then use any NPC travel gate to move toward Exam Hall Castle."
+  },
+  {
+    location: "examHall",
+    x: 442,
+    y: 230,
+    title: "Final Gate",
+    body: "Route note: the final gate links command words, source work, debate practice, and the ending challenge."
+  },
+  {
+    location: "examHall",
+    x: 286,
+    y: 242,
+    title: "Exam Desk",
+    body: "Exam Simulation starts with Examiner Mira. Use command words to plan each answer before choosing."
+  },
+  {
+    location: "examHall",
+    x: 646,
+    y: 244,
+    title: "Source Archive",
+    body: "Source work asks about origin, purpose, content, accuracy, and relevance."
+  },
+  {
+    location: "examHall",
+    x: 430,
+    y: 402,
+    title: "Debate Bench",
+    body: "Debate Arena practice with Coach Leon helps evaluation answers balance evidence and judgement."
   }
 ];
 
@@ -2590,7 +2812,31 @@ const props = [
   { location: "village", type: "lamp", x: 232, y: 100 },
   { location: "village", type: "lamp", x: 760, y: 232 },
   { location: "village", type: "flowers", x: 666, y: 96 },
-  { location: "village", type: "flowers", x: 790, y: 96 }
+  { location: "village", type: "flowers", x: 790, y: 96 },
+  { location: "modernBritain", type: "kiosk", x: 230, y: 226, miniGameId: "sourceDetective" },
+  { location: "modernBritain", type: "bench", x: 438, y: 308 },
+  { location: "modernBritain", type: "lamp", x: 316, y: 342 },
+  { location: "modernBritain", type: "crate", x: 602, y: 270 },
+  { location: "rightsLaw", type: "scales", x: 470, y: 246 },
+  { location: "rightsLaw", type: "notice", x: 244, y: 252, miniGameId: "rightsMatch" },
+  { location: "rightsLaw", type: "bench", x: 430, y: 342 },
+  { location: "rightsLaw", type: "lamp", x: 824, y: 394 },
+  { location: "democracy", type: "ballotBox", x: 420, y: 384, miniGameId: "ballotCount" },
+  { location: "democracy", type: "podium", x: 690, y: 246, miniGameId: "debateArena" },
+  { location: "democracy", type: "poster", x: 596, y: 304 },
+  { location: "democracy", type: "bench", x: 456, y: 338 },
+  { location: "participation", type: "petitionStand", x: 238, y: 272, miniGameId: "petitionRegatta" },
+  { location: "participation", type: "boat", x: 744, y: 286 },
+  { location: "participation", type: "banner", x: 620, y: 338 },
+  { location: "participation", type: "crate", x: 520, y: 258 },
+  { location: "actionWorkshop", type: "planningBoard", x: 202, y: 270, miniGameId: "campaignPlanner" },
+  { location: "actionWorkshop", type: "surveyBox", x: 594, y: 272 },
+  { location: "actionWorkshop", type: "dataCards", x: 650, y: 278 },
+  { location: "actionWorkshop", type: "campaignTable", x: 734, y: 340 },
+  { location: "examHall", type: "finalGate", x: 440, y: 206 },
+  { location: "examHall", type: "examDesk", x: 268, y: 252, miniGameId: "examSimulation" },
+  { location: "examHall", type: "sourceArchive", x: 520, y: 408 },
+  { location: "examHall", type: "debateBench", x: 420, y: 408, miniGameId: "debateArena" }
 ];
 
 function addKnowledge(amount) {
@@ -3212,6 +3458,37 @@ function miniGameHostText(id) {
     .join("; ");
 }
 
+function triggerPropLabel(type) {
+  const labels = {
+    ballotBox: "ballot box",
+    debateBench: "debate bench",
+    examDesk: "exam desk",
+    kiosk: "source kiosk",
+    notice: "rights notice board",
+    petitionStand: "petition stand",
+    planningBoard: "planning board",
+    podium: "debate podium"
+  };
+  return labels[type] || type;
+}
+
+function miniGameTriggerProps(id) {
+  return locationOrder.flatMap((locationId) => {
+    const location = WORLD[locationId];
+    return props
+      .filter((prop) => prop.location === locationId && prop.miniGameId === id)
+      .map((prop) => ({ prop, location }));
+  });
+}
+
+function miniGameTriggerText(id) {
+  const triggers = miniGameTriggerProps(id);
+  if (!triggers.length) return "Trigger: host marker only";
+  return triggers
+    .map(({ prop, location }) => `${triggerPropLabel(prop.type)} in ${location.name}`)
+    .join("; ");
+}
+
 function miniGameNpcConclusion(id) {
   const host = miniGameHosts(id)[0]?.npc;
   const conclusion = host ? MINI_GAME_NPC_LINKS[host.id]?.conclusion : "Keep practising this skill and link it to GCSE command words.";
@@ -3223,11 +3500,15 @@ function renderProgressMiniGames() {
     const score = state.miniGameScores[id]?.score ?? null;
     const medal = score === null ? "not started" : miniGameMedal(score, game.rounds.length);
     const hostText = miniGameHostText(id);
+    const triggerText = miniGameTriggerText(id);
+    const markerStatus = miniGameMapStatus(id);
     return `
       <div class="progress-card minigame-card">
         <strong>${escapeHtml(game.title)}</strong>
         <small>${escapeHtml(game.region)} - ${score === null ? "not played" : `${score}/${game.rounds.length} (${medal})`}</small>
         <small>${escapeHtml(hostText)}</small>
+        <small>Trigger: ${escapeHtml(triggerText)}</small>
+        <small>Map marker: ${escapeHtml(markerStatus.label)}</small>
         <p>${escapeHtml(game.summary)}</p>
         <button type="button" data-minigame-start="${id}">${score === null ? "Start" : "Replay"}</button>
       </div>
@@ -3336,6 +3617,40 @@ function safeClassName(value) {
   return String(value || "valley").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "valley";
 }
 
+function miniGameVisualMeta(id) {
+  return MINI_GAME_VISUALS[id] || { layout: "cards", cue: "Practice table", labels: ["Prompt", "Choice", "Feedback"], result: "Practice mark" };
+}
+
+function renderMiniGameVisual(id, round, index, total) {
+  const meta = miniGameVisualMeta(id);
+  const labelChips = meta.labels.map((label) => `<span>${escapeHtml(label)}</span>`).join("");
+  const roundLabel = round.section || `Round ${index + 1}`;
+  return `
+    <div class="minigame-visual minigame-stage-${safeClassName(meta.layout)} minigame-visual-${safeClassName(id)}" aria-hidden="true">
+      <div class="minigame-stage-prop prop-a"></div>
+      <div class="minigame-stage-prop prop-b"></div>
+      <div class="minigame-stage-prop prop-c"></div>
+      <div class="minigame-stage-labels">${labelChips}</div>
+      <strong>${escapeHtml(meta.cue)}</strong>
+      <small>${escapeHtml(roundLabel)} ${index + 1}/${total}</small>
+    </div>
+  `;
+}
+
+function renderMiniGameMedal(id, medal, score, total) {
+  const meta = miniGameVisualMeta(id);
+  const label = `${medal.charAt(0).toUpperCase()}${medal.slice(1)} ${medal === "practice" ? "run" : "medal"}`;
+  return `
+    <div class="minigame-medal-screen medal-${safeClassName(medal)} minigame-stage-${safeClassName(meta.layout)}">
+      <div class="minigame-medal-mark" aria-hidden="true"><span></span></div>
+      <div>
+        <strong>${escapeHtml(label)}</strong>
+        <small>${escapeHtml(meta.result)} - ${score}/${total}</small>
+      </div>
+    </div>
+  `;
+}
+
 function openMiniGame(id) {
   const game = MINI_GAMES[id];
   if (!game) return;
@@ -3368,13 +3683,12 @@ function renderMiniGamePanel() {
     : "";
   const sectionLabel = game.isFinalExam && round.section ? `${round.section} section` : `Round ${activeMiniGame.index + 1}/${game.rounds.length}`;
   const taskLabel = game.isFinalExam && round.task ? ` - ${round.task}` : "";
-  const visualClass = `minigame-visual-${safeClassName(activeMiniGame.id)}`;
   miniGamePanelBody.innerHTML = `
     <div class="minigame-header">
       <strong>${escapeHtml(game.title)}</strong>
       <small>${escapeHtml(game.region)} - ${miniGameScoreText(activeMiniGame.id)}</small>
     </div>
-    <div class="minigame-visual ${visualClass}" aria-hidden="true"><span></span><span></span><span></span></div>
+    ${renderMiniGameVisual(activeMiniGame.id, round, activeMiniGame.index, game.rounds.length)}
     <div class="minigame-meter"><span style="width:${(activeMiniGame.index / game.rounds.length) * 100}%"></span></div>
     <div class="minigame-round">
       <small>${escapeHtml(sectionLabel)}${escapeHtml(taskLabel)} - Score ${activeMiniGame.score}</small>
@@ -3507,6 +3821,7 @@ function completeMiniGame() {
   miniGamePanelBody.innerHTML = `
     <div class="minigame-result">
       <strong>${escapeHtml(game.title)} complete</strong>
+      ${renderMiniGameMedal(id, medal, score, game.rounds.length)}
       <p>Score: ${score}/${game.rounds.length}</p>
       <p>Medal: ${escapeHtml(medal)}</p>
       <p>${escapeHtml(npcConclusion)}</p>
@@ -3862,16 +4177,27 @@ function storyActTitle() {
   return beat ? `Act ${beat.act}: ${beat.region}` : `Act ${state.storyAct}`;
 }
 
+function storyVisualForRegion(region) {
+  return STORY_VISUALS[region] || STORY_VISUALS["Citizenship Village"];
+}
+
 function storySceneHtml(beat, endingId = null) {
   const isEnding = Boolean(endingId);
   const label = isEnding ? "Finale" : `Act ${beat.act}`;
   const regionClass = `story-region-${safeClassName(beat.region || "valley")}`;
+  const visual = storyVisualForRegion(beat.region || "Citizenship Village");
   return `
     <div class="story-scene ${regionClass}${isEnding ? " story-scene-ending" : ""}">
-      <div class="story-art" aria-hidden="true">
+      <div class="story-art story-art-${escapeHtml(visual.className)}" aria-hidden="true">
         <span class="story-sky"></span>
+        <span class="story-title-card">
+          <strong>${escapeHtml(label)}</strong>
+          <small>${escapeHtml(visual.landmark)}</small>
+        </span>
         <span class="story-castle"></span>
+        <span class="story-landmark story-landmark-${escapeHtml(visual.className)}"></span>
         <span class="story-scroll"></span>
+        <span class="story-key-object">${escapeHtml(visual.object)}</span>
         <span class="story-spark story-spark-a"></span>
         <span class="story-spark story-spark-b"></span>
         <span class="story-shade"></span>
@@ -5126,7 +5452,41 @@ function drawExamPracticeRooms() {
   });
 }
 
+function propAssetBounds(prop) {
+  const dimensions = {
+    ballotBox: { w: 46, h: 45 },
+    debateBench: { w: 66, h: 42 },
+    examDesk: { w: 58, h: 52 },
+    kiosk: { w: 52, h: 54 },
+    notice: { w: 40, h: 46 },
+    petitionStand: { w: 52, h: 54 },
+    planningBoard: { w: 63, h: 55 },
+    podium: { w: 52, h: 49 }
+  };
+  return dimensions[prop.type] || null;
+}
+
+function propAssetImage(type) {
+  const src = PROP_ASSETS[type];
+  if (!src || typeof Image === "undefined") return null;
+  if (!propAssetImages[type]) {
+    const image = new Image();
+    image.src = src;
+    propAssetImages[type] = image;
+  }
+  return propAssetImages[type];
+}
+
+function drawPropAsset(prop) {
+  const bounds = propAssetBounds(prop);
+  const image = bounds ? propAssetImage(prop.type) : null;
+  if (!image || !image.complete || !image.naturalWidth) return false;
+  ctx.drawImage(image, prop.x, prop.y, bounds.w, bounds.h);
+  return true;
+}
+
 function drawProp(prop) {
+  if (drawPropAsset(prop)) return;
   if (prop.type === "barrel") {
     rect(prop.x - 1, prop.y + 24, 22, 4, "rgba(0,0,0,.24)");
     rect(prop.x, prop.y + 4, 20, 22, "#6f3d2f");
@@ -5143,6 +5503,178 @@ function drawProp(prop) {
     rect(prop.x + 3, prop.y + 11, 18, 3, "#704633");
     rect(prop.x + 10, prop.y + 3, 3, 18, "#704633");
     rect(prop.x + 4, prop.y + 4, 5, 2, "#d29a68");
+    return;
+  }
+  if (prop.type === "kiosk") {
+    rect(prop.x - 4, prop.y + 38, 54, 8, "rgba(0,0,0,.26)");
+    rect(prop.x, prop.y + 10, 44, 32, "#31405a");
+    rect(prop.x - 4, prop.y, 52, 12, "#e36b5d");
+    rect(prop.x + 4, prop.y + 16, 15, 20, "#f5f0df");
+    rect(prop.x + 23, prop.y + 16, 15, 20, "#d7d0c3");
+    rect(prop.x + 7, prop.y + 20, 9, 3, "#4d5a59");
+    rect(prop.x + 26, prop.y + 20, 9, 3, "#4d5a59");
+    rect(prop.x + 6, prop.y + 28, 11, 3, "#b98231");
+    rect(prop.x + 25, prop.y + 28, 11, 3, "#5da9e9");
+    rect(prop.x + 2, prop.y + 42, 6, 12, "#263036");
+    rect(prop.x + 36, prop.y + 42, 6, 12, "#263036");
+    return;
+  }
+  if (prop.type === "scales") {
+    rect(prop.x - 4, prop.y + 42, 54, 6, "rgba(0,0,0,.24)");
+    rect(prop.x + 20, prop.y + 6, 5, 38, "#d7d0c3");
+    rect(prop.x + 7, prop.y + 13, 31, 4, "#f2c14e");
+    rect(prop.x + 11, prop.y + 17, 3, 13, "#d7d0c3");
+    rect(prop.x + 31, prop.y + 17, 3, 13, "#d7d0c3");
+    rect(prop.x + 3, prop.y + 30, 20, 5, "#665a7d");
+    rect(prop.x + 25, prop.y + 30, 20, 5, "#665a7d");
+    rect(prop.x + 14, prop.y + 43, 18, 5, "#4d5a59");
+    return;
+  }
+  if (prop.type === "notice") {
+    rect(prop.x - 2, prop.y + 36, 42, 6, "rgba(0,0,0,.22)");
+    rect(prop.x + 4, prop.y + 28, 5, 18, "#4b3128");
+    rect(prop.x + 29, prop.y + 28, 5, 18, "#4b3128");
+    rect(prop.x, prop.y, 38, 30, "#5c5470");
+    rect(prop.x + 3, prop.y + 3, 32, 24, "#f5f0df");
+    rect(prop.x + 7, prop.y + 8, 22, 3, "#4d5a59");
+    rect(prop.x + 7, prop.y + 15, 16, 3, "#b98231");
+    rect(prop.x + 7, prop.y + 22, 22, 3, "#4d5a59");
+    return;
+  }
+  if (prop.type === "ballotBox") {
+    rect(prop.x - 2, prop.y + 38, 48, 7, "rgba(0,0,0,.24)");
+    rect(prop.x, prop.y + 14, 42, 30, "#466d9f");
+    rect(prop.x + 4, prop.y + 10, 34, 8, "#f5f0df");
+    rect(prop.x + 13, prop.y + 7, 16, 4, "#263036");
+    rect(prop.x + 10, prop.y + 24, 22, 4, "#f2c14e");
+    rect(prop.x + 14, prop.y + 31, 14, 4, "#f5f0df");
+    return;
+  }
+  if (prop.type === "podium") {
+    rect(prop.x - 4, prop.y + 42, 56, 7, "rgba(0,0,0,.24)");
+    rect(prop.x + 6, prop.y + 16, 36, 30, "#8f5b3f");
+    rect(prop.x + 2, prop.y + 10, 44, 10, "#f2c14e");
+    rect(prop.x + 18, prop.y + 2, 8, 12, "#d7d0c3");
+    rect(prop.x + 20, prop.y - 4, 4, 8, "#263036");
+    rect(prop.x + 13, prop.y + 27, 20, 4, "#f5f0df");
+    return;
+  }
+  if (prop.type === "poster") {
+    rect(prop.x - 2, prop.y + 42, 40, 6, "rgba(0,0,0,.22)");
+    rect(prop.x + 4, prop.y + 28, 5, 18, "#4b3128");
+    rect(prop.x, prop.y, 36, 32, "#e36b5d");
+    rect(prop.x + 3, prop.y + 3, 30, 26, "#f5f0df");
+    rect(prop.x + 7, prop.y + 8, 22, 4, "#466d9f");
+    rect(prop.x + 7, prop.y + 16, 16, 3, "#4d5a59");
+    rect(prop.x + 7, prop.y + 23, 22, 3, "#b98231");
+    return;
+  }
+  if (prop.type === "petitionStand") {
+    rect(prop.x - 4, prop.y + 40, 56, 8, "rgba(0,0,0,.24)");
+    rect(prop.x, prop.y + 18, 48, 24, "#8f5b3f");
+    rect(prop.x + 4, prop.y + 8, 40, 14, "#f5f0df");
+    rect(prop.x + 8, prop.y + 12, 22, 3, "#4d5a59");
+    rect(prop.x + 8, prop.y + 18, 28, 3, "#6fbf73");
+    rect(prop.x + 10, prop.y + 28, 10, 10, "#f5f0df");
+    rect(prop.x + 25, prop.y + 28, 14, 4, "#f2c14e");
+    rect(prop.x + 6, prop.y + 42, 5, 12, "#4b3128");
+    rect(prop.x + 36, prop.y + 42, 5, 12, "#4b3128");
+    return;
+  }
+  if (prop.type === "boat") {
+    rect(prop.x - 6, prop.y + 32, 72, 8, "rgba(0,0,0,.18)");
+    rect(prop.x, prop.y + 20, 58, 18, "#d88c5a");
+    rect(prop.x + 5, prop.y + 30, 48, 10, "#8f4f44");
+    rect(prop.x + 28, prop.y + 2, 4, 24, "#4b3128");
+    rect(prop.x + 32, prop.y + 6, 18, 16, "#f5f0df");
+    rect(prop.x + 10, prop.y + 22, 8, 6, "#f2c14e");
+    return;
+  }
+  if (prop.type === "banner") {
+    rect(prop.x - 2, prop.y + 48, 66, 7, "rgba(0,0,0,.22)");
+    rect(prop.x + 3, prop.y + 14, 5, 38, "#4b3128");
+    rect(prop.x + 53, prop.y + 14, 5, 38, "#4b3128");
+    rect(prop.x + 7, prop.y, 50, 22, "#6fbf73");
+    rect(prop.x + 11, prop.y + 6, 30, 3, "#f5f0df");
+    rect(prop.x + 11, prop.y + 14, 38, 3, "#f2c14e");
+    return;
+  }
+  if (prop.type === "planningBoard") {
+    rect(prop.x - 3, prop.y + 48, 66, 7, "rgba(0,0,0,.22)");
+    rect(prop.x + 4, prop.y + 30, 5, 22, "#4b3128");
+    rect(prop.x + 52, prop.y + 30, 5, 22, "#4b3128");
+    rect(prop.x, prop.y, 60, 34, "#26362f");
+    rect(prop.x + 4, prop.y + 4, 52, 26, "#f5f0df");
+    rect(prop.x + 8, prop.y + 9, 12, 8, "#f2c14e");
+    rect(prop.x + 24, prop.y + 9, 12, 8, "#5da9e9");
+    rect(prop.x + 40, prop.y + 9, 12, 8, "#6fbf73");
+    rect(prop.x + 8, prop.y + 22, 40, 3, "#4d5a59");
+    return;
+  }
+  if (prop.type === "surveyBox") {
+    rect(prop.x - 2, prop.y + 34, 44, 7, "rgba(0,0,0,.22)");
+    rect(prop.x, prop.y + 12, 38, 28, "#466d9f");
+    rect(prop.x + 4, prop.y + 8, 30, 8, "#f5f0df");
+    rect(prop.x + 12, prop.y + 5, 14, 4, "#263036");
+    rect(prop.x + 8, prop.y + 23, 22, 4, "#f2c14e");
+    return;
+  }
+  if (prop.type === "dataCards") {
+    rect(prop.x - 2, prop.y + 33, 54, 6, "rgba(0,0,0,.22)");
+    rect(prop.x, prop.y + 8, 46, 28, "#263036");
+    rect(prop.x + 6, prop.y + 24, 6, 8, "#6fbf73");
+    rect(prop.x + 17, prop.y + 18, 6, 14, "#f2c14e");
+    rect(prop.x + 28, prop.y + 12, 6, 20, "#5da9e9");
+    rect(prop.x + 7, prop.y + 12, 26, 3, "#f5f0df");
+    return;
+  }
+  if (prop.type === "campaignTable") {
+    rect(prop.x - 4, prop.y + 38, 64, 8, "rgba(0,0,0,.24)");
+    rect(prop.x, prop.y + 18, 56, 22, "#8f5b3f");
+    rect(prop.x + 4, prop.y + 10, 18, 12, "#e36b5d");
+    rect(prop.x + 26, prop.y + 10, 22, 10, "#f5f0df");
+    rect(prop.x + 30, prop.y + 14, 14, 3, "#4d5a59");
+    rect(prop.x + 8, prop.y + 40, 5, 12, "#4b3128");
+    rect(prop.x + 43, prop.y + 40, 5, 12, "#4b3128");
+    return;
+  }
+  if (prop.type === "finalGate") {
+    rect(prop.x - 6, prop.y + 50, 82, 8, "rgba(0,0,0,.24)");
+    rect(prop.x, prop.y + 10, 18, 44, "#5c5470");
+    rect(prop.x + 50, prop.y + 10, 18, 44, "#5c5470");
+    rect(prop.x + 12, prop.y, 44, 14, "#f2c14e");
+    rect(prop.x + 24, prop.y + 22, 20, 32, "#25233a");
+    rect(prop.x + 28, prop.y + 28, 12, 4, "#d7d0c3");
+    return;
+  }
+  if (prop.type === "examDesk") {
+    rect(prop.x - 4, prop.y + 36, 62, 8, "rgba(0,0,0,.22)");
+    rect(prop.x, prop.y + 18, 54, 22, "#8f5b3f");
+    rect(prop.x + 6, prop.y + 8, 20, 14, "#f5f0df");
+    rect(prop.x + 30, prop.y + 10, 18, 10, "#d7e8f3");
+    rect(prop.x + 10, prop.y + 13, 12, 3, "#4d5a59");
+    rect(prop.x + 10, prop.y + 18, 16, 3, "#b98231");
+    rect(prop.x + 8, prop.y + 40, 5, 12, "#4b3128");
+    rect(prop.x + 42, prop.y + 40, 5, 12, "#4b3128");
+    return;
+  }
+  if (prop.type === "sourceArchive") {
+    rect(prop.x - 3, prop.y + 42, 62, 7, "rgba(0,0,0,.22)");
+    rect(prop.x, prop.y + 6, 54, 38, "#394d78");
+    rect(prop.x + 5, prop.y + 11, 12, 28, "#f5f0df");
+    rect(prop.x + 21, prop.y + 11, 12, 28, "#d7d0c3");
+    rect(prop.x + 37, prop.y + 11, 12, 28, "#5da9e9");
+    rect(prop.x + 7, prop.y + 18, 8, 3, "#4d5a59");
+    rect(prop.x + 23, prop.y + 25, 8, 3, "#4d5a59");
+    return;
+  }
+  if (prop.type === "debateBench") {
+    rect(prop.x - 4, prop.y + 30, 70, 7, "rgba(0,0,0,.22)");
+    rect(prop.x, prop.y + 8, 62, 10, "#8f5b3f");
+    rect(prop.x + 4, prop.y + 20, 54, 8, "#b77752");
+    rect(prop.x + 10, prop.y + 28, 5, 14, "#4b3128");
+    rect(prop.x + 48, prop.y + 28, 5, 14, "#4b3128");
+    rect(prop.x + 23, prop.y, 16, 8, "#f2c14e");
     return;
   }
   if (prop.type === "lamp") {
@@ -5240,15 +5772,28 @@ function drawWorldLabel(x, y, text, accent = "#f2c14e", width = 74) {
   ctx.fillText(text, x, y + 12);
 }
 
+function miniGameMapStatus(id) {
+  const game = MINI_GAMES[id];
+  const score = state.miniGameScores[id]?.score;
+  if (!game || !Number.isFinite(score)) return { label: "New", color: "#5da9e9" };
+  const medal = miniGameMedal(score, game.rounds.length);
+  if (medal === "gold") return { label: "Gold", color: "#f2c14e" };
+  if (medal === "silver") return { label: "Silver", color: "#d7d0c3" };
+  if (medal === "bronze") return { label: "Bronze", color: "#d88c5a" };
+  return { label: "Try", color: "#e36b5d" };
+}
+
 function drawMiniGameHostMarkers() {
   npcs.filter((npc) => npc.miniGameId && MINI_GAMES[npc.miniGameId]).forEach((npc) => {
     const x = npc.x + 13;
-    const y = npc.y - 36;
+    const y = npc.y - 42;
     const pulse = Math.floor(state.player.step / 24) % 2;
-    rect(x - 18, y + 5, 36, 16, "rgba(17,23,25,.92)");
-    ctx.strokeStyle = pulse ? "#5da9e9" : "#f2c14e";
-    ctx.strokeRect(x - 18, y + 5, 36, 16);
-    rect(x - 10, y - 1, 20, 10, "#5da9e9");
+    const status = miniGameMapStatus(npc.miniGameId);
+    const markerW = Math.max(44, status.label.length * 7 + 16);
+    rect(x - markerW / 2, y + 7, markerW, 25, "rgba(17,23,25,.94)");
+    ctx.strokeStyle = pulse ? status.color : "#f2c14e";
+    ctx.strokeRect(Math.round(x - markerW / 2), y + 7, markerW, 25);
+    rect(x - 10, y - 1, 20, 10, status.color);
     rect(x - 7, y + 1, 14, 6, "#141c1f");
     rect(x - 12, y + 2, 4, 4, "#f2c14e");
     rect(x + 8, y + 2, 4, 4, "#f2c14e");
@@ -5256,6 +5801,29 @@ function drawMiniGameHostMarkers() {
     ctx.font = "9px Georgia";
     ctx.textAlign = "center";
     ctx.fillText("Game", x, y + 17);
+    ctx.fillStyle = status.color;
+    ctx.fillText(status.label, x, y + 28);
+  });
+}
+
+function drawMiniGameTriggerMarkers() {
+  props.filter((prop) => prop.miniGameId && (!prop.location || prop.location === state.currentLocation) && MINI_GAMES[prop.miniGameId]).forEach((prop) => {
+    const status = miniGameMapStatus(prop.miniGameId);
+    const x = prop.x + 24;
+    const y = prop.y - 16;
+    rect(x - 16, y + 5, 32, 18, "rgba(17,23,25,.9)");
+    ctx.strokeStyle = status.color;
+    ctx.strokeRect(x - 16, y + 5, 32, 18);
+    rect(x - 5, y - 2, 10, 10, status.color);
+    ctx.fillStyle = "#141c1f";
+    ctx.font = "8px Georgia";
+    ctx.textAlign = "center";
+    ctx.fillText("!", x, y + 6);
+    ctx.fillStyle = "#f5f0df";
+    ctx.font = "8px Georgia";
+    ctx.fillText("Play", x, y + 17);
+    ctx.fillStyle = status.color;
+    ctx.fillText(status.label, x, y + 27);
   });
 }
 
@@ -5539,6 +6107,7 @@ function drawPropLayer() {
   drawBuildingDoors();
   drawSigns();
   props.filter((prop) => !prop.location || prop.location === state.currentLocation).forEach(drawProp);
+  drawMiniGameTriggerMarkers();
   drawFineDetails();
 }
 

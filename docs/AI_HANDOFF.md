@@ -1,16 +1,31 @@
 # AI Handoff
 
-## 0. Current Status Update — 2026-06-04
+## 0. Current Status Update — 2026-06-05
 
 Resume point after the planned PC restart:
 
-- Active roadmap marker: §20.4 "Story и mini-game визуалы" in `docs/GAMEPLAY_UPGRADE_PLAN.md`.
-- Sections §20.1, §20.2, and §20.3 are closed as first-pass graphics/readability work.
+- Active roadmap marker: the previous plan (RPG phases A–F + Map Phase 1–5) is closed and archived as `docs/GAMEPLAY_UPGRADE_OLD.md`. A new graphics-generation plan `docs/GAMEPLAY_UPGRADE_PLAN.md` (stages G0–G9, game-field graphics as the top priority) is written; no G-stage is started yet. All previously shipped systems remain the foundation.
+- Sections §20.1, §20.2, §20.3, and §20.4 are closed as first-pass graphics/readability work.
 - §20.1 added `docs/VISUAL_STYLE_GUIDE.md`, item PNG assets, seed UI/region prop assets, stronger regional motifs, and subtle Apathy traces.
 - §20.2 added shared hero visual presets for HUD portrait, Character panel, and canvas sprite; held tools now render as distinct quill/blade silhouettes.
 - §20.3 added Backpack category frames, selected item detail panel, item effect summaries, mouse/keyboard item selection, and quest item lock/unsellable markers.
-- Full QA after §20.3 passed with `blockingIssues: 0` across UI regression, visual smoke, regional mini-game playthrough, regional quest/gate playthrough, and release smoke.
-- `publish/` has been synced with the latest code, styles, validators, docs, and assets. Public Azure deploy was not run after §20.3; deployment smoke remains `not-run` until explicitly requested.
+- §20.4 added regional story title-card details, themed mini-game visual stage layouts, and visual medal/reward blocks on completion screens.
+- §22 Map Phase 1 added `scripts/audit-map.js`, generated `docs/MAP_AUDIT.md`, and extended `scripts/validate-world.js` with an NPC-door interaction conflict check.
+- §22 Map Phase 2 started with Modern Britain Borough: Media Plaza, Source Kiosk, and Underground Gate signposts plus a newspaper `kiosk` prop and supporting plaza props.
+- Rights & Law Quarter now has Court Square, Rights Cards, and Clock Lift Gate signposts plus `scales`/`notice` legal props and supporting route props.
+- Democracy Capital now has Ballot Hall, Count Table, Debate Steps, and Ferry Gate signposts plus `ballotBox`, `podium`, and `poster` election/debate props.
+- Participation Harbour now has Petition Pier, Regatta Stand, Volunteer Dock, and Campaign Boat Gate signposts plus `petitionStand`, `boat`, and `banner` harbour/campaign props.
+- Action Workshop now has Plan Board, Campaign Planner, Data Bench, and Lighthouse Bridge signposts plus `planningBoard`, `surveyBox`, `dataCards`, and `campaignTable` workshop props.
+- Exam Hall Castle now has Final Gate, Exam Desk, Source Archive, and Debate Bench signposts plus `finalGate`, `examDesk`, `sourceArchive`, and `debateBench` exam props.
+- Map Phase 2 first pass is closed for all exterior regions; `docs/MAP_AUDIT.md` records signs/props for every exterior region.
+- Map Phase 3 started: mini-game host world markers now show dynamic completion labels from `state.miniGameScores` (`New`, `Try`, `Bronze`, `Silver`, `Gold`) without changing NPC menu launch flow or save format.
+- First explicit trigger props are wired: Source Detective uses the Modern Britain `kiosk`, Rights Match uses the Rights & Law `notice`, and Petition Regatta uses the Participation `petitionStand`; these render `Play` markers and are audited/validated.
+- Remaining trigger props are also wired: Ballot Count uses `ballotBox`, Debate Arena uses `podium` and `debateBench`, Campaign Planner uses `planningBoard`, and Exam Simulation uses `examDesk`.
+- Progress → Mini-games now shows NPC host, trigger prop location, and dynamic map marker status for each mini-game.
+- Map Phase 4 added PNG runtime assets plus SVG source assets for the most visible trigger props under `assets/props/region/`; canvas rendering uses `PROP_ASSETS` with primitive fallback.
+- Map Phase 5 added `scripts/qa-route-audit.js`, `docs/MAP_ROUTE_QA.md`, and `qa-route-audit-result.json`; route QA passed for all 7 exterior regions.
+- Focused QA after §20.4 passed: `node --check game.js`, `node --check curriculum.js`, `node scripts\validate-ui.js`, `node scripts\validate-world.js`, `node qa-ui-regression.mjs`, and `node qa-visual-smoke.mjs`.
+- `publish/` has been synced with the latest code, styles, validators, docs, and assets. Public Azure deploy was not run after §20.4/Map Phase 1; deployment smoke remains `not-run` until explicitly requested.
 - Root `C:\PROJECTS\Citizenship Game` is not a Git repo. Use `publish/` for Git status, commits, and pushes.
 
 ## 1. Project Purpose
@@ -28,7 +43,7 @@ This is a static HTML/CSS/JavaScript canvas game. There is no bundler, framework
 - `game.js` contains the game loop, canvas rendering, world data, NPCs, quests, movement, inventory, mini-games, story state, save/load, and UI event handling.
 - `curriculum.js` defines the external curriculum guide and enriches quest explanations through `window.GCSE_CURRICULUM_INDEX`.
 - Browser progress is saved in `localStorage` under `citizenshipValleySaveV1`; the current save version is `SAVE_VERSION = 6`. Browser display settings are saved separately under `citizenshipValleySettingsV1`.
-- Azure Static Web Apps hosts the public static site, but the latest §20.3 local changes have not been deployed publicly yet.
+- Azure Static Web Apps hosts the public static site, but the latest §20.4 local changes have not been deployed publicly yet.
 
 Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `1.5x` so visible tiles are `48px`. The camera follows the player. The draw pipeline is split into layers: ground, paths, buildings, props, characters, and world UI.
 
@@ -41,6 +56,7 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
 - `CURRICULUM_MAP.md` - broader course/world planning notes.
 - `README.md` - short project overview and play instructions.
 - `docs/QA_RUNBOOK.md` - canonical local QA command set.
+- `docs/MAP_AUDIT.md` - generated Map Phase 1 audit of spawn, landmarks, NPCs, doors, mini-game anchors, travel gates, blocked zones, interiors, and exam rooms.
 - `docs/BALANCE_REVIEW.md` - latest XP/Focus/coin/readiness balance notes.
 - `docs/RELEASE_SMOKE_CHECKLIST.md` - manual release-candidate smoke checklist.
 - `docs/VISUAL_STYLE_GUIDE.md` - current visual conventions for tile scale, palettes, hero/item/story/UI assets, and QA expectations.
@@ -51,6 +67,7 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
 - `assets/story/` - story-scene assets, including the dedicated Apathy Shade silhouette.
 - `assets/tiles/`, `assets/characters/`, `assets/buildings/`, `assets/props/` - broader reserved asset structure for future PNG art.
 - `qa-ui-regression.mjs`, `qa-visual-smoke.mjs`, `qa-regional-playthrough.mjs`, `qa-regional-quests-playthrough.mjs`, `qa-release-smoke.mjs` - local browser/CDP QA scripts.
+- `scripts/audit-map.js` - VM-based map audit generator; run `node scripts\audit-map.js --write` after map data changes.
 - `staticwebapp.config.json` - Azure Static Web Apps config.
 - `.github/workflows/azure-static-web-apps.yml` - manual-only GitHub Actions deploy workflow for Azure Static Web Apps.
 - `dist/` - local deployment folder, ignored by Git.
@@ -98,6 +115,8 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
   - hero visual presets shared by HUD portrait, Character panel, and canvas sprite
   - visible held-tool silhouettes for `Justice Quill` and `Debate Blade`
   - Backpack selected-item detail panel with category frames and quest-item lock markers
+  - regional story title-card details with landmarks and key objects
+  - themed mini-game visual layouts and visual medal/reward result blocks
 - Mini-game and story systems:
   - mini-games are tied to regional NPCs and can be launched from NPC menus
   - Progress Center tracks story, quests, buildings, mini-games, curriculum, achievements, and choices against Apathy
@@ -129,9 +148,9 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
 
 ## 5. Current TODO List
 
-- Resume at §20.4: add regional story title cards and thematic mini-game visual layouts.
-- Add or style mini-game props without changing core rules: newspaper cards/stamps, rights/responsibility pairs, petition harbour/boat, ballot table, debate cards, campaign board, and exam paper/planner.
-- Add a visual medal/reward screen at the end of mini-games if it can be done without destabilising scoring.
+- Resume after §22 Map Phase 5: graphics/map route QA is locally clean. Public Azure deploy was still not run; deployment smoke remains explicit-request only.
+- Move NPCs/props/signposts in small regional passes to improve spawn -> landmark -> NPC cluster -> building/interior -> mini-game host -> travel gate readability.
+- Re-run `node scripts\audit-map.js --write` and `node scripts\validate-world.js` after map data changes.
 - Keep automated QA current when changing gameplay, UI, maps, save/load, or content.
 - Run quick QA for focused UI changes and full QA before handoff/release candidates.
 - Update `docs/VISUAL_STYLE_GUIDE.md`, `docs/GAMEPLAY_PROGRESS_LOG.md`, and `docs/GAMEPLAY_UPGRADE_PLAN.md` after each graphics subsection.
@@ -140,8 +159,8 @@ Rendering uses a `1280x768` canvas. The logical tile size is `32`, rendered at `
 
 ## 6. Known Bugs or Failing Tests
 
-- No blocking automated QA issues are known at this handoff. The last full local QA after §20.3 completed with `blockingIssues: 0`.
-- Public Azure deployment was not run after §20.3, so the live site may not contain the latest Backpack/graphics docs changes until an explicit deploy is performed.
+- No blocking automated QA issues are known at this handoff. Focused local QA after §20.4 completed with `blockingIssues: 0` for UI regression and visual smoke.
+- Public Azure deployment was not run after §20.4, so the live site may not contain the latest story/mini-game visual changes until an explicit deploy is performed.
 - `node --check game.js` and similar shell syntax checks can fail in this OneDrive/Codex sandbox with `EPERM` path access errors, even when the JS parses correctly. A workaround used successfully was reading file content through the Node REPL and running `new Function(source)`.
 - The GitHub Actions deploy workflow is manual-only (`workflow_dispatch`) so normal pushes should not trigger failing deploy emails. The job id is `build_and_deploy_job`; manual workflow deploy still requires the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN`.
 - Root `.git` is not reliable in this workspace. Use `publish/` for Git operations unless the repository setup is repaired.
@@ -272,14 +291,10 @@ Do not store or print the SWA deployment token.
 
 ## 10. Next Recommended Task
 
-Continue §20.4: Story and mini-game visuals.
+Choose one of three follow-ups:
 
-Recommended first slice:
+1. Run a manual/local route spot-check using Dev Travel and the screenshots if you want a human visual pass before release.
+2. Deploy publicly and run deployment smoke if the user explicitly asks for a live update.
+3. Start the next gameplay expansion now that the map/visual route release candidate is locally QA-clean.
 
-1. Inspect current story-scene and mini-game panel render functions in `game.js`.
-2. Add regional story title-card visuals using existing region palettes, Apathy Shade, and one key object per act.
-3. Give each mini-game a distinct visual layout pattern while preserving the existing game rules and scoring.
-4. Add a medal/reward visual to mini-game completion screens if it remains a small, local UI change.
-5. Run quick QA, update `docs/GAMEPLAY_PROGRESS_LOG.md`, `docs/GAMEPLAY_UPGRADE_PLAN.md`, and `docs/VISUAL_STYLE_GUIDE.md`, then sync to `publish/`.
-
-Avoid starting a broad map recomposition or data-file refactor before §20.4 is closed; those belong to later map phases/backlog.
+Keep `scripts/qa-route-audit.js --write`, `node scripts\validate-world.js`, `node qa-visual-smoke.mjs`, and regional playthrough scripts in the release checklist after future map changes.

@@ -5688,31 +5688,48 @@ function drawTreeTile(x, y) {
   ctx.globalAlpha = .18;
   ctx.fillStyle = "#16240f";
   ctx.beginPath();
-  ctx.ellipse(cx + 4, y + 30, 12, 4, -0.22, 0, Math.PI * 2);
+  ctx.ellipse(cx + 5, y + 31, 13, 4.5, -0.22, 0, Math.PI * 2);
   ctx.fill();
-  ctx.globalAlpha = .26;
+  ctx.globalAlpha = .28;
   ctx.beginPath();
-  ctx.ellipse(cx + 1, y + 29, 9, 3.2, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx + 1, y + 30, 10, 3.4, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
-  rect(x + 13, y + 16, 6, 14, "#6a4a32");
-  rect(x + 13, y + 16, 2, 14, "#7e5a3e");
-  rect(x + 17, y + 16, 2, 14, "#553823");
+  // trunk with bark shading
+  rect(x + 13, y + 17, 6, 14, "#6a4a32");
+  rect(x + 13, y + 17, 2, 14, "#825d40");
+  rect(x + 17, y + 17, 2, 14, "#523521");
+  rect(x + 14, y + 21, 1, 6, "#4a3020");
   const blob = (bx, by, r, color) => {
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(bx, by, r, 0, Math.PI * 2);
     ctx.fill();
   };
-  blob(cx, y + 11, 12, "#2f6f39");
-  blob(cx - 5, y + 12, 7, "#367c41");
-  blob(cx + 5, y + 12, 7, "#367c41");
-  blob(cx, y + 8, 9, "#46924f");
-  blob(cx - 4, y + 8, 5, "#5aa85e");
-  blob(cx + 3, y + 6, 4, "#74c06e");
+  // base/shadow layer (darker underside)
+  blob(cx, y + 13, 13, "#27602f");
+  blob(cx - 7, y + 14, 8, "#2b6834");
+  blob(cx + 7, y + 14, 8, "#2b6834");
+  // mid layer
+  blob(cx, y + 10, 12, "#367c41");
+  blob(cx - 6, y + 11, 7, "#3c8748");
+  blob(cx + 6, y + 11, 7, "#3c8748");
+  // lit top-left layer
+  blob(cx - 2, y + 7, 9, "#4d9a55");
+  blob(cx - 6, y + 8, 5, "#58a85f");
+  blob(cx + 3, y + 6, 5, "#4d9a55");
+  // rim highlights (top-left light)
+  blob(cx - 5, y + 5, 3.4, "#73c06d");
+  blob(cx + 1, y + 3, 3, "#73c06d");
   ctx.fillStyle = "#9bd888";
-  ctx.fillRect(cx - 6, y + 5, 2, 2);
-  ctx.fillRect(cx + 1, y + 3, 2, 2);
+  ctx.fillRect(cx - 7, y + 4, 2, 2);
+  ctx.fillRect(cx, y + 2, 2, 2);
+  ctx.fillRect(cx + 5, y + 6, 1, 1);
+  // leaf-clump texture dots (darker, lower-right)
+  ctx.fillStyle = "rgba(22,52,24,.4)";
+  ctx.fillRect(cx + 6, y + 15, 2, 2);
+  ctx.fillRect(cx - 3, y + 17, 2, 2);
+  ctx.fillRect(cx + 2, y + 18, 1, 1);
 }
 
 function paintUnionJack(x, y, w, h) {

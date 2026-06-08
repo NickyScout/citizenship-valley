@@ -2,6 +2,26 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Terrain tile art upgrade (roads/water/bridges/greenery)
+
+Plan area: §3.1 terrain quality — lift the background tiles toward the reference screenshots, license-clean (self-authored SVG, no third-party art).
+
+What changed (all via the existing asset pipeline + procedural fallback — zero engine changes):
+- **tile-grass.svg** — richer lush grass: layered tonal mottling + multi-tone blade tufts; removed the per-tile baked flowers (they repeated on a grid). Sparse flowers still come from `drawTileVariation`/`drawFineDetails`.
+- **tile-road.svg** — proper dirt path: warm soil base, worn lighter patches, darker soil mottle, soil specks, and embedded pebbles with highlight+shadow.
+- **tile-plaza.svg** — beveled cobblestone: a 2×2 grid of rounded stones with top-left highlight, bottom-right shadow, dark mortar grid (reads 3D, tiles seamlessly).
+- **tile-water.svg** — added depth (layered darker bands), two ripple bands, and sparkle highlights.
+- **tile-dock.svg** — wooden boardwalk/bridge: three horizontal planks with top highlight, bottom shadow, dark gap lines, wood grain, and nail-head joists.
+- **`drawTreeTile`** — lusher tree: 5-layer canopy with darker underside + top-left rim light, textured leaf clumps, shaded bark, softer drop shadow.
+- All tiles stay 32×32 `crispEdges` pixel-art so the autotiling overlays (foam, beach, paving tufts) still layer correctly on top. No map, collision, route, quest or save change.
+- Bumped cache-bust to `2026.06.08.15`.
+
+Validation:
+- `node --check game.js`; all 6 tile SVGs validated as well-formed XML
+- `node scripts\validate-world.js` (tile assets present)
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`)
+- Review screenshots (temporary) of village (grass/cobble/dirt road + transitions), harbour (water + wooden boardwalk + foam), and Action Workshop (cobblestone) confirmed the quality jump, then removed.
+
 ## 2026-06-08 — Region pets (wandering animal + sounds/jokes)
 
 Plan area: ambience/fun — one decorative animal per location that wanders and occasionally "speaks".

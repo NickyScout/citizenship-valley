@@ -390,6 +390,95 @@ h2 {
   transition: width .25s ease;
 }
 
+/* === G6: UI icon system + colour-coded meters === */
+.ico {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -0.14em;
+  background-color: currentColor;
+  -webkit-mask: var(--ico) no-repeat center / contain;
+  mask: var(--ico) no-repeat center / contain;
+}
+
+.ico-book {
+  --ico: url("assets/ui/icons/ico-book.svg");
+}
+
+.ico-focus {
+  --ico: url("assets/ui/icons/ico-focus.svg");
+}
+
+.ico-xp {
+  --ico: url("assets/ui/icons/ico-xp.svg");
+}
+
+.ico-target {
+  --ico: url("assets/ui/icons/ico-target.svg");
+}
+
+.ico-coin {
+  --ico: url("assets/ui/icons/ico-coin.svg");
+}
+
+.ico-pin {
+  --ico: url("assets/ui/icons/ico-pin.svg");
+}
+
+.ico-speech {
+  --ico: url("assets/ui/icons/ico-speech.svg");
+}
+
+.ico-heart {
+  --ico: url("assets/ui/icons/ico-heart.svg");
+}
+
+.ico-shield {
+  --ico: url("assets/ui/icons/ico-shield.svg");
+}
+
+.region span,
+.wallet span,
+.meter-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.meter-row-knowledge .ico {
+  color: var(--blue);
+}
+
+.meter-row-focus .ico {
+  color: var(--green);
+}
+
+.meter-row-xp .ico {
+  color: var(--gold);
+}
+
+.meter-row-readiness .ico {
+  color: #e8915f;
+}
+
+.meter.meter-knowledge span {
+  background: linear-gradient(90deg, #2f6fb0, var(--blue));
+}
+
+.meter.meter-focus span {
+  background: linear-gradient(90deg, #3f8a47, var(--green));
+}
+
+.meter.meter-xp span {
+  background: linear-gradient(90deg, #b98231, var(--gold));
+}
+
+.meter.meter-readiness span {
+  background: linear-gradient(90deg, #b9433a, #e8915f);
+}
+
+
 ul {
   display: grid;
   gap: 7px;
@@ -999,6 +1088,18 @@ dd {
   gap: 14px;
   padding: 16px 18px;
   border-bottom: 1px solid var(--line);
+  position: relative;
+  background: linear-gradient(180deg, rgba(242, 193, 78, .1), rgba(20, 28, 31, 0));
+}
+
+.menu-panel-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), #b98231 55%, rgba(185, 130, 49, 0));
 }
 
 .menu-panel-header h2 {
@@ -1462,6 +1563,53 @@ dd {
   display: grid;
   gap: 8px;
   padding: 10px;
+}
+
+.character-stat-card.card-knowledge .ico {
+  color: var(--blue);
+}
+
+.character-stat-card.card-rhetoric .ico {
+  color: #e0a458;
+}
+
+.character-stat-card.card-empathy .ico {
+  color: var(--red);
+}
+
+.character-stat-card.card-integrity .ico {
+  color: var(--green);
+}
+
+.card-knowledge .progress-bar span {
+  background: linear-gradient(90deg, #2f6fb0, var(--blue));
+}
+
+.card-rhetoric .progress-bar span {
+  background: linear-gradient(90deg, #b06a2f, #e0a458);
+}
+
+.card-empathy .progress-bar span {
+  background: linear-gradient(90deg, #b9433a, var(--red));
+}
+
+.card-integrity .progress-bar span {
+  background: linear-gradient(90deg, #3f8a47, var(--green));
+}
+
+.character-summary .summary-readiness {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgba(242, 193, 78, .3);
+}
+
+.character-summary .summary-readiness strong {
+  color: var(--gold);
+}
+
+.stat-card-header strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .stat-card-header {

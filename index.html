@@ -8,14 +8,14 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Citizenship Valley</title>
-    <link rel="stylesheet" href="styles.css?v=2026.06.08.2">
+    <link rel="stylesheet" href="styles.css?v=2026.06.08.3">
 </head>
 
-<body data-app-version="2026.06.08.2">
+<body data-app-version="2026.06.08.3">
     <main class="game-shell">
         <section class="stage" aria-label="Citizenship Valley game">
             <canvas id="game" width="1280" height="768"></canvas>
-            <div id="appVersion" class="app-version" aria-label="App version">v2026.06.08.2</div>
+            <div id="appVersion" class="app-version" aria-label="App version">v2026.06.08.3</div>
             <div id="titleScreen" class="intro-overlay hidden" aria-label="Title screen">
                 <div class="intro-card">
                     <h2 class="intro-title">Citizenship Valley</h2>
@@ -216,33 +216,33 @@
             <details class="meter-group hud-section" open>
                 <summary>Status</summary>
                 <div class="region">
-                    <span>Region</span>
+                    <span><i class="ico ico-pin"></i>Region</span>
                     <strong id="regionText">Citizenship Village</strong>
                 </div>
                 <div class="wallet">
-                    <span>Coins</span>
+                    <span><i class="ico ico-coin"></i>Coins</span>
                     <strong id="coinText">0</strong>
                 </div>
-                <div class="meter-row">
-                    <span>Knowledge</span>
+                <div class="meter-row meter-row-knowledge">
+                    <span><i class="ico ico-book"></i>Knowledge</span>
                     <strong id="knowledgeText">0/100</strong>
                 </div>
-                <div class="meter"><span id="knowledgeBar"></span></div>
-                <div class="meter-row">
-                    <span>Focus</span>
+                <div class="meter meter-knowledge"><span id="knowledgeBar"></span></div>
+                <div class="meter-row meter-row-focus">
+                    <span><i class="ico ico-focus"></i>Focus</span>
                     <strong id="focusText">100/100</strong>
                 </div>
-                <div class="meter"><span id="focusBar"></span></div>
-                <div class="meter-row">
-                    <span>XP</span>
+                <div class="meter meter-focus"><span id="focusBar"></span></div>
+                <div class="meter-row meter-row-xp">
+                    <span><i class="ico ico-xp"></i>XP</span>
                     <strong id="xpText">0/20</strong>
                 </div>
-                <div class="meter"><span id="xpBar"></span></div>
-                <div class="meter-row">
-                    <span>Exam Readiness</span>
+                <div class="meter meter-xp"><span id="xpBar"></span></div>
+                <div class="meter-row meter-row-readiness">
+                    <span><i class="ico ico-target"></i>Exam Readiness</span>
                     <strong id="examReadinessText">35%</strong>
                 </div>
-                <div class="meter"><span id="examReadinessBar"></span></div>
+                <div class="meter meter-readiness"><span id="examReadinessBar"></span></div>
                 <button id="characterOpenButton" class="reset-button" type="button">Open Character</button>
             </details>
 
@@ -311,8 +311,8 @@
         </aside>
     </main>
 
-    <script src="curriculum.js?v=2026.06.08.2"></script>
-    <script src="game.js?v=2026.06.08.2"></script>
+    <script src="curriculum.js?v=2026.06.08.3"></script>
+    <script src="game.js?v=2026.06.08.3"></script>
 </body>
 
 </html>

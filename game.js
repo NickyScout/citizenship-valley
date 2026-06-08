@@ -200,6 +200,12 @@ const STAT_DESCRIPTIONS = {
   empathy: "Supports balanced judgement, rights responsibilities, and community choices.",
   integrity: "Improves evidence use, source caution, and fair legal reasoning."
 };
+const STAT_ICONS = {
+  knowledge: "ico-book",
+  rhetoric: "ico-speech",
+  empathy: "ico-heart",
+  integrity: "ico-shield"
+};
 const TOOL_ASSIST_FOCUS_COST = 10;
 const MAX_LEVEL = 10;
 
@@ -3975,8 +3981,8 @@ function renderCharacterPanel() {
     const contribution = Math.round(value * READINESS_WEIGHTS[key]);
     const disabled = state.stats.statPoints <= 0 || value >= 100 ? " disabled" : "";
     return `
-      <div class="character-stat-card">
-        <div class="stat-card-header"><strong>${STAT_LABELS[key]}</strong><span>${value}/100</span></div>
+      <div class="character-stat-card card-${key}">
+        <div class="stat-card-header"><strong><i class="ico ${STAT_ICONS[key]}"></i>${STAT_LABELS[key]}</strong><span>${value}/100</span></div>
         <small>${escapeHtml(STAT_DESCRIPTIONS[key])}</small>
         <div class="progress-bar mini"><span style="width:${value}%"></span></div>
         <small>Readiness contribution: +${contribution}%</small>
@@ -3995,7 +4001,7 @@ function renderCharacterPanel() {
     <section class="character-summary">
       <div><strong>Level ${state.stats.level}</strong><small>${state.stats.level >= MAX_LEVEL ? "Maximum level" : `${state.stats.xp}/${nextXp} XP to next level`}</small></div>
       <div><strong>${state.stats.statPoints}</strong><small>Unspent points</small></div>
-      <div><strong>${examChance()}%</strong><small>Exam Readiness</small></div>
+      <div class="summary-readiness"><strong>${examChance()}%</strong><small>Exam Readiness</small></div>
     </section>
     <section class="character-stat-grid">${statCards}</section>
     <section class="character-formula">

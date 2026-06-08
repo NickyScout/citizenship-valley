@@ -2,6 +2,24 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — HUD / menus / inventory / Character polish (§G6)
+
+Plan area: §G6 — lift the HUD, menu frames, inventory and Character panel from "prototype UI" to a cohesive themed look, while keeping every handler and `validate-ui` smoke intact.
+
+What changed:
+- New lightweight icon system: 9 mask-based SVG icons in `assets/ui/icons/` (book, focus, xp/star, target, coin, pin, speech, heart, shield). The `.ico` class uses `mask` + `background-color: currentColor`, so each icon inherits its colour from CSS — no per-icon PNGs, no JS.
+- HUD meters are now colour-coded and icon-led: Knowledge = blue book, Focus = green spark, XP = gold star, Exam Readiness = orange target. Each `.meter` bar gets a matching gradient (was one shared green→gold gradient for all four). Region (pin) and Coins (coin) chips also gained icons.
+- Menu panels share an "art frame": a gold top accent strip + subtle gradient on `.menu-panel-header`, applied to Backpack, Progress, Character, Mini-game and Settings headers.
+- Character panel: each stat card shows its icon (book/speech/heart/shield) and a per-stat coloured progress bar; the Exam Readiness summary tile is highlighted with a gold frame. Added `STAT_ICONS` map; `renderCharacterPanel` adds `card-<stat>` classes and a `summary-readiness` class.
+- All changes are CSS/markup only over existing elements — no new buttons (static-button check stays green), no JS handler changes, no save-schema change. Mobile layout verified.
+- Bumped cache-bust to `2026.06.08.3`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-ui.js` (render smoke incl. Readiness formula, save migration v6)
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots — desktop + mobile HUD, Character, inventory, settings reviewed)
+
 ## 2026-06-08 — Interiors by purpose (§G5)
 
 Plan area: §G5 — make a building's interior reflect the specific civic place the player walked into, instead of one of four generic shared rooms.

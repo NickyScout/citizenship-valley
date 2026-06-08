@@ -2,6 +2,27 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Learning variety: two Hangman-style word games (§G8, first pass)
+
+Plan area: §G8 / §6.4 — add two GCSE-adapted "word reveal" mini-games that practise civic vocabulary and end with a comprehension check, not just guessing.
+
+What changed:
+- Two new mini-games in `MINI_GAMES` with `type: "wordReveal"`: **Keyword Rescue** (Citizenship Village — democracy/accountability/representation/devolution/parliament) and **Caseword Court** (Rights & Law — jury/evidence/appeal/human rights/rule of law). Each round has `word`, a thematic `hint`, plus `prompt`/`choices`/`correct`/`explain` (so it also satisfies the `validate-ui` round contract).
+- New flow: the player reveals the term letter by letter on a civic letter board (A–Z keyboard, hits go green, misses fill a themed meter, max 6 misses), then **must pick the correct meaning** before the round scores. A round only earns a point when the word was solved AND the definition is correct (per the plan's "not complete until understanding is shown" rule). Multi-word phrases like "RULE OF LAW" reveal across word gaps.
+- Reused the existing mini-game infrastructure: hub listing (`renderProgressMiniGames`), scoring, medal screen, save (`miniGameScores`), and the §G7 banner system. Added `renderWordRevealPanel`, `guessLetter`, `answerWordDefinition`, `makeWordRevealRound`; branched `openMiniGame`/`renderMiniGamePanel`/`advanceMiniGame` on `type`; added `data-minigame-letter` / `data-minigame-define` handlers.
+- Two illustrated SVG banners (`assets/minigames/keywordRescue.svg` civic word board + spark meter; `assets/minigames/casewordCourt.svg` evidence board + scales) + their CSS.
+- The two games are **hub-only** (no regional NPC host), so the route/quest QA (which expects exactly 7 regional hosts) is unaffected; they appear in the Progress → Mini-games hub.
+- No quest, route, world, or save-schema change. Bumped cache-bust to `2026.06.08.5`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-ui.js` (now 9 mini-games; round contract satisfied)
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 unique games — new games correctly NOT regional hosts)
+- `node qa-regional-quests-playthrough.mjs` (`blockingIssues: 0`)
+- Temporary playthrough script drove both word games to a saved gold 5/5 and captured guess/define/medal screenshots (incl. multi-word "RULE OF LAW"), then removed.
+
 ## 2026-06-08 — Mini-game graphics: scene banners + medal (§G7, first pass)
 
 Plan area: §G7 — replace the abstract CSS box-shadow props in each mini-game with real illustrated scene art, and turn the medal mark into a proper medal.

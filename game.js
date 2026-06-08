@@ -428,6 +428,144 @@ const MINI_GAMES = {
       { section: "Evaluate", task: "Make a balanced judgement", prompt: "Which conclusion best evaluates whether peaceful protest is useful?", choices: ["It can raise awareness and pressure leaders, but impact depends on evidence, public support, and lawful methods.", "It is always useless.", "It is always successful whatever happens."], correct: 0, explain: "Evaluate answers weigh strengths, limits, and reach a supported judgement." },
       { section: "Source", task: "Judge reliability", prompt: "A social post makes a dramatic claim about migration but has no author, date, data, or source link. What should you do first?", choices: ["Treat it cautiously and check origin, purpose, evidence, and accuracy.", "Share it because it sounds urgent.", "Assume it is reliable because it is short."], correct: 0, explain: "Source questions start by checking origin, purpose, content, accuracy, and relevance." }
     ]
+  },
+  keywordRescue: {
+    title: "Keyword Rescue",
+    region: "Citizenship Village",
+    summary: "Rescue a civic keyword letter by letter, then prove you know what it means.",
+    type: "wordReveal",
+    reward: { coins: 10, xp: 14, knowledge: 2, rhetoric: 1 },
+    rounds: [
+      {
+        word: "DEMOCRACY",
+        hint: "How the UK chooses who governs.",
+        prompt: "Which meaning fits the rescued keyword DEMOCRACY?",
+        choices: [
+          "A system where citizens choose representatives through free, fair elections.",
+          "A system where one unelected leader holds all the power.",
+          "A rule that only wealthy landowners are allowed to vote."
+        ],
+        correct: 0,
+        explain: "Democracy means people hold power through regular free elections and can replace their representatives."
+      },
+      {
+        word: "ACCOUNTABILITY",
+        hint: "Why people in power must answer for decisions.",
+        prompt: "Which meaning fits the rescued keyword ACCOUNTABILITY?",
+        choices: [
+          "Decision-makers must explain their actions and can be challenged or removed.",
+          "Leaders can act in secret and never be questioned.",
+          "Only voters, never politicians, are responsible for outcomes."
+        ],
+        correct: 0,
+        explain: "Accountability lets citizens hold representatives to account through scrutiny, elections, and a free press."
+      },
+      {
+        word: "REPRESENTATION",
+        hint: "What an MP or councillor does for you.",
+        prompt: "Which meaning fits the rescued keyword REPRESENTATION?",
+        choices: [
+          "Elected people acting and speaking on behalf of citizens in councils or Parliament.",
+          "Citizens making every single decision by direct vote each day.",
+          "Civil servants choosing policies without any elections."
+        ],
+        correct: 0,
+        explain: "Representation means we elect people to make decisions for us and answer back to us."
+      },
+      {
+        word: "DEVOLUTION",
+        hint: "Power shared out to Scotland, Wales and Northern Ireland.",
+        prompt: "Which meaning fits the rescued keyword DEVOLUTION?",
+        choices: [
+          "Passing some powers from the UK Parliament to bodies like the Scottish Parliament or Senedd.",
+          "Removing all local government across the UK.",
+          "Giving the monarch direct control over new laws."
+        ],
+        correct: 0,
+        explain: "Devolution transfers certain powers to nations and regions while the UK Parliament stays sovereign."
+      },
+      {
+        word: "PARLIAMENT",
+        hint: "Where UK laws are debated and passed.",
+        prompt: "Which meaning fits the rescued keyword PARLIAMENT?",
+        choices: [
+          "The body of Commons, Lords and monarch that debates and makes UK law.",
+          "A single courtroom that decides criminal trials.",
+          "The local council that empties the bins."
+        ],
+        correct: 0,
+        explain: "Parliament (Commons, Lords, and Crown) debates, scrutinises, and passes laws for the UK."
+      }
+    ]
+  },
+  casewordCourt: {
+    title: "Caseword Court",
+    region: "Rights & Law",
+    summary: "Restore a legal term from Rights & Law, then connect it to its correct meaning.",
+    type: "wordReveal",
+    reward: { coins: 12, xp: 16, knowledge: 2, integrity: 1 },
+    rounds: [
+      {
+        word: "JURY",
+        hint: "Citizens who decide a Crown Court verdict.",
+        prompt: "Which meaning fits the restored term JURY?",
+        choices: [
+          "Twelve members of the public who decide the verdict in a serious criminal trial.",
+          "The lawyer who speaks for the person accused.",
+          "The official who sentences a guilty defendant."
+        ],
+        correct: 0,
+        explain: "A jury of citizens weighs the evidence and reaches a verdict; the judge then handles sentencing."
+      },
+      {
+        word: "EVIDENCE",
+        hint: "What must back up a legal claim.",
+        prompt: "Which meaning fits the restored term EVIDENCE?",
+        choices: [
+          "Information such as documents, testimony, or objects used to prove facts in a case.",
+          "A personal opinion offered without any proof.",
+          "The final punishment given to a defendant."
+        ],
+        correct: 0,
+        explain: "Courts decide using evidence, not rumour, so cases are judged fairly and consistently."
+      },
+      {
+        word: "APPEAL",
+        hint: "Challenging a decision in a higher court.",
+        prompt: "Which meaning fits the restored term APPEAL?",
+        choices: [
+          "Asking a higher court to review a decision you believe is wrong.",
+          "Refusing to attend court at all.",
+          "Choosing your own jury members."
+        ],
+        correct: 0,
+        explain: "The right to appeal helps correct mistakes and supports fair access to justice."
+      },
+      {
+        word: "HUMAN RIGHTS",
+        hint: "Freedoms that belong to everyone.",
+        prompt: "Which meaning fits the restored term HUMAN RIGHTS?",
+        choices: [
+          "Basic freedoms and protections that belong to every person, such as fairness and free expression.",
+          "Privileges given only to people who own property.",
+          "Rules that apply to politicians but not ordinary citizens."
+        ],
+        correct: 0,
+        explain: "Human rights protect everyone equally; in the UK they are supported by the Human Rights Act."
+      },
+      {
+        word: "RULE OF LAW",
+        hint: "No one is above it, not even government.",
+        prompt: "Which meaning fits the restored term RULE OF LAW?",
+        choices: [
+          "The principle that everyone, including the government, must follow the law and be treated equally by it.",
+          "The idea that powerful people can ignore laws they dislike.",
+          "A rule that only judges have to obey the law."
+        ],
+        correct: 0,
+        explain: "The rule of law means laws apply equally to all, protecting citizens from unfair or arbitrary power."
+      }
+    ]
   }
 };
 
@@ -473,6 +611,18 @@ const MINI_GAME_VISUALS = {
     cue: "Exam desk",
     labels: ["Paper", "Source", "Plan"],
     result: "Exam readiness seal"
+  },
+  keywordRescue: {
+    layout: "wordcivic",
+    cue: "Civic word board",
+    labels: ["Letters", "Keyword", "Meaning"],
+    result: "Keyword rescue badge"
+  },
+  casewordCourt: {
+    layout: "wordcourt",
+    cue: "Evidence word board",
+    labels: ["Letters", "Case term", "Meaning"],
+    result: "Caseword court seal"
   }
 };
 
@@ -3788,6 +3938,18 @@ function openMiniGame(id) {
   const game = MINI_GAMES[id];
   if (!game) return;
   closeOverlays("miniGame");
+  if (game.type === "wordReveal") {
+    activeMiniGame = {
+      id,
+      index: 0,
+      score: 0,
+      type: "wordReveal",
+      ...makeWordRevealRound(game.rounds[0])
+    };
+    renderMiniGamePanel();
+    miniGamePanel?.classList.remove("hidden");
+    return;
+  }
   activeMiniGame = {
     id,
     index: 0,
@@ -3800,9 +3962,37 @@ function openMiniGame(id) {
   miniGamePanel?.classList.remove("hidden");
 }
 
+// Per-round sub-state for word-reveal games (Keyword Rescue / Caseword Court).
+const WORD_REVEAL_MAX_MISSES = 6;
+
+function makeWordRevealRound(round) {
+  return {
+    phase: "guess",
+    revealed: [],
+    usedLetters: [],
+    misses: 0,
+    wordSolved: false,
+    answered: false,
+    selected: null,
+    defineOrder: shuffledAnswerIndexes(round.choices.length)
+  };
+}
+
+function wordRevealLettersNeeded(word) {
+  return [...new Set(word.toUpperCase().replace(/[^A-Z]/g, "").split(""))];
+}
+
+function wordRevealIsSolved(round, revealed) {
+  return wordRevealLettersNeeded(round.word).every((letter) => revealed.includes(letter));
+}
+
 function renderMiniGamePanel() {
   if (!miniGamePanelBody || !activeMiniGame) return;
   const game = MINI_GAMES[activeMiniGame.id];
+  if (game.type === "wordReveal") {
+    renderWordRevealPanel(game);
+    return;
+  }
   const round = game.rounds[activeMiniGame.index];
   const order = activeMiniGame.orders[activeMiniGame.index] || shuffledAnswerIndexes(round.choices.length);
   const choices = order.map((originalIndex, displayIndex) => {
@@ -3830,6 +4020,104 @@ function renderMiniGamePanel() {
       ${feedback}
     </div>
   `;
+}
+
+function renderWordRevealPanel(game) {
+  const run = activeMiniGame;
+  const round = game.rounds[run.index];
+  const letters = round.word.toUpperCase();
+  const slots = [...letters].map((ch) => {
+    if (ch === " ") return `<span class="word-gap"></span>`;
+    const shown = run.revealed.includes(ch) || run.phase !== "guess";
+    const justRevealed = run.phase !== "guess" && !run.revealed.includes(ch);
+    return `<span class="word-slot${shown ? " is-filled" : ""}${justRevealed ? " is-revealed" : ""}">${shown ? escapeHtml(ch) : ""}</span>`;
+  }).join("");
+  const missPct = Math.min(100, (run.misses / WORD_REVEAL_MAX_MISSES) * 100);
+  const missMeter = `<div class="word-miss-meter" aria-label="Misses ${run.misses} of ${WORD_REVEAL_MAX_MISSES}"><span style="width:${missPct}%"></span></div>`;
+  let body;
+  if (run.phase === "guess") {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const keys = [...alphabet].map((ch) => {
+      const used = run.usedLetters.includes(ch);
+      const inWord = letters.includes(ch);
+      const cls = used ? (inWord ? " is-hit" : " is-miss") : "";
+      return `<button type="button" class="word-key${cls}" data-minigame-letter="${ch}"${used ? " disabled" : ""}>${ch}</button>`;
+    }).join("");
+    body = `
+      <p class="word-hint"><strong>Clue:</strong> ${escapeHtml(round.hint)}</p>
+      <div class="word-keys">${keys}</div>
+      <small class="word-status">Misses ${run.misses}/${WORD_REVEAL_MAX_MISSES} - rescue the keyword, then prove its meaning.</small>
+    `;
+  } else {
+    const order = run.defineOrder || shuffledAnswerIndexes(round.choices.length);
+    const choices = order.map((originalIndex, displayIndex) => {
+      const chosen = run.selected === originalIndex;
+      const correct = run.answered && originalIndex === round.correct;
+      const wrong = run.answered && chosen && originalIndex !== round.correct;
+      return `<button type="button" class="minigame-choice${correct ? " is-correct answer-correct" : ""}${wrong ? " is-wrong answer-wrong" : ""}" data-minigame-define="${originalIndex}"${run.answered ? " disabled" : ""}>${displayIndex + 1}. ${escapeHtml(round.choices[originalIndex])}</button>`;
+    }).join("");
+    const solvedNote = run.wordSolved
+      ? `<small class="word-status is-good">Keyword rescued. Now lock in its meaning.</small>`
+      : `<small class="word-status is-warn">Out of guesses - the word is shown. Pick its meaning to learn it.</small>`;
+    const feedback = run.answered
+      ? `<div class="minigame-feedback"><strong>${run.selected === round.correct ? (run.wordSolved ? "Correct" : "Good to know") : "Not quite"}</strong><p>${escapeHtml(round.explain)}</p><button type="button" data-minigame-next>${run.index >= game.rounds.length - 1 ? "Finish" : "Next word"}</button></div>`
+      : "";
+    body = `
+      ${solvedNote}
+      <p>${escapeHtml(round.prompt)}</p>
+      <div class="minigame-choices">${choices}</div>
+      ${feedback}
+    `;
+  }
+  miniGamePanelBody.innerHTML = `
+    <div class="minigame-header">
+      <strong>${escapeHtml(game.title)}</strong>
+      <small>${escapeHtml(game.region)} - ${miniGameScoreText(run.id)}</small>
+    </div>
+    ${renderMiniGameVisual(run.id, round, run.index, game.rounds.length)}
+    <div class="minigame-meter"><span style="width:${(run.index / game.rounds.length) * 100}%"></span></div>
+    <div class="minigame-round minigame-wordgame">
+      <small>Word ${run.index + 1}/${game.rounds.length} - Score ${run.score}</small>
+      <div class="word-display">${slots}</div>
+      ${missMeter}
+      ${body}
+    </div>
+  `;
+}
+
+function guessLetter(letter) {
+  const run = activeMiniGame;
+  if (!run || run.type !== "wordReveal" || run.phase !== "guess") return;
+  const ch = String(letter || "").toUpperCase();
+  if (!/^[A-Z]$/.test(ch) || run.usedLetters.includes(ch)) return;
+  const game = MINI_GAMES[run.id];
+  const round = game.rounds[run.index];
+  run.usedLetters = [...run.usedLetters, ch];
+  if (round.word.toUpperCase().includes(ch)) {
+    run.revealed = [...run.revealed, ch];
+    if (wordRevealIsSolved(round, run.revealed)) {
+      run.wordSolved = true;
+      run.phase = "define";
+    }
+  } else {
+    run.misses += 1;
+    if (run.misses >= WORD_REVEAL_MAX_MISSES) {
+      run.wordSolved = false;
+      run.phase = "define";
+    }
+  }
+  renderMiniGamePanel();
+}
+
+function answerWordDefinition(index) {
+  const run = activeMiniGame;
+  if (!run || run.type !== "wordReveal" || run.phase !== "define" || run.answered) return;
+  const game = MINI_GAMES[run.id];
+  const round = game.rounds[run.index];
+  run.selected = index;
+  run.answered = true;
+  if (index === round.correct && run.wordSolved) run.score += 1;
+  renderMiniGamePanel();
 }
 
 function miniGameFeedbackTitle(run, round) {
@@ -3921,8 +4209,12 @@ function advanceMiniGame() {
     return;
   }
   activeMiniGame.index += 1;
-  activeMiniGame.answered = false;
-  activeMiniGame.selected = null;
+  if (activeMiniGame.type === "wordReveal") {
+    Object.assign(activeMiniGame, makeWordRevealRound(game.rounds[activeMiniGame.index]));
+  } else {
+    activeMiniGame.answered = false;
+    activeMiniGame.selected = null;
+  }
   renderMiniGamePanel();
 }
 
@@ -7761,6 +8053,16 @@ miniGamePanel?.addEventListener("click", (event) => {
   const choice = event.target.closest("button[data-minigame-choice]");
   if (choice) {
     answerMiniGame(Number(choice.dataset.minigameChoice));
+    return;
+  }
+  const letterKey = event.target.closest("button[data-minigame-letter]");
+  if (letterKey) {
+    guessLetter(letterKey.dataset.minigameLetter);
+    return;
+  }
+  const defineChoice = event.target.closest("button[data-minigame-define]");
+  if (defineChoice) {
+    answerWordDefinition(Number(defineChoice.dataset.minigameDefine));
     return;
   }
   if (event.target.closest("button[data-minigame-next]")) {

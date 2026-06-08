@@ -1727,6 +1727,14 @@ dd {
   background-image: url("assets/minigames/examSimulation.svg");
 }
 
+.minigame-visual-keywordRescue .minigame-banner {
+  background-image: url("assets/minigames/keywordRescue.svg");
+}
+
+.minigame-visual-casewordCourt .minigame-banner {
+  background-image: url("assets/minigames/casewordCourt.svg");
+}
+
 .minigame-banner::after {
   content: "";
   position: absolute;
@@ -2265,6 +2273,120 @@ dd {
   display: grid;
   gap: 8px;
   margin-top: 12px;
+}
+
+/* === G8: word-reveal mini-games (Keyword Rescue / Caseword Court) === */
+.minigame-wordgame .word-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.word-slot {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-bottom: 3px solid var(--gold);
+  background: #11181c;
+  color: var(--ink);
+  font: 700 1.2rem Georgia, "Times New Roman", serif;
+}
+
+.word-slot.is-filled {
+  background: #1d2c22;
+  border-color: #6fbf73;
+}
+
+.word-slot.is-revealed {
+  background: rgba(227, 107, 93, .26);
+  border-bottom-color: var(--red);
+}
+
+.word-gap {
+  width: 14px;
+}
+
+.word-miss-meter {
+  height: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #0f1517;
+}
+
+.word-miss-meter span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #b98231, var(--red));
+  transition: width .2s ease;
+}
+
+.word-hint {
+  margin-bottom: 10px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.word-keys {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.word-key {
+  min-height: 32px;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: #1a2326;
+  color: var(--ink);
+  font: 700 .92rem Georgia, "Times New Roman", serif;
+  cursor: pointer;
+}
+
+.word-key:hover:not(:disabled),
+.word-key:focus-visible:not(:disabled) {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.word-key.is-hit {
+  background: rgba(30, 160, 58, .5);
+  border-color: #88ff8e;
+  color: #f7fff0;
+}
+
+.word-key.is-miss {
+  background: rgba(120, 40, 36, .55);
+  border-color: #ff9a90;
+  color: #ffe7e3;
+}
+
+.word-key:disabled {
+  cursor: default;
+}
+
+.word-status {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.word-status.is-good {
+  color: var(--green);
+}
+
+.word-status.is-warn {
+  color: var(--gold);
+}
+
+@media (max-width: 560px) {
+  .word-keys {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
 }
 
 .minigame-choice {

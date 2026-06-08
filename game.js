@@ -72,6 +72,10 @@ let settings = loadSettings();
 let lastFrameTimestamp = null;
 let frameDeltaMs = 1000 / 60;
 let animationClockMs = 0;
+// §G9 polish state: region transition fade + footstep dust (both reduced-motion gated).
+let regionTransitionMs = 0;
+const REGION_TRANSITION_MS = 440;
+const footstepDust = [];
 
 const imageCache = {};
 
@@ -2871,7 +2875,14 @@ function getQuestLocationId(questId) {
 function setLocation(locationId, options = {}) {
   const location = WORLD[locationId];
   if (!location) return;
+  const previousLocation = state.currentLocation;
   state.currentLocation = locationId;
+  // §G9: brief screen fade when actually moving between locations (skipped on first
+  // load, when staying put, and under Reduced Motion). Cleared footstep dust too.
+  if (gameStarted && previousLocation && previousLocation !== locationId && !settings.reducedMotion) {
+    regionTransitionMs = REGION_TRANSITION_MS;
+  }
+  footstepDust.length = 0;
   npcs.length = 0;
   location.npcs.forEach((npc) => npcs.push({ ...npc }));
   npcs.forEach((npc) => {
@@ -5237,8 +5248,48 @@ function movePlayer() {
   if (!isBlocked(state.player.x, ny, state.player.w, state.player.h)) state.player.y = ny;
   if (dx || dy) {
     state.player.step += 1;
+    spawnFootstepDust();
     if (state.player.step % 45 === 0) saveGame();
   }
+}
+
+// §G9: small dust puff kicked up under the hero's feet while walking (reduced-motion gated).
+function spawnFootstepDust() {
+  if (settings.reducedMotion) return;
+  if (state.player.step % 9 !== 0) return;
+  const side = (state.player.step / 9) % 2 ? -3 : 3;
+  footstepDust.push({
+    x: state.player.x + state.player.w / 2 + side,
+    y: state.player.y + state.player.h - 2,
+    life: 0,
+    ttl: 360 + Math.random() * 120,
+    r: 2 + Math.random() * 1.5
+  });
+  if (footstepDust.length > 24) footstepDust.shift();
+}
+
+function updateFootstepDust(dt) {
+  for (let i = footstepDust.length - 1; i >= 0; i -= 1) {
+    const d = footstepDust[i];
+    d.life += dt;
+    if (d.life >= d.ttl) footstepDust.splice(i, 1);
+  }
+}
+
+function drawFootstepDust() {
+  if (settings.reducedMotion || !footstepDust.length) return;
+  ctx.save();
+  footstepDust.forEach((d) => {
+    const t = d.life / d.ttl;
+    const alpha = (1 - t) * 0.3;
+    if (alpha <= 0) return;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = "#cdbfa6";
+    ctx.beginPath();
+    ctx.ellipse(d.x, d.y - t * 4, d.r + t * 3, (d.r + t * 3) * 0.55, 0, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
 }
 
 function updateCamera() {
@@ -7457,18 +7508,28 @@ function drawInteractionRangeHighlight() {
   const x = item.x + 12;
   const y = item.y + 16;
   const color = found.type === "npc" && item.miniGameId ? "#5da9e9" : "#f2c14e";
+  const baseRx = found.type === "npc" ? 24 : 20;
+  const pulse = settings.reducedMotion ? 0 : 0.5 + 0.5 * Math.sin(animationClockMs / 260);
   ctx.save();
   ctx.globalAlpha = .72;
   ctx.strokeStyle = color;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.ellipse(x, y + 22, found.type === "npc" ? 24 : 20, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y + 22, baseRx, 8, 0, 0, Math.PI * 2);
   ctx.stroke();
   ctx.globalAlpha = .24;
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.ellipse(x, y + 22, found.type === "npc" ? 24 : 20, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y + 22, baseRx, 8, 0, 0, Math.PI * 2);
   ctx.fill();
+  // §G9: gentle expanding pulse ring so an in-range interactable reads more clearly.
+  if (pulse > 0) {
+    ctx.globalAlpha = .34 * (1 - pulse);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(x, y + 22, baseRx + 3 + pulse * 7, 8 + pulse * 3, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -7525,6 +7586,7 @@ function drawPropLayer() {
 
 function drawAmbientLayer() {
   if (settings.reducedMotion) return;
+  drawFootstepDust();
   drawAmbientParticles();
   if (!isInteriorLocation()) drawChimneySmoke();
 }
@@ -7826,6 +7888,19 @@ function drawScreenUi() {
     ctx.textAlign = "center";
     ctx.fillText("Chapter 1 complete: Informed Citizen", canvas.width / 2, 51);
   }
+  drawRegionTransition();
+}
+
+// §G9: screen-space fade that eases out after a location change (peaks at the start,
+// fades to clear). Skipped entirely under Reduced Motion (regionTransitionMs stays 0).
+function drawRegionTransition() {
+  if (regionTransitionMs <= 0) return;
+  const t = regionTransitionMs / REGION_TRANSITION_MS;
+  const alpha = Math.min(0.6, t * 0.6);
+  ctx.save();
+  ctx.fillStyle = `rgba(12, 16, 20, ${alpha.toFixed(3)})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
 }
 
 function loop() {
@@ -7837,6 +7912,8 @@ function loop() {
 
   movePlayer();
   updateAmbientWalkers(frameDeltaMs);
+  updateFootstepDust(frameDeltaMs);
+  if (regionTransitionMs > 0) regionTransitionMs = Math.max(0, regionTransitionMs - frameDeltaMs);
   if (messageTimer > 0) {
     messageTimer -= 1;
     if (messageTimer === 0 && !activeNpc) hideDialogue();

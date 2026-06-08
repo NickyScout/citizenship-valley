@@ -2,6 +2,25 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Atmosphere & polish: transitions, footstep dust, interaction pulse (§G9)
+
+Plan area: §G9 — add the remaining "feel" polish (region transitions, footstep/interaction feedback) on top of the Option A atmosphere already in place (particles, vignette, chimney smoke).
+
+What changed:
+- **Region transition fade**: `setLocation` starts a short `regionTransitionMs` (440ms) when the player actually moves between locations; `drawRegionTransition` (in `drawScreenUi`) eases a dark screen-space veil out to clear. Skipped on first load, when staying in the same location, and under Reduced Motion (the timer never starts).
+- **Footstep dust**: `spawnFootstepDust` (called from `movePlayer` while moving) drops a small pale puff under the hero's feet every few steps; `updateFootstepDust(dt)` ages them and `drawFootstepDust` (in `drawAmbientLayer`, under the characters) fades + expands them. Capped at 24 puffs, fully Reduced-Motion gated, cleared on location change.
+- **Interaction pulse**: `drawInteractionRangeHighlight` now adds a gentle expanding ring around the in-range interactable (gold for NPC/door, blue for mini-game host), so the current target reads more clearly. Static ellipse retained; the pulse is Reduced-Motion gated.
+- All effects are pure render/timing on the existing delta-time clock — no map, route, quest, collision or save-schema change; walkers/quests/doors untouched.
+- Bumped cache-bust to `2026.06.08.6`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`, `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 unique games — `setLocation`/`movePlayer` changes don't affect reachability)
+- `node qa-regional-quests-playthrough.mjs` (`blockingIssues: 0`, 6 regions, 30 quests)
+- Temporary review script captured footstep dust, mid-fade transition, and the interaction pulse ring, then removed.
+
 ## 2026-06-08 — Learning variety: two Hangman-style word games (§G8, first pass)
 
 Plan area: §G8 / §6.4 — add two GCSE-adapted "word reveal" mini-games that practise civic vocabulary and end with a comprehension check, not just guessing.

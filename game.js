@@ -8156,7 +8156,7 @@ function petSpeak(p) {
     let idx = Math.floor(Math.random() * PET_JOKES.length);
     if (PET_JOKES.length > 1 && idx === p.lastJoke) idx = (idx + 1) % PET_JOKES.length;
     p.lastJoke = idx;
-    p.bubble = { text: PET_JOKES[idx], ageMs: 0, ttl: 4800, maxLines: 3 };
+    p.bubble = { text: PET_JOKES[idx], ageMs: 0, ttl: 14400, maxLines: 3 };
   } else {
     const sounds = PET_SOUNDS[p.kind] || ["..."];
     p.bubble = { text: sounds[Math.floor(Math.random() * sounds.length)], ageMs: 0, ttl: 1700, maxLines: 1 };

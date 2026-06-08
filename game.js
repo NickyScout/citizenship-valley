@@ -1174,10 +1174,10 @@ const WORLD_LAYOUTS = {
     map: baseMap,
     spawn: { x: 210, y: 392 },
     buildings: [
-      { x: 86, y: 116, w: 112, h: 72, wall: "#d9c6a0", roof: "roofA" },
-      { x: 612, y: 116, w: 104, h: 72, wall: "#c5d3b1", roof: "roofB" },
-      { x: 396, y: 430, w: 136, h: 72, wall: "#d7d0c3", roof: "roofC" },
-      { x: 740, y: 466, w: 92, h: 56, wall: "#d0a66f", roof: "roofD" }
+      { x: 86, y: 116, w: 112, h: 72, wall: "#d9c6a0", roof: "roofA", kind: "townhall" },
+      { x: 612, y: 116, w: 104, h: 72, wall: "#c5d3b1", roof: "roofB", kind: "library" },
+      { x: 396, y: 430, w: 136, h: 72, wall: "#d7d0c3", roof: "roofC", kind: "court" },
+      { x: 740, y: 466, w: 92, h: 56, wall: "#d0a66f", roof: "roofD", kind: "garden" }
     ]
   },
   modernBritain: {
@@ -1204,10 +1204,10 @@ const WORLD_LAYOUTS = {
     ],
     spawn: { x: 242, y: 394 },
     buildings: [
-      { x: 72, y: 104, w: 128, h: 84, wall: "#d9c6a0", roof: "roofA" },
-      { x: 646, y: 96, w: 118, h: 88, wall: "#c5d3b1", roof: "roofB" },
-      { x: 388, y: 420, w: 160, h: 86, wall: "#d7d0c3", roof: "roofC" },
-      { x: 734, y: 444, w: 106, h: 74, wall: "#d0a66f", roof: "roofD" }
+      { x: 72, y: 104, w: 128, h: 84, wall: "#d9c6a0", roof: "roofA", kind: "townhall" },
+      { x: 646, y: 96, w: 118, h: 88, wall: "#c5d3b1", roof: "roofB", kind: "press" },
+      { x: 388, y: 420, w: 160, h: 86, wall: "#d7d0c3", roof: "roofC", kind: "library" },
+      { x: 734, y: 444, w: 106, h: 74, wall: "#d0a66f", roof: "roofD", kind: "garden" }
     ]
   },
   rightsLaw: {
@@ -1234,10 +1234,10 @@ const WORLD_LAYOUTS = {
     ],
     spawn: { x: 330, y: 394 },
     buildings: [
-      { x: 350, y: 112, w: 154, h: 92, wall: "#d7d0c3", roof: "roofC" },
-      { x: 112, y: 284, w: 112, h: 78, wall: "#d9c6a0", roof: "roofA" },
-      { x: 648, y: 282, w: 116, h: 78, wall: "#c5d3b1", roof: "roofB" },
-      { x: 690, y: 448, w: 126, h: 78, wall: "#c2c8ca", roof: "roofD" }
+      { x: 350, y: 112, w: 154, h: 92, wall: "#d7d0c3", roof: "roofC", kind: "court" },
+      { x: 112, y: 284, w: 112, h: 78, wall: "#d9c6a0", roof: "roofA", kind: "library" },
+      { x: 648, y: 282, w: 116, h: 78, wall: "#c5d3b1", roof: "roofB", kind: "court" },
+      { x: 690, y: 448, w: 126, h: 78, wall: "#c2c8ca", roof: "roofD", kind: "police" }
     ]
   },
   democracy: {
@@ -1264,10 +1264,10 @@ const WORLD_LAYOUTS = {
     ],
     spawn: { x: 274, y: 394 },
     buildings: [
-      { x: 104, y: 104, w: 138, h: 92, wall: "#d8b36a", roof: "roofA" },
-      { x: 636, y: 104, w: 138, h: 92, wall: "#c5d3b1", roof: "roofB" },
-      { x: 532, y: 458, w: 188, h: 64, wall: "#d7d0c3", roof: "roofC" },
-      { x: 732, y: 450, w: 108, h: 70, wall: "#d0a66f", roof: "roofD" }
+      { x: 104, y: 104, w: 138, h: 92, wall: "#d8b36a", roof: "roofA", kind: "townhall" },
+      { x: 636, y: 104, w: 138, h: 92, wall: "#c5d3b1", roof: "roofB", kind: "campaign" },
+      { x: 532, y: 458, w: 188, h: 64, wall: "#d7d0c3", roof: "roofC", kind: "campaign" },
+      { x: 732, y: 450, w: 108, h: 70, wall: "#d0a66f", roof: "roofD", kind: "townhall" }
     ]
   },
   participation: {
@@ -1294,10 +1294,10 @@ const WORLD_LAYOUTS = {
     ],
     spawn: { x: 330, y: 394 },
     buildings: [
-      { x: 124, y: 100, w: 120, h: 82, wall: "#d9c6a0", roof: "roofA" },
-      { x: 438, y: 334, w: 126, h: 80, wall: "#c5d3b1", roof: "roofB" },
-      { x: 170, y: 444, w: 138, h: 82, wall: "#d7d0c3", roof: "roofC" },
-      { x: 592, y: 454, w: 112, h: 70, wall: "#d0a66f", roof: "roofD" }
+      { x: 124, y: 100, w: 120, h: 82, wall: "#d9c6a0", roof: "roofA", kind: "campaign" },
+      { x: 438, y: 334, w: 126, h: 80, wall: "#c5d3b1", roof: "roofB", kind: "press" },
+      { x: 170, y: 444, w: 138, h: 82, wall: "#d7d0c3", roof: "roofC", kind: "campaign" },
+      { x: 592, y: 454, w: 112, h: 70, wall: "#d0a66f", roof: "roofD", kind: "garden" }
     ],
     harbor: true
   },
@@ -1325,10 +1325,10 @@ const WORLD_LAYOUTS = {
     ],
     spawn: { x: 330, y: 394 },
     buildings: [
-      { x: 258, y: 104, w: 120, h: 86, wall: "#d9c6a0", roof: "roofA" },
-      { x: 552, y: 104, w: 120, h: 86, wall: "#c5d3b1", roof: "roofB" },
-      { x: 86, y: 438, w: 140, h: 84, wall: "#d7d0c3", roof: "roofC" },
-      { x: 680, y: 442, w: 136, h: 84, wall: "#d0a66f", roof: "roofD" }
+      { x: 258, y: 104, w: 120, h: 86, wall: "#d9c6a0", roof: "roofA", kind: "library" },
+      { x: 552, y: 104, w: 120, h: 86, wall: "#c5d3b1", roof: "roofB", kind: "press" },
+      { x: 86, y: 438, w: 140, h: 84, wall: "#d7d0c3", roof: "roofC", kind: "campaign" },
+      { x: 680, y: 442, w: 136, h: 84, wall: "#d0a66f", roof: "roofD", kind: "townhall" }
     ]
   },
   examHall: {
@@ -1355,11 +1355,11 @@ const WORLD_LAYOUTS = {
     ],
     spawn: { x: 274, y: 394 },
     buildings: [
-      { x: 350, y: 86, w: 176, h: 104, wall: "#d7d0c3", roof: "roofC" },
-      { x: 84, y: 254, w: 120, h: 80, wall: "#c5d3b1", roof: "roofA" },
-      { x: 682, y: 254, w: 120, h: 80, wall: "#c5d3b1", roof: "roofB" },
-      { x: 84, y: 434, w: 112, h: 84, wall: "#c5d3b1", roof: "roofA" },
-      { x: 682, y: 434, w: 116, h: 84, wall: "#c5d3b1", roof: "roofB" }
+      { x: 350, y: 86, w: 176, h: 104, wall: "#d7d0c3", roof: "roofC", kind: "exam" },
+      { x: 84, y: 254, w: 120, h: 80, wall: "#c5d3b1", roof: "roofA", kind: "exam" },
+      { x: 682, y: 254, w: 120, h: 80, wall: "#c5d3b1", roof: "roofB", kind: "exam" },
+      { x: 84, y: 434, w: 112, h: 84, wall: "#c5d3b1", roof: "roofA", kind: "exam" },
+      { x: 682, y: 434, w: 116, h: 84, wall: "#c5d3b1", roof: "roofB", kind: "library" }
     ]
   },
   townHallInterior: {
@@ -5318,20 +5318,25 @@ function drawBuildingFlag(x, y, w, h) {
   drawWavingUnionJack(poleX + 3, poleTop + 2, 26, 16, phase, 1);
 }
 
-function drawBuilding(x, y, w, h, wall, roof, label) {
-  ctx.save();
-  ctx.globalAlpha = .16;
-  ctx.fillStyle = "#1a2410";
-  ctx.beginPath();
-  ctx.moveTo(x + 10, y + h + 1);
-  ctx.lineTo(x + w + 6, y + h + 1);
-  ctx.lineTo(x + w + 20, y + h + 13);
-  ctx.lineTo(x + 24, y + h + 13);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-  rect(x + 5, y + h - 2, w + 10, 9, "rgba(0, 0, 0, .32)");
-  rect(x - 7, y + h + 5, w + 16, 5, "rgba(0, 0, 0, .18)");
+// === SECTION: BUILDING EXTERIORS BY PURPOSE (§G4) ===
+// Each building has a `kind` (set in WORLD_LAYOUTS, with a label-keyword fallback)
+// that drives a recognisable roofline silhouette and an entrance group, while the
+// shared base (walls/windows/door/sign) keeps door positions and reachability stable.
+function buildingKindFromLabel(label) {
+  const l = (label || "").toLowerCase();
+  if (/(town hall|city hall|parliament|council|devolve|government|civic)/.test(l)) return "townhall";
+  if (/(court|rights aid|tribunal|justice|magistrate)/.test(l)) return "court";
+  if (/(library|archive|museum|sources|research|reading|records)/.test(l)) return "library";
+  if (/(printworks|signal|press|media|broadcast|survey|studio)/.test(l)) return "press";
+  if (/police/.test(l)) return "police";
+  if (/(park|garden|volunteer|green|grove|allotment)/.test(l)) return "garden";
+  if (/(identify|describe|explain|evaluate)/.test(l)) return "exam";
+  if (/(election|petition|campaign|party|union|planning|impact|rally|hub|action)/.test(l)) return "campaign";
+  return "generic";
+}
+
+// Classic tiled gabled roof + corner chimney (used by campaign + generic fallback).
+function drawBuildingRoofClassic(x, y, w, h, roof) {
   rect(x + w - 20, y - 42, 12, 22, "#5b3434");
   rect(x + w - 18, y - 48, 8, 6, "#7d4840");
   rect(x + w - 18, y - 39, 8, 2, "#2d2521");
@@ -5345,6 +5350,165 @@ function drawBuilding(x, y, w, h, wall, roof, label) {
   }
   rect(x - 7, y - 1, w + 14, 3, "#2d2521");
   rect(x - 2, y + 1, w + 4, 3, "rgba(255,255,255,.18)");
+}
+
+function drawBuildingRoof(kind, x, y, w, h, roof, wall) {
+  const cx = Math.round(x + w / 2);
+  const rdk = "#2d2521";
+  const rlt = shadeHex(roof, 24);
+  if (kind === "garden") {
+    const leaf = "#3f8a47", leafLt = "#5bb45e", leafDk = "#2c6a34";
+    rect(x - 10, y - 18, w + 20, 18, leafDk);
+    rect(x - 6, y - 15, w + 12, 15, leaf);
+    rect(x - 6, y - 15, w + 12, 3, leafLt);
+    for (let sx = x - 8; sx < x + w + 8; sx += 12) {
+      rect(sx, y - 1, 12, 4, leafDk);
+      rect(sx + 2, y, 8, 2, leaf);
+    }
+    rect(cx - 2, y - 27, 4, 10, "#6b5a44");
+    rect(cx - 5, y - 30, 10, 5, "#ffd95e");
+    rect(cx - 3, y - 29, 6, 3, "#ffe9a8");
+    return;
+  }
+  if (kind === "townhall") {
+    rect(x - 6, y - 18, w + 12, 18, rdk);
+    rect(x - 3, y - 15, w + 6, 15, roof);
+    rect(x - 3, y - 15, w + 6, 3, rlt);
+    const tw = 30, tx = cx - 15;
+    rect(tx - 3, y - 20, tw + 6, 6, rdk);
+    rect(tx - 2, y - 58, tw + 4, 42, "#26201c");
+    rect(tx, y - 56, tw, 40, shadeHex(wall, -2));
+    rect(tx, y - 56, 3, 40, shadeHex(wall, 16));
+    rect(tx + tw - 3, y - 56, 3, 40, shadeHex(wall, -18));
+    rect(cx - 8, y - 54, 16, 14, rdk);
+    rect(cx - 6, y - 52, 12, 10, "#f5efdb");
+    rect(cx - 6, y - 52, 12, 2, "#fffaf0");
+    rect(cx - 1, y - 48, 2, 2, "#3a2f2a");
+    rect(cx - 3, y - 50, 2, 3, "#3a2f2a");
+    rect(cx + 2, y - 50, 2, 3, "#3a2f2a");
+    ctx.save();
+    ctx.fillStyle = roof;
+    ctx.beginPath(); ctx.moveTo(tx - 4, y - 56); ctx.lineTo(cx, y - 70); ctx.lineTo(tx + tw + 4, y - 56); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = rdk;
+    ctx.beginPath(); ctx.moveTo(cx, y - 70); ctx.lineTo(tx + tw + 4, y - 56); ctx.lineTo(cx, y - 56); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    rect(cx - 1, y - 80, 2, 11, "#6b5a44");
+    rect(cx - 3, y - 82, 6, 4, "#f2c14e");
+    return;
+  }
+  if (kind === "court") {
+    const stone = shadeHex(wall, 6), stoneLt = shadeHex(wall, 20), stoneDk = shadeHex(wall, -18);
+    rect(x - 8, y - 14, w + 16, 14, rdk);
+    rect(x - 6, y - 12, w + 12, 12, stone);
+    rect(x - 6, y - 12, w + 12, 3, stoneLt);
+    rect(x - 8, y - 2, w + 16, 3, stoneDk);
+    ctx.save();
+    ctx.fillStyle = rdk;
+    ctx.beginPath(); ctx.moveTo(x - 8, y - 12); ctx.lineTo(cx, y - 48); ctx.lineTo(x + w + 8, y - 12); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = stone;
+    ctx.beginPath(); ctx.moveTo(x - 3, y - 13); ctx.lineTo(cx, y - 44); ctx.lineTo(x + w + 3, y - 13); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = stoneLt;
+    ctx.beginPath(); ctx.moveTo(x - 3, y - 13); ctx.lineTo(cx, y - 44); ctx.lineTo(cx, y - 13); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    rect(cx - 3, y - 47, 6, 6, "#caa64a");
+    rect(cx - 2, y - 46, 4, 4, "#f2d479");
+    return;
+  }
+  if (kind === "library") {
+    rect(x - 8, y - 19, w + 16, 19, rdk);
+    rect(x - 5, y - 16, w + 10, 16, roof);
+    rect(x - 5, y - 16, w + 10, 3, rlt);
+    for (let tx = x - 4; tx < x + w + 4; tx += 9) rect(tx, y - 3, 5, 3, rdk);
+    rect(cx - 14, y - 15, 28, 12, "#6f4633");
+    rect(cx - 13, y - 14, 13, 10, "#f3ead0");
+    rect(cx, y - 14, 13, 10, "#e7dcc4");
+    rect(cx - 1, y - 14, 2, 10, "#8a6f4f");
+    for (let i = 1; i < 4; i += 1) {
+      rect(cx - 11, y - 14 + i * 2, 9, 1, "#bdae8f");
+      rect(cx + 2, y - 14 + i * 2, 9, 1, "#b0a283");
+    }
+    return;
+  }
+  if (kind === "press") {
+    rect(x - 8, y - 18, w + 16, 18, rdk);
+    rect(x - 5, y - 15, w + 10, 15, roof);
+    rect(x - 5, y - 15, w + 10, 3, rlt);
+    rect(x + 8, y - 60, 14, 44, "#5b3434");
+    rect(x + 8, y - 60, 14, 4, "#7d4840");
+    rect(x + 9, y - 56, 12, 2, "#3a2422");
+    rect(x + 10, y - 42, 10, 2, "#3a2422");
+    rect(x + 10, y - 28, 10, 2, "#3a2422");
+    ctx.save();
+    ctx.globalAlpha = .5;
+    ctx.fillStyle = "#cfd2cf";
+    [[-2, -68, 5], [3, -75, 6], [1, -83, 7]].forEach(([dx, dy, r]) => {
+      ctx.beginPath(); ctx.arc(x + 15 + dx, y + dy, r, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.restore();
+    rect(x + w - 14, y - 50, 2, 34, "#6a6f74");
+    rect(x + w - 20, y - 44, 14, 2, "#6a6f74");
+    rect(x + w - 18, y - 38, 10, 2, "#6a6f74");
+    rect(x + w - 15, y - 54, 4, 4, settings.reducedMotion ? "#e36b5d" : (Math.floor(animationClockMs / 500) % 2 ? "#ff5a4d" : "#7a2820"));
+    return;
+  }
+  if (kind === "police") {
+    rect(x - 8, y - 18, w + 16, 18, rdk);
+    rect(x - 5, y - 15, w + 10, 15, roof);
+    rect(x - 5, y - 15, w + 10, 3, rlt);
+    for (let i = 0, sx = x - 4; sx < x + w + 4; sx += 6, i += 1) {
+      rect(sx, y - 6, 6, 6, i % 2 ? "#1f3f7a" : "#f4f6fb");
+    }
+    rect(x - 6, y - 7, w + 12, 1, "#16233a");
+    rect(x - 6, y, w + 12, 1, "#16233a");
+    return;
+  }
+  if (kind === "exam") {
+    const stone = shadeHex(wall, 4), stoneLt = shadeHex(wall, 18), stoneDk = shadeHex(wall, -20);
+    rect(x - 8, y - 16, w + 16, 16, stoneDk);
+    rect(x - 6, y - 14, w + 12, 14, stone);
+    rect(x - 6, y - 14, w + 12, 3, stoneLt);
+    for (let sx = x - 6; sx < x + w + 4; sx += 14) {
+      rect(sx, y - 22, 8, 8, stone);
+      rect(sx, y - 22, 8, 2, stoneLt);
+      rect(sx, y - 22, 2, 8, shadeHex(stone, 10));
+    }
+    rect(x - 8, y - 14, 2, 14, stoneDk);
+    rect(x + w + 6, y - 14, 2, 14, stoneDk);
+    rect(cx - 8, y - 13, 16, 12, "#3a4f74");
+    rect(cx - 6, y - 11, 12, 8, "#52688f");
+    rect(cx - 1, y - 12, 2, 11, "#cdd6e6");
+    rect(cx - 6, y - 8, 12, 1, "#cdd6e6");
+    return;
+  }
+  drawBuildingRoofClassic(x, y, w, h, roof);
+  if (kind === "campaign") {
+    const colors = ["#e36b5d", "#f2c14e", "#5da9e9", "#6fbf73"];
+    rect(x - 2, y - 25, w + 4, 1, "#5a4632");
+    for (let i = 0, sx = x; sx < x + w; sx += 15, i += 1) {
+      ctx.save();
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.beginPath(); ctx.moveTo(sx, y - 24); ctx.lineTo(sx + 11, y - 24); ctx.lineTo(sx + 5, y - 16); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+  }
+}
+
+function drawBuilding(x, y, w, h, wall, roof, label, kind) {
+  const buildingKind = kind || buildingKindFromLabel(label);
+  ctx.save();
+  ctx.globalAlpha = .16;
+  ctx.fillStyle = "#1a2410";
+  ctx.beginPath();
+  ctx.moveTo(x + 10, y + h + 1);
+  ctx.lineTo(x + w + 6, y + h + 1);
+  ctx.lineTo(x + w + 20, y + h + 13);
+  ctx.lineTo(x + 24, y + h + 13);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+  rect(x + 5, y + h - 2, w + 10, 9, "rgba(0, 0, 0, .32)");
+  rect(x - 7, y + h + 5, w + 16, 5, "rgba(0, 0, 0, .18)");
+  drawBuildingRoof(buildingKind, x, y, w, h, roof, wall);
   rect(x, y, w, h, wall);
   drawPixelPattern(x + 3, y + 4, w - 6, h - 26, ["rgba(255,255,255,.16)", "rgba(80,60,45,.14)"], 14, x + y);
   for (let by = y + 8; by < y + h - 25; by += 12) {
@@ -5386,8 +5550,7 @@ function drawBuilding(x, y, w, h, wall, roof, label) {
   ctx.font = "10px Georgia";
   ctx.textAlign = "center";
   ctx.fillText(label, x + w / 2, signY + 9);
-  drawBuildingOrnaments(x, y, w, h, label);
-  if (isCivicBuilding(label)) drawBuildingFlag(x, y, w, h);
+  drawBuildingEntrance(buildingKind, x, y, w, h, wall, label);
 }
 
 function drawPerson(person) {
@@ -5582,6 +5745,97 @@ function drawBuildingOrnaments(x, y, w, h, label) {
     rect(x + w - 6, y - 38, 24, 13, "#e36b5d");
     rect(x + w - 3, y - 34, 14, 2, "#f5f0df");
   }
+}
+
+// Entrance group per building kind: recognisable props framing the door, drawn in
+// front of the facade. Door position itself is unchanged (reachability preserved).
+function drawBuildingEntrance(kind, x, y, w, h, wall, label) {
+  const cx = Math.round(x + w / 2);
+  const base = y + h;
+  const doorTop = base - 28;
+  const gold = "#f2c14e", paper = "#f5f0df", ink = "#2d2521", red = "#e36b5d";
+  if (kind === "townhall") {
+    [x + 12, x + w - 15].forEach((px) => {
+      rect(px, base - 24, 3, 24, "#5a4632");
+      rect(px - 2, base - 30, 7, 7, "#3a4f74");
+      rect(px - 1, base - 29, 5, 4, "#ffe9a8");
+      rect(px - 1, base - 25, 5, 2, "#cf9d3a");
+    });
+    drawBuildingFlag(x, y, w, h);
+    return;
+  }
+  if (kind === "court") {
+    [x + 12, x + 27, x + w - 33, x + w - 18].forEach((px) => {
+      rect(px, base - 30, 6, 30, "#efe6cf");
+      rect(px, base - 30, 2, 30, "#fffaf0");
+      rect(px + 4, base - 30, 2, 30, "#cdbf9f");
+      rect(px - 2, base - 32, 10, 3, "#d8ccad");
+      rect(px - 2, base - 3, 10, 3, "#d8ccad");
+    });
+    const sxp = cx + 18;
+    rect(sxp, base - 24, 2, 16, "#caa64a");
+    rect(sxp - 8, base - 23, 18, 2, "#caa64a");
+    rect(sxp - 10, base - 20, 6, 3, paper);
+    rect(sxp + 6, base - 20, 6, 3, paper);
+    return;
+  }
+  if (kind === "library") {
+    rect(x + 10, base - 16, 22, 12, "#6f4633");
+    rect(x + 12, base - 14, 6, 9, "#5da9e9");
+    rect(x + 19, base - 14, 5, 9, red);
+    rect(x + 25, base - 14, 5, 9, "#6fbf73");
+    rect(x + 10, base - 4, 4, 4, "#3a2422");
+    rect(x + 28, base - 4, 4, 4, "#3a2422");
+    return;
+  }
+  if (kind === "press") {
+    rect(x + w - 34, base - 18, 24, 14, "#4b3128");
+    rect(x + w - 32, base - 16, 20, 5, paper);
+    rect(x + w - 30, base - 15, 16, 1, ink);
+    rect(x + w - 30, base - 13, 11, 1, "#8f8576");
+    rect(x + w - 32, base - 9, 20, 4, "#d8cdb6");
+    return;
+  }
+  if (kind === "police") {
+    rect(cx - 2, doorTop - 14, 4, 8, "#1a1f2a");
+    rect(cx - 5, doorTop - 22, 10, 9, "#16233a");
+    rect(cx - 4, doorTop - 21, 8, 7, "#2f6fd0");
+    rect(cx - 3, doorTop - 20, 6, 3, "#7fb0f5");
+    rect(cx - 5, doorTop - 23, 10, 2, "#0f1726");
+    return;
+  }
+  if (kind === "garden") {
+    [x + 8, x + w - 26].forEach((px) => {
+      rect(px, base - 14, 18, 14, "#3f8a47");
+      rect(px, base - 14, 18, 3, "#5bb45e");
+      rect(px + 3, base - 11, 3, 3, "#f05d5e");
+      rect(px + 9, base - 9, 3, 3, "#ffe066");
+      rect(px + 13, base - 12, 3, 3, "#e879c7");
+    });
+    return;
+  }
+  if (kind === "campaign") {
+    rect(cx - 16, doorTop - 16, 32, 12, red);
+    rect(cx - 16, doorTop - 16, 32, 2, "#f29a8f");
+    rect(cx - 14, doorTop - 12, 28, 1, "#fff0ec");
+    rect(cx - 24, doorTop - 18, 10, 10, gold);
+    rect(cx - 21, doorTop - 15, 4, 4, "#b8881f");
+    rect(cx - 22, doorTop - 8, 3, 14, "#b94a3e");
+    rect(x + 10, y + 38, 16, 18, paper);
+    rect(x + 12, y + 40, 12, 6, "#5da9e9");
+    rect(x + 12, y + 48, 12, 1, ink);
+    rect(x + 12, y + 51, 9, 1, "#8f8576");
+    return;
+  }
+  if (kind === "exam") {
+    [x + 10, x + w - 13].forEach((px) => {
+      rect(px, y + 38, 3, 14, "#3a2f26");
+      rect(px - 1, y + 34, 5, 5, "#f2a13a");
+      rect(px, y + 32, 3, 3, "#ffd95e");
+    });
+    return;
+  }
+  drawBuildingOrnaments(x, y, w, h, label);
 }
 
 function npcStyle(person) {
@@ -6767,7 +7021,8 @@ function drawBuildingLayer(visual) {
       building.h,
       building.wall,
       visual[building.roof] || visual.roofA || "#8f4f44",
-      regionBuildingLabel(index)
+      regionBuildingLabel(index),
+      building.kind
     );
   });
 }
@@ -6834,8 +7089,17 @@ function drawChimneySmoke() {
   const t = animationClockMs / 1000;
   ctx.save();
   buildings.forEach((b, idx) => {
-    const cx = b.x + b.w - 14;
-    const cy = b.y - 46;
+    const kind = b.kind || buildingKindFromLabel(regionBuildingLabel(idx));
+    let cx, cy;
+    if (kind === "press") {
+      cx = b.x + 15;
+      cy = b.y - 62;
+    } else if (kind === "campaign" || kind === "generic") {
+      cx = b.x + b.w - 14;
+      cy = b.y - 46;
+    } else {
+      return; // typed roofs (townhall/court/library/police/garden/exam) have no smoking chimney
+    }
     for (let p = 0; p < 3; p += 1) {
       const seed = hashNoise(idx, p, 21);
       const cycle = (t * .32 + seed) % 1;

@@ -2,6 +2,26 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Building exteriors by purpose (§G4)
+
+Plan area: §G4 — replace the single structural building with typed silhouettes so a building's purpose reads from its shape, not just its wall colour.
+
+What changed:
+- Added a `kind` field to every building record in `WORLD_LAYOUTS` (townhall / court / library / press / police / garden / campaign / exam), assigned by purpose. `drawBuildingLayer` passes `kind` through; `drawBuilding(…, kind)` falls back to `buildingKindFromLabel(label)` when a record has no `kind`, so nothing breaks if a future building omits it.
+- New `drawBuildingRoof(kind, …)` renders a recognisable roofline per kind: town hall = clock tower + flag, court = stone pediment + gold finial, library = green tiled roof + book-row dormer, press/printworks = tall smoking chimney + flashing antenna, police = blue/white chequered band, garden = hedge roof + sunflower, exam = castellated battlements + shield window, campaign + generic = classic tiled gable (with bunting for campaign). Shared `drawBuildingRoofClassic` keeps the original chimney look for the fallback.
+- New `drawBuildingEntrance(kind, …)` draws a purpose entrance group framing the (unchanged) door: town hall lamps + Union flag, court fluted columns + scales, library book cart, press news box, police blue lamp, garden flower planters, campaign rosette banner + poster, exam torch sconces. Falls back to the old `drawBuildingOrnaments` for generic.
+- `drawChimneySmoke` is now kind-aware: only press (tall stack) and campaign/generic (corner chimney) emit smoke; the typed civic roofs no longer puff from a non-existent chimney.
+- Door positions, sizes and `BUILDING_DOORS`/reachability are untouched — purely additive exterior art with a primitive fallback.
+- Bumped cache-bust to `2026.06.08.1`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`, `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 unique games — door/host reachability intact)
+- `node qa-regional-quests-playthrough.mjs` (`blockingIssues: 0`, 6 regions, 30 quests completed)
+- Per-region exterior review screenshots (temporary script) for all 8 kinds, then removed.
+
 ## 2026-06-05 — NPC background life: ambient walkers (§G3)
 
 Plan area: §G3 background life — make regions feel alive with walking villagers.

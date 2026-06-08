@@ -2,6 +2,28 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Participation Harbour declutter + road structure
+
+Plan area: map readability — same cleanup as Rights & Law, applied to Participation Harbour.
+
+Problems fixed:
+- The left side piled up the petition stand, Priya, a Leaflets market stall and two labels (Petition Hub + Petitions sign) with two NPCs on top; the "Signal Hub" building label sat on the press building with an NPC under it; banners/crates/boats were scattered and buildings weren't linked by paths inside the harbour wall.
+
+What changed:
+- Reshaped the inner harbour plaza in `WORLD_LAYOUTS.participation.map`: a compact central **Harbour Square** (a 6-wide plaza, rows 10–12) plus short connector paths to the press building (centre), the east gate dock and the SW garden — instead of two stray plaza patches. Harbour water ring, dock and building rects/doors unchanged, so `isHarborWater`, `BUILDING_DOORS` and door sides stay intact.
+- Spread the 5 NPCs: Priya top-left by the petition pier, Pax on the plaza, Morgan on the west walk, Rae by the Leaflets stall (top-right), Amina by the Volunteer garden — all clear of doors (≥76px), props and building labels.
+- Moved props so nothing overlaps: petition stand (mini-game trigger) on the NW approach, gate boat moored at the east dock, banner top-centre, crate by the press building.
+- Repositioned the 4 signs, moved the Apathy-trace to a free top spot, and relocated the `drawFineDetails` boats/Leaflets stall/landmark label (renamed "Petition Hub" → "Harbour Square" onto the new plaza).
+- Only the Participation region changed; no other maps, no save schema, no quest/mini-game data.
+- Bumped cache-bust to `2026.06.08.10`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js` (reachability + NPC↔door ≥76px + no NPC/label/prop overlaps — pass; caught and fixed one Volunteer-label/charityAmina overlap)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 games — petitionRegatta host reachable)
+- `node qa-regional-quests-playthrough.mjs` (`blockingIssues: 0`, 6 regions, 30 quests)
+- Before/after review screenshots from 5 framings confirmed the plaza, spread NPCs, clear Signal Hub label, and east-dock gate boat; then removed.
+
 ## 2026-06-08 — Rights & Law Quarter declutter + road structure
 
 Plan area: map readability (§3.1 reachability invariant) — the Rights & Law region was cluttered with overlapping objects and had no coherent road structure.

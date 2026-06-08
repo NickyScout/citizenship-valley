@@ -1441,13 +1441,13 @@ const WORLD_LAYOUTS = {
       "#~~..=..................=~~~~#",
       "#~~..=,,,,,,,,,,,,,,,,,,=~~~~#",
       "#~~..=,,,,,,,,,,,,,,,,,,=~~~~#",
+      "#~~~~=....,,.........,,.=~~~~#",
+      "#~~~~=..::::::.......,,.=~~~~#",
+      "#~~~~=..::::::.......,,.=~~~~#",
+      "#~~~~=..::::::.......,,.=~~~~#",
+      "#~~~~=....,,.,,,,,...,,.=~~~~#",
+      "#~~~~=....,,..........,,=~~~~#",
       "#~~~~=..................=~~~~#",
-      "#~~~~=..........::::....=~~~~#",
-      "#~~~~=..........::::....=~~~~#",
-      "#~~~~=..................=~~~~#",
-      "#~~~~=..................=~~~~#",
-      "#~~~~=............::::..=~~~~#",
-      "#~~~~=............::::..=~~~~#",
       "#~~~~====================~~~~#",
       "#~~~~~~~~~~~~~~~~~~~~~~~~~~~~#",
       "##############################"
@@ -2628,11 +2628,11 @@ const locationBlueprints = [
     travel: "Campaign Boat to Action Workshop",
     visual: { sky: "#4f9b8f", water: "#1f6b78", road: "#aa967a", roofA: "#b94e48", roofB: "#466d9f", roofC: "#8f5b3f", roofD: "#4f7b55" },
     npcs: [
-      ["campaignPriya2", "Priya the Campaigner", 164, 250, "#6fbf73", "Campaign strategy and public voice."],
-      ["unionMorgan", "Union Rep Morgan", 372, 292, "#d88c5a", "Trade unions and collective action."],
-      ["charityAmina", "Charity Lead Amina", 664, 220, "#5da9e9", "Volunteering and charities."],
-      ["lobbyistPax", "Lobbyist Pax", 356, 406, "#b089d6", "Lobbying and pressure groups."],
-      ["moderatorRae", "Digital Moderator Rae", 704, 368, "#f2c14e", "Social media and online participation."]
+      ["campaignPriya2", "Priya the Campaigner", 272, 212, "#6fbf73", "Campaign strategy and public voice."],
+      ["unionMorgan", "Union Rep Morgan", 248, 348, "#d88c5a", "Trade unions and collective action."],
+      ["charityAmina", "Charity Lead Amina", 656, 360, "#5da9e9", "Volunteering and charities."],
+      ["lobbyistPax", "Lobbyist Pax", 372, 300, "#b089d6", "Lobbying and pressure groups."],
+      ["moderatorRae", "Digital Moderator Rae", 664, 232, "#f2c14e", "Social media and online participation."]
     ],
     topics: [
       ["petition", "Petition Pier", "campaignPriya2", "lobbyistPax", "Ask Pax what target a petition needs.", "A petition needs a clear demand, evidence, public support, and the right decision-maker.", "A strong petition needs...", ["Clear aim, evidence, and target", "No audience", "Only decoration"]],
@@ -3017,29 +3017,29 @@ const signs = [
   },
   {
     location: "participation",
-    x: 252,
-    y: 250,
+    x: 220,
+    y: 300,
     title: "Petition Pier",
     body: "Route note: the pier links Priya, petition strategy, volunteer action, and the harbour travel route."
   },
   {
     location: "participation",
-    x: 218,
-    y: 304,
+    x: 300,
+    y: 322,
     title: "Regatta Stand",
     body: "Petition Regatta starts with Priya. Gather signatures, avoid misinformation, and follow up clearly."
   },
   {
     location: "participation",
-    x: 632,
-    y: 250,
+    x: 548,
+    y: 430,
     title: "Volunteer Dock",
     body: "Volunteering and charities turn concern into practical support for communities."
   },
   {
     location: "participation",
-    x: 744,
-    y: 384,
+    x: 700,
+    y: 322,
     title: "Campaign Boat Gate",
     body: "Complete the harbour topics, then use any NPC travel gate to move toward Action Workshop."
   },
@@ -3118,10 +3118,10 @@ const props = [
   { location: "democracy", type: "podium", x: 690, y: 246, miniGameId: "debateArena" },
   { location: "democracy", type: "poster", x: 596, y: 304 },
   { location: "democracy", type: "bench", x: 456, y: 338 },
-  { location: "participation", type: "petitionStand", x: 238, y: 272, miniGameId: "petitionRegatta" },
-  { location: "participation", type: "boat", x: 744, y: 286 },
-  { location: "participation", type: "banner", x: 620, y: 338 },
-  { location: "participation", type: "crate", x: 520, y: 258 },
+  { location: "participation", type: "petitionStand", x: 308, y: 248, miniGameId: "petitionRegatta" },
+  { location: "participation", type: "boat", x: 744, y: 296 },
+  { location: "participation", type: "banner", x: 468, y: 196 },
+  { location: "participation", type: "crate", x: 600, y: 352 },
   { location: "actionWorkshop", type: "planningBoard", x: 202, y: 270, miniGameId: "campaignPlanner" },
   { location: "actionWorkshop", type: "surveyBox", x: 594, y: 272 },
   { location: "actionWorkshop", type: "dataCards", x: 650, y: 278 },
@@ -7291,7 +7291,7 @@ const APATHY_TRACE_POINTS = {
   modernBritain: { flag: "challengedRumour", x: 548, y: 190 },
   rightsLaw: { flag: "defendedRights", x: 140, y: 96 },
   democracy: { flag: "usedEvidenceInDebate", x: 565, y: 54 },
-  participation: { flag: "helpedVolunteer", x: 604, y: 80 },
+  participation: { flag: "helpedVolunteer", x: 432, y: 150 },
   actionWorkshop: { flag: "plannedAction", x: 462, y: 286 }
 };
 
@@ -7342,10 +7342,10 @@ function drawFineDetails() {
     drawWorldLabel(548, 206, "Media Plaza", "#5da9e9", 84);
   }
   if (id === "participation") {
-    drawBoat(700, 418);
+    drawBoat(788, 296);
     drawBoat(58, 84);
-    drawMarketStall(242, 396, "#6fbf73", "Leaflets");
-    drawWorldLabel(246, 366, "Petition Hub", "#6fbf73", 82);
+    drawMarketStall(632, 188, "#6fbf73", "Leaflets");
+    drawWorldLabel(352, 432, "Harbour Square", "#6fbf73", 100);
   }
   if (id === "actionWorkshop") {
     drawMarketStall(330, 300, "#b98231", "Tools");

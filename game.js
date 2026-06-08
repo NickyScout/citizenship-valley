@@ -7841,6 +7841,163 @@ function drawAmbientWalker(w) {
   }
 }
 
+// === SECTION: NPC CHATTER (speech bubbles, §G3 background life) ===
+// Editable on-topic phrase pool per region: short, accurate, age-appropriate GCSE
+// Citizenship lines. Ambient walkers (when paused) and already-helped NPCs occasionally
+// show one above their head, then it fades. Pure render + timer: no save schema, no
+// collisions, no routes; hidden during dialogue and under Reduced Motion.
+const NPC_CHATTER = {
+  village: ["Citizens have rights and duties.", "Every voice counts here.", "Rules keep things fair.", "Volunteering helps the valley.", "Be an active citizen!"],
+  modernBritain: ["The UK is wonderfully diverse.", "Check the source first!", "A free press holds power to account.", "Question what you read online.", "Many cultures, one community."],
+  rightsLaw: ["No one is above the law.", "Everyone has human rights.", "A fair trial matters.", "Rights come with responsibilities.", "Equal before the law."],
+  democracy: ["Parliament makes the laws.", "Your vote counts.", "One person, one vote.", "MPs represent us.", "Devolution shares power."],
+  participation: ["Sign the petition!", "Peaceful protest is a right.", "Volunteers make change.", "Join a pressure group.", "Change starts local."],
+  actionWorkshop: ["Research before you act.", "Plan, then take action.", "Evidence builds the case.", "Evaluate the impact.", "Small steps, real change."],
+  examHall: ["Explain means give reasons.", "Use evidence in answers.", "Balance both sides.", "Plan before you write.", "Mind the command word."]
+};
+const NPC_CHATTER_DEFAULT = ["Be an active citizen!", "Every voice counts.", "Knowledge is power."];
+const CHATTER_TTL_MS = 3200;
+const CHATTER_MAX_ACTIVE = 2;
+
+function chatterPool() {
+  return NPC_CHATTER[state.currentLocation] || NPC_CHATTER_DEFAULT;
+}
+
+function chatterInputBlocked() {
+  return Boolean(activeQuestion) || !choicePanel.classList.contains("hidden") || !dialogue.classList.contains("hidden");
+}
+
+// Interactive NPCs only chatter once their quest marker is gone and they are not a
+// mini-game host, so a bubble never competes with a functional marker.
+function npcCanChatter(npc) {
+  return state.completed.has(npc.id) && !npc.miniGameId;
+}
+
+function startChatter(entity, activeCount) {
+  if (activeCount >= CHATTER_MAX_ACTIVE) return false;
+  const pool = chatterPool();
+  let idx = Math.floor(Math.random() * pool.length);
+  if (pool.length > 1 && idx === entity.lastChatterIdx) idx = (idx + 1) % pool.length;
+  entity.lastChatterIdx = idx;
+  entity.bubble = { text: pool[idx], ageMs: 0 };
+  return true;
+}
+
+function updateNpcChatter(dt) {
+  if (isInteriorLocation() || settings.reducedMotion) return;
+  if (chatterInputBlocked()) {
+    npcs.forEach((n) => { n.bubble = null; });
+    ambientWalkers.forEach((w) => { w.bubble = null; });
+    return;
+  }
+  let activeCount = npcs.filter((n) => n.bubble).length + ambientWalkers.filter((w) => w.bubble).length;
+  const tick = (entity, eligible) => {
+    if (entity.bubble) {
+      entity.bubble.ageMs += dt;
+      if (entity.bubble.ageMs >= CHATTER_TTL_MS) {
+        entity.bubble = null;
+        entity.nextChatterMs = 7000 + Math.random() * 6000;
+        activeCount -= 1;
+      }
+      return;
+    }
+    if (entity.nextChatterMs === undefined) {
+      entity.nextChatterMs = 1200 + Math.random() * 7000;
+      return;
+    }
+    entity.nextChatterMs -= dt;
+    if (entity.nextChatterMs <= 0) {
+      if (eligible && startChatter(entity, activeCount)) activeCount += 1;
+      else entity.nextChatterMs = 3000 + Math.random() * 4000;
+    }
+  };
+  ambientWalkers.forEach((w) => tick(w, !w.moving));
+  npcs.forEach((n) => tick(n, npcCanChatter(n)));
+}
+
+function drawNpcSpeechBubbles() {
+  if (isInteriorLocation() || settings.reducedMotion || chatterInputBlocked()) return;
+  [...ambientWalkers, ...npcs].forEach((entity) => {
+    if (entity.bubble) drawNpcSpeechBubble(entity);
+  });
+}
+
+function drawNpcSpeechBubble(entity) {
+  const b = entity.bubble;
+  const fadeIn = Math.min(1, b.ageMs / 260);
+  const fadeOut = Math.min(1, (CHATTER_TTL_MS - b.ageMs) / 600);
+  const alpha = Math.max(0, Math.min(fadeIn, fadeOut));
+  if (alpha <= 0) return;
+  ctx.save();
+  ctx.font = "8px Georgia";
+  ctx.textBaseline = "middle";
+  const lines = wrapChatterText(b.text, 116);
+  let textW = 0;
+  lines.forEach((ln) => { textW = Math.max(textW, ctx.measureText(ln).width); });
+  const padX = 6;
+  const padY = 4;
+  const lineH = 10;
+  const boxW = Math.ceil(textW) + padX * 2;
+  const boxH = lines.length * lineH + padY * 2;
+  const cx = Math.round(entity.x + 12);
+  const boxBottom = Math.round(entity.y - 5);
+  const boxX = Math.round(cx - boxW / 2);
+  const boxY = boxBottom - boxH;
+  ctx.globalAlpha = alpha;
+  chatterRoundRect(boxX, boxY, boxW, boxH, 4);
+  ctx.fillStyle = "#f6f1df";
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#3a2f28";
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx - 4, boxBottom - 1);
+  ctx.lineTo(cx + 4, boxBottom - 1);
+  ctx.lineTo(cx, boxBottom + 4);
+  ctx.closePath();
+  ctx.fillStyle = "#f6f1df";
+  ctx.fill();
+  ctx.strokeStyle = "#3a2f28";
+  ctx.stroke();
+  ctx.fillStyle = "#26313a";
+  ctx.textAlign = "center";
+  lines.forEach((ln, i) => ctx.fillText(ln, cx, boxY + padY + lineH / 2 + i * lineH));
+  ctx.restore();
+}
+
+function wrapChatterText(text, maxW) {
+  const words = text.split(" ");
+  const lines = [];
+  let line = "";
+  words.forEach((word) => {
+    const test = line ? `${line} ${word}` : word;
+    if (ctx.measureText(test).width > maxW && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  });
+  if (line) lines.push(line);
+  if (lines.length > 2) {
+    lines.length = 2;
+    let last = lines[1];
+    while (last.length > 1 && ctx.measureText(`${last}…`).width > maxW) last = last.slice(0, -1);
+    lines[1] = `${last}…`;
+  }
+  return lines;
+}
+
+function chatterRoundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
 function drawCharacterLayer() {
   const renderables = [
     ...npcs.map((npc) => ({ type: "npc", y: npc.y + 48, entity: npc })),
@@ -7854,6 +8011,7 @@ function drawCharacterLayer() {
     else drawPerson(renderable.entity);
   });
   drawMiniGameHostMarkers();
+  drawNpcSpeechBubbles();
 }
 
 function drawUiWorldLayer() {
@@ -7912,6 +8070,7 @@ function loop() {
 
   movePlayer();
   updateAmbientWalkers(frameDeltaMs);
+  updateNpcChatter(frameDeltaMs);
   updateFootstepDust(frameDeltaMs);
   if (regionTransitionMs > 0) regionTransitionMs = Math.max(0, regionTransitionMs - frameDeltaMs);
   if (messageTimer > 0) {

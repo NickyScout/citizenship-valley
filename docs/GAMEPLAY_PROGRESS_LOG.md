@@ -2,6 +2,26 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — NPC speech bubbles (on-topic chatter, §G3 follow-up)
+
+Plan area: §3.3 — periodic NPC speech bubbles with short, on-topic GCSE Citizenship lines to make regions feel alive and reinforce learning.
+
+What changed:
+- Added an editable `NPC_CHATTER` phrase pool, keyed by region (village / modernBritain / rightsLaw / democracy / participation / actionWorkshop / examHall), with short accurate civic lines (e.g. Rights & Law: "No one is above the law.", Democracy: "Your vote counts."). `NPC_CHATTER_DEFAULT` covers anything else.
+- `updateNpcChatter(dt)` (called from `loop()`): a per-entity timer gives each eligible character a bubble occasionally, then clears it after `CHATTER_TTL_MS` (3.2s) and schedules the next one 7–13s later. At most `CHATTER_MAX_ACTIVE` (2) bubbles show at once, and phases are staggered so they never all talk together.
+- Eligibility keeps functional markers clean: **ambient walkers** chatter only while paused; **interactive NPCs** chatter only once their quest is done (`state.completed`) and never if they host a mini-game — so a bubble never competes with a quest "!" or the blue Game marker.
+- `drawNpcSpeechBubbles` / `drawNpcSpeechBubble` render a small rounded parchment bubble with a downward tail above the head (cleared of the face), fade in/out, word-wrapped to ≤2 lines with an ellipsis (`wrapChatterText`, `chatterRoundRect`). Drawn in the character layer.
+- Fully gated: hidden during dialogue/question/choice panels and under Reduced Motion (bubbles cleared, timers idle). Pure render + timer — no save schema, collisions, routes or reachability touched; `bubble`/`nextChatterMs` are transient runtime fields only.
+- Bumped cache-bust to `2026.06.08.7`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`, `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 unique games)
+- `node qa-regional-quests-playthrough.mjs` (`blockingIssues: 0`, 6 regions, 30 quests)
+- Temporary review script forced region-appropriate bubbles on NPCs + a walker in Rights & Law and Democracy (incl. a 2-line wrapped line) and confirmed they sit above the head with a tail, clear of faces; then removed.
+
 ## 2026-06-08 — Atmosphere & polish: transitions, footstep dust, interaction pulse (§G9)
 
 Plan area: §G9 — add the remaining "feel" polish (region transitions, footstep/interaction feedback) on top of the Option A atmosphere already in place (particles, vignette, chimney smoke).

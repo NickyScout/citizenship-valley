@@ -2,6 +2,28 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Interiors by purpose (§G5)
+
+Plan area: §G5 — make a building's interior reflect the specific civic place the player walked into, instead of one of four generic shared rooms.
+
+What changed:
+- The four interior locations still share one floor plan (`studyInteriorMap`), but the visible room is now themed by the building the player entered. `state.lastDoorReturn.label` already records that building and is persisted in the save, so no new save field is needed.
+- New `currentInteriorTheme()` resolves a theme from the entered building's label via `interiorThemeFromLabel()` (keyword regex) with a per-location default (`INTERIOR_DEFAULT_THEME`). Themes: council, library, court, garden (existing art, extracted into named functions) plus three new ones — press/newsroom, police station, campaign workshop.
+- `drawInteriorDecor()` is now a thin dispatcher to `drawCouncilInterior` / `drawLibraryInterior` / `drawCourtInterior` / `drawGardenInterior` / `drawPressInterior` / `drawPoliceInterior` / `drawCampaignInterior`.
+- New decors: press = headline board + printing press + newspaper racks + fact-check desk; police = chequered fascia + reception desk + evidence board + barred window (age-appropriate); campaign = bunting + planning boards + survey table + ballot/petition box.
+- New `drawInteriorPlaque(theme)` renders a small wall plaque naming the entered building, high on the back wall and clear of the study stations.
+- HUD now shows the entered building name inside interiors via `currentRegionDisplayName()` (e.g. "Printworks" instead of "Library Interior"), so the HUD and the plaque agree.
+- All decor draws UNDER the study stations and exit (which render on top), so reachability/visibility of stations, exit and doors is unchanged. Maps, doors, `BUILDING_DOORS`, `STUDY_STATIONS`, `INTERIOR_EXITS` and the save schema are untouched.
+- Bumped cache-bust to `2026.06.08.2`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`, `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 unique games)
+- `node qa-regional-quests-playthrough.mjs` (`blockingIssues: 0`, 6 regions, 30 quests)
+- Per-theme interior review screenshots (temporary script) for all 7 themes incl. exit + 4 study stations visible, then removed.
+
 ## 2026-06-08 — Building exteriors by purpose (§G4)
 
 Plan area: §G4 — replace the single structural building with typed silhouettes so a building's purpose reads from its shape, not just its wall colour.

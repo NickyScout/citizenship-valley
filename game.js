@@ -2633,6 +2633,13 @@ function currentLocation() {
   return WORLD[state.currentLocation];
 }
 
+// Inside a shared interior, show the building the player entered (e.g. "Printworks")
+// instead of the generic interior location name (e.g. "Library Interior").
+function currentRegionDisplayName() {
+  if (isInteriorLocation() && state.lastDoorReturn?.label) return state.lastDoorReturn.label;
+  return currentLocation().name;
+}
+
 function isInteriorLocation(locationId = state.currentLocation) {
   return Boolean(INTERIOR_LOCATIONS[locationId]);
 }
@@ -2651,6 +2658,37 @@ function studyStationKey(locationId, stationId) {
 
 function buildingDoorByTarget(locationId) {
   return BUILDING_DOORS.find((door) => door.target === locationId) || null;
+}
+
+// === SECTION: INTERIOR THEMES BY PURPOSE (§G5) ===
+// All four interior locations share one floor plan (studyInteriorMap); the visible
+// room is themed by the building the player walked through. state.lastDoorReturn.label
+// records that building (and is persisted in the save), so the same shared interior
+// reads as a council chamber, newsroom, court, police station, library, campaign
+// workshop or garden hub depending on the entrance. Study stations + exit are drawn
+// on top of decor, so reachability/visibility never change.
+const INTERIOR_DEFAULT_THEME = {
+  townHallInterior: "council",
+  libraryInterior: "library",
+  courtInterior: "court",
+  parkInterior: "garden"
+};
+
+function interiorThemeFromLabel(label) {
+  const l = (label || "").toLowerCase();
+  if (/(town hall|city hall|parliament|council|devolve|government|civic)/.test(l)) return "council";
+  if (/police/.test(l)) return "police";
+  if (/(court|rights aid|tribunal|justice|magistrate)/.test(l)) return "court";
+  if (/(printworks|signal|press|media|broadcast|newsroom)/.test(l)) return "press";
+  if (/(petition|union|party|election|planning|campaign|survey|rally|impact|hub|action)/.test(l)) return "campaign";
+  if (/(library|archive|museum|sources|research|reading|records)/.test(l)) return "library";
+  if (/(park|garden|volunteer|green|grove|allotment|community)/.test(l)) return "garden";
+  return null;
+}
+
+function currentInteriorTheme() {
+  const fromLabel = interiorThemeFromLabel(state.lastDoorReturn?.label);
+  return fromLabel || INTERIOR_DEFAULT_THEME[state.currentLocation] || "council";
 }
 
 function currentBuildingDoors(locationId = state.currentLocation) {
@@ -3022,7 +3060,7 @@ function miniGameHasMedal(id) {
 
 function updateHud() {
   syncAchievements();
-  regionText.textContent = currentLocation().name;
+  regionText.textContent = currentRegionDisplayName();
   coinText.textContent = state.coins;
   knowledgeText.textContent = `${state.knowledge}/100`;
   knowledgeBar.style.width = `${state.knowledge}%`;
@@ -6277,90 +6315,235 @@ function drawInteriorExit() {
 
 function drawInteriorDecor() {
   if (!isInteriorLocation()) return;
-  const id = state.currentLocation;
-  if (id === "townHallInterior") {
-    rect(252, 68, 456, 26, "#5a3f2c");
-    rect(280, 86, 400, 8, "#e6d3a4");
-    rect(330, 114, 300, 28, "#8f4f44");
-    rect(352, 142, 256, 10, "#d7d0c3");
-    rect(148, 248, 664, 6, "#d7d0c3");
-    rect(200, 420, 560, 5, "#7d8078");
-    for (let x = 208; x < 752; x += 74) {
-      rect(x, 282, 42, 14, "#8f5b3f");
-      rect(x + 4, 296, 34, 12, "#b77752");
-      rect(x + 8, 308, 4, 16, "#4b3128");
-      rect(x + 30, 308, 4, 16, "#4b3128");
-    }
-    rect(182, 96, 34, 48, "#466d9f");
-    rect(182, 96, 6, 48, "#f5f0df");
-    rect(728, 96, 34, 48, "#e36b5d");
-    rect(756, 96, 6, 48, "#f5f0df");
-    rect(404, 186, 152, 18, "#665a7d");
-    rect(424, 204, 112, 6, "#f2c14e");
+  const theme = currentInteriorTheme();
+  if (theme === "council") drawCouncilInterior();
+  else if (theme === "library") drawLibraryInterior();
+  else if (theme === "court") drawCourtInterior();
+  else if (theme === "press") drawPressInterior();
+  else if (theme === "police") drawPoliceInterior();
+  else if (theme === "campaign") drawCampaignInterior();
+  else drawGardenInterior();
+  drawInteriorPlaque(theme);
+}
+
+// Small wall plaque naming the building the player entered, so the shared interior
+// reads clearly as that specific civic place. Drawn high on the back wall, clear of
+// study stations (top stations sit at x 128/640).
+const INTERIOR_THEME_ACCENT = {
+  council: "#d8a23a", library: "#5da9e9", court: "#b089d6",
+  press: "#e36b5d", police: "#3f74c4", campaign: "#f2a13a", garden: "#6fbf73"
+};
+
+function drawInteriorPlaque(theme) {
+  const label = state.lastDoorReturn?.label;
+  if (!label) return;
+  const accent = INTERIOR_THEME_ACCENT[theme] || "#d8a23a";
+  const w = Math.max(96, label.length * 8 + 28);
+  const x = 480 - w / 2;
+  const y = 38;
+  rect(x - 3, y - 3, w + 6, 24, "#2d2521");
+  rect(x, y, w, 18, "#1d2427");
+  rect(x, y, w, 3, accent);
+  rect(x, y + 15, w, 3, "rgba(0,0,0,.4)");
+  rect(x + 6, y + 4, 4, 10, accent);
+  rect(x + w - 10, y + 4, 4, 10, accent);
+  ctx.fillStyle = "#f5f0df";
+  ctx.font = "11px Georgia";
+  ctx.textAlign = "center";
+  ctx.fillText(label, 480, y + 13);
+}
+
+function drawCouncilInterior() {
+  rect(252, 68, 456, 26, "#5a3f2c");
+  rect(280, 86, 400, 8, "#e6d3a4");
+  rect(330, 114, 300, 28, "#8f4f44");
+  rect(352, 142, 256, 10, "#d7d0c3");
+  rect(148, 248, 664, 6, "#d7d0c3");
+  rect(200, 420, 560, 5, "#7d8078");
+  for (let x = 208; x < 752; x += 74) {
+    rect(x, 282, 42, 14, "#8f5b3f");
+    rect(x + 4, 296, 34, 12, "#b77752");
+    rect(x + 8, 308, 4, 16, "#4b3128");
+    rect(x + 30, 308, 4, 16, "#4b3128");
   }
-  if (id === "libraryInterior") {
-    rect(224, 74, 480, 24, "#704633");
-    rect(260, 96, 408, 8, "#e6d3a4");
-    for (let y = 84; y < 470; y += 92) {
-      rect(76, y, 58, 62, "#704633");
-      rect(826, y, 58, 62, "#704633");
-      for (let i = 0; i < 5; i += 1) {
-        rect(84, y + 8 + i * 10, 42, 6, ["#5da9e9", "#f2c14e", "#6fbf73", "#e36b5d", "#b089d6"][i]);
-        rect(834, y + 8 + i * 10, 42, 6, ["#6fbf73", "#f2c14e", "#5da9e9", "#b089d6", "#e36b5d"][i]);
-      }
+  rect(182, 96, 34, 48, "#466d9f");
+  rect(182, 96, 6, 48, "#f5f0df");
+  rect(728, 96, 34, 48, "#e36b5d");
+  rect(756, 96, 6, 48, "#f5f0df");
+  rect(404, 186, 152, 18, "#665a7d");
+  rect(424, 204, 112, 6, "#f2c14e");
+}
+
+function drawLibraryInterior() {
+  rect(224, 74, 480, 24, "#704633");
+  rect(260, 96, 408, 8, "#e6d3a4");
+  for (let y = 84; y < 470; y += 92) {
+    rect(76, y, 58, 62, "#704633");
+    rect(826, y, 58, 62, "#704633");
+    for (let i = 0; i < 5; i += 1) {
+      rect(84, y + 8 + i * 10, 42, 6, ["#5da9e9", "#f2c14e", "#6fbf73", "#e36b5d", "#b089d6"][i]);
+      rect(834, y + 8 + i * 10, 42, 6, ["#6fbf73", "#f2c14e", "#5da9e9", "#b089d6", "#e36b5d"][i]);
     }
-    for (let x = 236; x < 700; x += 182) {
-      rect(x, 238, 118, 14, "#8f5b3f");
-      rect(x + 8, 252, 102, 10, "#c18455");
-      rect(x + 14, 262, 6, 18, "#4b3128");
-      rect(x + 92, 262, 6, 18, "#4b3128");
-      rect(x + 42, 218, 26, 20, "#f5f0df");
-      rect(x + 50, 224, 10, 8, "#5da9e9");
-    }
-    rect(452, 118, 56, 56, "#d7d0c3");
-    rect(462, 128, 36, 36, "#5da9e9");
-    rect(476, 140, 8, 8, "#6fbf73");
   }
-  if (id === "courtInterior") {
-    rect(226, 78, 508, 18, "#665a7d");
-    for (let x = 254; x < 706; x += 46) rect(x, 96, 12, 140, "#d7d0c3");
-    rect(278, 238, 404, 10, "#f2c14e");
-    rect(360, 130, 240, 26, "#5b3b31");
-    rect(388, 156, 184, 22, "#8f5b3f");
-    rect(392, 452, 180, 24, "#5b3b31");
-    rect(168, 320, 120, 18, "#8f5b3f");
-    rect(170, 338, 116, 8, "#b77752");
-    rect(648, 320, 120, 18, "#8f5b3f");
-    rect(650, 338, 116, 8, "#b77752");
-    rect(448, 96, 64, 24, "#d7d0c3");
-    rect(478, 98, 4, 20, "#f2c14e");
-    rect(458, 104, 44, 4, "#f2c14e");
+  for (let x = 236; x < 700; x += 182) {
+    rect(x, 238, 118, 14, "#8f5b3f");
+    rect(x + 8, 252, 102, 10, "#c18455");
+    rect(x + 14, 262, 6, 18, "#4b3128");
+    rect(x + 92, 262, 6, 18, "#4b3128");
+    rect(x + 42, 218, 26, 20, "#f5f0df");
+    rect(x + 50, 224, 10, 8, "#5da9e9");
   }
-  if (id === "parkInterior") {
-    rect(128, 92, 704, 12, "#4e9b50");
-    rect(128, 456, 704, 12, "#4e9b50");
-    for (let x = 146; x < 814; x += 88) {
-      rect(x, 104, 18, 18, "#f05d5e");
-      rect(x + 28, 430, 18, 18, "#ffe066");
-    }
-    rect(370, 120, 220, 12, "#8f5b3f");
-    rect(394, 132, 14, 84, "#4b3128");
-    rect(552, 132, 14, 84, "#4b3128");
-    rect(390, 216, 180, 12, "#8f5b3f");
-    rect(176, 240, 90, 64, "#e6d3a4");
-    rect(182, 246, 78, 8, "#b94e48");
-    rect(188, 264, 64, 4, "#4d2c2b");
-    rect(690, 240, 90, 64, "#e6d3a4");
-    rect(696, 246, 78, 8, "#466d9f");
-    rect(702, 264, 64, 4, "#4d2c2b");
-    for (let x = 234; x < 716; x += 144) {
-      rect(x, 352, 34, 18, "#8f5b3f");
-      rect(x + 4, 370, 26, 12, "#b77752");
-      rect(x + 8, 382, 4, 12, "#4b3128");
-      rect(x + 22, 382, 4, 12, "#4b3128");
-    }
+  rect(452, 118, 56, 56, "#d7d0c3");
+  rect(462, 128, 36, 36, "#5da9e9");
+  rect(476, 140, 8, 8, "#6fbf73");
+}
+
+function drawCourtInterior() {
+  rect(226, 78, 508, 18, "#665a7d");
+  for (let x = 254; x < 706; x += 46) rect(x, 96, 12, 140, "#d7d0c3");
+  rect(278, 238, 404, 10, "#f2c14e");
+  rect(360, 130, 240, 26, "#5b3b31");
+  rect(388, 156, 184, 22, "#8f5b3f");
+  rect(392, 452, 180, 24, "#5b3b31");
+  rect(168, 320, 120, 18, "#8f5b3f");
+  rect(170, 338, 116, 8, "#b77752");
+  rect(648, 320, 120, 18, "#8f5b3f");
+  rect(650, 338, 116, 8, "#b77752");
+  rect(448, 96, 64, 24, "#d7d0c3");
+  rect(478, 98, 4, 20, "#f2c14e");
+  rect(458, 104, 44, 4, "#f2c14e");
+}
+
+function drawGardenInterior() {
+  rect(128, 92, 704, 12, "#4e9b50");
+  rect(128, 456, 704, 12, "#4e9b50");
+  for (let x = 146; x < 814; x += 88) {
+    rect(x, 104, 18, 18, "#f05d5e");
+    rect(x + 28, 430, 18, 18, "#ffe066");
+  }
+  rect(370, 120, 220, 12, "#8f5b3f");
+  rect(394, 132, 14, 84, "#4b3128");
+  rect(552, 132, 14, 84, "#4b3128");
+  rect(390, 216, 180, 12, "#8f5b3f");
+  rect(176, 240, 90, 64, "#e6d3a4");
+  rect(182, 246, 78, 8, "#b94e48");
+  rect(188, 264, 64, 4, "#4d2c2b");
+  rect(690, 240, 90, 64, "#e6d3a4");
+  rect(696, 246, 78, 8, "#466d9f");
+  rect(702, 264, 64, 4, "#4d2c2b");
+  for (let x = 234; x < 716; x += 144) {
+    rect(x, 352, 34, 18, "#8f5b3f");
+    rect(x + 4, 370, 26, 12, "#b77752");
+    rect(x + 8, 382, 4, 12, "#4b3128");
+    rect(x + 22, 382, 4, 12, "#4b3128");
   }
 }
+
+// Newsroom / printworks: headline board, printing press, paper racks, fact-check desk.
+function drawPressInterior() {
+  rect(252, 68, 456, 28, "#34424b");
+  rect(262, 76, 436, 4, "#1d2427");
+  for (let i = 0, x = 276; x < 690; x += 70, i += 1) {
+    rect(x, 82, 56, 10, i % 2 ? "#cdd6da" : "#e9eef0");
+    rect(x + 4, 84, 40, 2, "#7c8a92");
+    rect(x + 4, 88, 30, 2, "#7c8a92");
+  }
+  // printing press machine (left-centre gap between stations)
+  rect(150, 232, 150, 86, "#3a4750");
+  rect(150, 232, 150, 8, "#566872");
+  rect(158, 244, 134, 50, "#26313a");
+  rect(166, 252, 118, 12, "#8f8576");
+  rect(166, 270, 118, 12, "#a89f8c");
+  rect(196, 294, 60, 24, "#1d2427");
+  rect(204, 300, 44, 8, "#f5f0df");
+  rect(204, 310, 44, 4, "#cdc6b2");
+  rect(290, 250, 18, 18, "#caa64a");
+  rect(296, 256, 6, 6, "#1d2427");
+  // newspaper racks (right-centre gap)
+  for (let i = 0; i < 3; i += 1) {
+    const x = 600 + i * 66;
+    rect(x, 244, 54, 70, "#5b3b31");
+    rect(x + 4, 250, 46, 18, "#e9eef0");
+    rect(x + 4, 272, 46, 18, "#dfe6e8");
+    rect(x + 4, 294, 46, 16, "#d4dbdd");
+    rect(x + 8, 254, 38, 3, "#34424b");
+    rect(x + 8, 276, 30, 3, "#34424b");
+  }
+  // fact-check desk centre
+  rect(404, 150, 152, 16, "#33424b");
+  rect(420, 130, 120, 22, "#26313a");
+  rect(430, 136, 100, 12, "#5da9e9");
+  rect(436, 139, 40, 6, "#cde7fb");
+  rect(424, 166, 8, 22, "#1d2427");
+  rect(528, 166, 8, 22, "#1d2427");
+}
+
+// Police station: reception desk, evidence board, posters, barred window (age-appropriate).
+function drawPoliceInterior() {
+  rect(252, 64, 456, 30, "#1e2f4a");
+  rect(252, 64, 456, 6, "#2c4368");
+  for (let x = 258; x < 700; x += 14) rect(x, 78, 7, 8, (Math.floor((x - 258) / 14) % 2) ? "#16233a" : "#f4f6fb");
+  rect(420, 70, 120, 8, "#cdd6e6");
+  rect(460, 70, 40, 8, "#1a2740");
+  // reception desk (centre band)
+  rect(330, 250, 300, 40, "#3a4f74");
+  rect(330, 250, 300, 8, "#52688f");
+  rect(342, 262, 276, 20, "#26354f");
+  rect(360, 268, 60, 10, "#cdd6e6");
+  rect(540, 268, 60, 10, "#cdd6e6");
+  rect(470, 240, 20, 14, "#1a2740");
+  rect(474, 244, 12, 8, "#7fb0f5");
+  // evidence board left
+  rect(150, 232, 120, 86, "#2a3344");
+  rect(158, 240, 104, 70, "#3d4a5e");
+  for (let i = 0; i < 4; i += 1) rect(166 + (i % 2) * 52, 248 + Math.floor(i / 2) * 32, 40, 26, "#e9eef0");
+  rect(206, 240, 2, 70, "#cdd6e6");
+  // barred window right
+  rect(640, 236, 120, 76, "#26313a");
+  rect(648, 244, 104, 60, "#52688f");
+  for (let x = 656; x < 752; x += 16) rect(x, 244, 4, 60, "#1d2427");
+  rect(648, 270, 104, 4, "#1d2427");
+}
+
+// Campaign workshop: planning boards, posters, survey tables, pinned charts.
+function drawCampaignInterior() {
+  rect(252, 68, 456, 26, "#2f5d3a");
+  rect(262, 76, 436, 4, "#1f3f2d");
+  const flagColors = ["#e36b5d", "#f2c14e", "#5da9e9", "#6fbf73"];
+  for (let i = 0, x = 268; x < 700; x += 30, i += 1) {
+    ctx.save();
+    ctx.fillStyle = flagColors[i % flagColors.length];
+    ctx.beginPath(); ctx.moveTo(x, 82); ctx.lineTo(x + 20, 82); ctx.lineTo(x + 10, 92); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  // planning boards on side walls
+  [150, 690].forEach((x, idx) => {
+    rect(x, 226, 120, 92, "#f5f0df");
+    rect(x, 226, 120, 8, idx ? "#5da9e9" : "#e36b5d");
+    for (let i = 0; i < 3; i += 1) {
+      rect(x + 12, 244 + i * 20, 46, 12, ["#cfe6fb", "#ffe9c2", "#d7f0d9"][i]);
+      rect(x + 66, 244 + i * 20, 40, 12, "#e6ded0");
+      rect(x + 12, 248 + i * 20, 30, 2, "#8f8576");
+    }
+    rect(x + 8, 226, 6, 92, "rgba(0,0,0,.12)");
+  });
+  // survey table centre
+  rect(396, 150, 168, 16, "#8f5b3f");
+  rect(404, 130, 152, 22, "#a8703f");
+  rect(414, 134, 40, 14, "#f5f0df");
+  rect(418, 138, 32, 3, "#5da9e9");
+  rect(418, 144, 24, 3, "#cdc6b2");
+  rect(470, 134, 40, 14, "#f5f0df");
+  rect(474, 138, 32, 3, "#e36b5d");
+  rect(516, 134, 34, 14, "#f5f0df");
+  rect(410, 166, 8, 22, "#5b3b31");
+  rect(548, 166, 8, 22, "#5b3b31");
+  // ballot / petition box centre-low
+  rect(440, 408, 80, 18, "#4b3128");
+  rect(452, 396, 56, 14, "#6fbf73");
+  rect(474, 398, 12, 4, "#1f3f2d");
+}
+
 
 function drawExamPracticeRooms() {
   if (state.currentLocation !== "examHall") return;

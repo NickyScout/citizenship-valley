@@ -2,6 +2,26 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Mini-game graphics: scene banners + medal (§G7, first pass)
+
+Plan area: §G7 — replace the abstract CSS box-shadow props in each mini-game with real illustrated scene art, and turn the medal mark into a proper medal.
+
+What changed:
+- 7 illustrated SVG scene banners in `assets/minigames/` (one per game): Source Detective (newsroom desk: newspaper, magnifier, reliable check + unreliable cross stamps), Rights vs Responsibilities (balance scales: RIGHTS vs DUTIES pans), Petition Regatta (harbour: campaign boat with SIGN sail, dock, signature buoy, rumour hazard), Ballot Count (blue ballot box + tally sheet + winner star), Debate Arena (two podiums + Argument/Evidence/Rebuttal cards + rosette), Campaign Planner (Research→Plan→Action→Evaluate board with arrows), Exam Simulation (GCSE paper + Source A card + clock + pencil).
+- `renderMiniGameVisual` now renders a `.minigame-banner` layer; per-game CSS sets the SVG as `background: cover`. The banner has a flat dark fallback colour, so a missing SVG shows a clean themed panel rather than a broken image. Concept-label chips (e.g. Source/Evidence/Stamp) and the cue/round text sit above the banner.
+- Abstract fallback props (`.minigame-stage-prop`) are now hidden (the banner replaces them); neutralised the legacy `.minigame-visual-<id> span:nth-child()` rules that were deforming the concept-label chips.
+- Medal mark upgraded to a real medal: metallic radial-gradient disc (gold/silver/bronze/practice via existing `.medal-*` classes) + a star (mask of new `assets/ui/icons/ico-medal.svg`) + two civic ribbon tails, with a `medalPop` reveal animation (disabled under Reduced Motion via the global override).
+- No JS handler, quest, route or save-schema changes — purely the visual layer of the mini-game panel.
+- Bumped cache-bust to `2026.06.08.4`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-ui.js` (mini-game render smoke still finds `minigame-visual`)
+- `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots — desktop + mobile mini-game reviewed)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 unique games — every mini-game still launches/plays via real NPC buttons)
+- Per-game banner + medal review screenshots (temporary script) for all 7 games + gold/exam medals, then removed.
+
 ## 2026-06-08 — HUD / menus / inventory / Character polish (§G6)
 
 Plan area: §G6 — lift the HUD, menu frames, inventory and Character panel from "prototype UI" to a cohesive themed look, while keeping every handler and `validate-ui` smoke intact.

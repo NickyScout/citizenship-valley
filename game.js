@@ -3759,6 +3759,7 @@ function renderMiniGameVisual(id, round, index, total) {
   const roundLabel = round.section || `Round ${index + 1}`;
   return `
     <div class="minigame-visual minigame-stage-${safeClassName(meta.layout)} minigame-visual-${safeClassName(id)}" aria-hidden="true">
+      <div class="minigame-banner"></div>
       <div class="minigame-stage-prop prop-a"></div>
       <div class="minigame-stage-prop prop-b"></div>
       <div class="minigame-stage-prop prop-c"></div>

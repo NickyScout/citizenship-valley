@@ -2656,11 +2656,11 @@ const locationBlueprints = [
     travel: "Lighthouse Bridge to Exam Hall",
     visual: { sky: "#7b9b6f", water: "#2d7186", road: "#9aa28b", roofA: "#9a633f", roofB: "#466d9f", roofC: "#6fbf73", roofD: "#b98231" },
     npcs: [
-      ["plannerNoor2", "Councillor Noor", 132, 218, "#f2c14e", "Planning active citizenship projects."],
-      ["surveyorTess", "Surveyor Tess", 372, 292, "#5da9e9", "Surveys and interviews."],
-      ["statJules", "Statistician Jules", 664, 220, "#6fbf73", "Data, charts, and impact."],
-      ["organiserKai", "Organiser Kai", 356, 430, "#e36b5d", "Action methods and events."],
-      ["examinerMira", "Examiner Mira", 620, 384, "#b089d6", "Evaluation and exam write-up."]
+      ["plannerNoor2", "Councillor Noor", 252, 238, "#f2c14e", "Planning active citizenship projects."],
+      ["surveyorTess", "Surveyor Tess", 392, 238, "#5da9e9", "Surveys and interviews."],
+      ["statJules", "Statistician Jules", 552, 238, "#6fbf73", "Data, charts, and impact."],
+      ["organiserKai", "Organiser Kai", 372, 384, "#e36b5d", "Action methods and events."],
+      ["examinerMira", "Examiner Mira", 600, 430, "#b089d6", "Evaluation and exam write-up."]
     ],
     topics: [
       ["issue", "Choose The Issue", "plannerNoor2", "surveyorTess", "Ask Tess how to choose a real issue.", "A good issue is specific, researchable, linked to citizenship, and important to a community.", "A good active citizenship issue should be...", ["Specific, researchable, and relevant", "Impossible to investigate", "Only a joke"]],
@@ -2684,11 +2684,11 @@ const locationBlueprints = [
     travel: "Course complete",
     visual: { sky: "#6b5b8f", water: "#394d78", road: "#a79bb7", roofA: "#5c5470", roofB: "#394d78", roofC: "#6b5b8f", roofD: "#b98231" },
     npcs: [
-      ["examMira2", "Examiner Mira", 236, 218, "#b089d6", "Command words and mark schemes."],
-      ["timeAsh", "Timekeeper Ash", 372, 292, "#d88c5a", "Timed practice."],
-      ["sourceNia", "Source Keeper Nia", 648, 220, "#5da9e9", "Source reliability and usefulness."],
-      ["coachLeon", "Debate Coach Leon", 356, 430, "#6fbf73", "Balanced arguments."],
-      ["scribePip", "Paragraph Scribe Pip", 620, 384, "#f2c14e", "PEEL paragraphs and evidence."]
+      ["examMira2", "Examiner Mira", 300, 210, "#b089d6", "Command words and mark schemes."],
+      ["timeAsh", "Timekeeper Ash", 596, 210, "#d88c5a", "Timed practice."],
+      ["sourceNia", "Source Keeper Nia", 612, 432, "#5da9e9", "Source reliability and usefulness."],
+      ["coachLeon", "Debate Coach Leon", 244, 432, "#6fbf73", "Balanced arguments."],
+      ["scribePip", "Paragraph Scribe Pip", 232, 300, "#f2c14e", "PEEL paragraphs and evidence."]
     ],
     topics: [
       ["commandWords", "Command Word Corridor", "examMira2", "scribePip", "Ask Pip how explain differs from identify.", "Identify means name something; explain means give a developed reason or link.", "Explain questions need...", ["Developed reasons", "One-word labels only", "No links"]],
@@ -3045,57 +3045,57 @@ const signs = [
   },
   {
     location: "actionWorkshop",
-    x: 224,
-    y: 254,
+    x: 440,
+    y: 360,
     title: "Plan Board",
     body: "Route note: the plan board links research, survey evidence, action methods, and campaign evaluation."
   },
   {
     location: "actionWorkshop",
-    x: 170,
-    y: 196,
+    x: 138,
+    y: 200,
     title: "Campaign Planner",
     body: "Campaign Planner starts with Councillor Noor. Put research, plan, action, and evaluation in order."
   },
   {
     location: "actionWorkshop",
-    x: 608,
-    y: 258,
+    x: 560,
+    y: 210,
     title: "Data Bench",
     body: "Use survey evidence and data carefully before choosing a campaign action."
   },
   {
     location: "actionWorkshop",
-    x: 756,
-    y: 386,
+    x: 740,
+    y: 360,
     title: "Lighthouse Bridge",
     body: "Complete the workshop topics, then use any NPC travel gate to move toward Exam Hall Castle."
   },
   {
     location: "examHall",
-    x: 442,
-    y: 230,
+    x: 440,
+    y: 158,
     title: "Final Gate",
     body: "Route note: the final gate links command words, source work, debate practice, and the ending challenge."
   },
   {
     location: "examHall",
-    x: 286,
-    y: 242,
+    x: 210,
+    y: 318,
     title: "Exam Desk",
     body: "Exam Simulation starts with Examiner Mira. Use command words to plan each answer before choosing."
   },
   {
     location: "examHall",
-    x: 646,
-    y: 244,
+    x: 600,
+    y: 318,
     title: "Source Archive",
     body: "Source work asks about origin, purpose, content, accuracy, and relevance."
   },
   {
     location: "examHall",
-    x: 430,
-    y: 402,
+    x: 360,
+    y: 408,
     title: "Debate Bench",
     body: "Debate Arena practice with Coach Leon helps evaluation answers balance evidence and judgement."
   }
@@ -3122,14 +3122,14 @@ const props = [
   { location: "participation", type: "boat", x: 744, y: 296 },
   { location: "participation", type: "banner", x: 468, y: 196 },
   { location: "participation", type: "crate", x: 600, y: 352 },
-  { location: "actionWorkshop", type: "planningBoard", x: 202, y: 270, miniGameId: "campaignPlanner" },
-  { location: "actionWorkshop", type: "surveyBox", x: 594, y: 272 },
-  { location: "actionWorkshop", type: "dataCards", x: 650, y: 278 },
-  { location: "actionWorkshop", type: "campaignTable", x: 734, y: 340 },
+  { location: "actionWorkshop", type: "planningBoard", x: 138, y: 250, miniGameId: "campaignPlanner" },
+  { location: "actionWorkshop", type: "surveyBox", x: 470, y: 250 },
+  { location: "actionWorkshop", type: "dataCards", x: 560, y: 296 },
+  { location: "actionWorkshop", type: "campaignTable", x: 712, y: 430 },
   { location: "examHall", type: "finalGate", x: 440, y: 206 },
-  { location: "examHall", type: "examDesk", x: 268, y: 252, miniGameId: "examSimulation" },
-  { location: "examHall", type: "sourceArchive", x: 520, y: 408 },
-  { location: "examHall", type: "debateBench", x: 420, y: 408, miniGameId: "debateArena" }
+  { location: "examHall", type: "examDesk", x: 210, y: 360, miniGameId: "examSimulation" },
+  { location: "examHall", type: "sourceArchive", x: 520, y: 410 },
+  { location: "examHall", type: "debateBench", x: 410, y: 410, miniGameId: "debateArena" }
 ];
 
 function addKnowledge(amount) {
@@ -7292,7 +7292,7 @@ const APATHY_TRACE_POINTS = {
   rightsLaw: { flag: "defendedRights", x: 140, y: 96 },
   democracy: { flag: "usedEvidenceInDebate", x: 565, y: 54 },
   participation: { flag: "helpedVolunteer", x: 432, y: 150 },
-  actionWorkshop: { flag: "plannedAction", x: 462, y: 286 }
+  actionWorkshop: { flag: "plannedAction", x: 430, y: 286 }
 };
 
 function drawApathyTrace(x, y) {
@@ -7348,9 +7348,9 @@ function drawFineDetails() {
     drawWorldLabel(352, 432, "Harbour Square", "#6fbf73", 100);
   }
   if (id === "actionWorkshop") {
-    drawMarketStall(330, 300, "#b98231", "Tools");
-    drawKiosk(584, 304, "DATA");
-    drawWorldLabel(458, 264, "Plan Board", "#f2c14e", 78);
+    drawMarketStall(150, 360, "#b98231", "Tools");
+    drawKiosk(640, 304, "DATA");
+    drawWorldLabel(360, 470, "Workshop Yard", "#f2c14e", 96);
   }
   drawRegionLandmarks();
   for (let i = 0; i < 34; i += 1) {
@@ -7427,22 +7427,22 @@ function drawRegionLandmarks() {
     return;
   }
   if (id === "actionWorkshop") {
-    rect(310, 302, 46, 38, "#d7d0c3");
-    rect(316, 308, 34, 5, "#466d9f");
-    rect(316, 318, 20, 4, "#6fbf73");
-    rect(316, 328, 28, 4, "#f2c14e");
+    rect(206, 300, 46, 38, "#d7d0c3");
+    rect(212, 306, 34, 5, "#466d9f");
+    rect(212, 316, 20, 4, "#6fbf73");
+    rect(212, 326, 28, 4, "#f2c14e");
     rect(532, 82, 62, 36, "#9a633f");
     rect(538, 88, 20, 16, "#d7d0c3");
     rect(564, 88, 20, 16, "#d7d0c3");
     rect(541, 94, 14, 2, "#466d9f");
     rect(567, 94, 14, 2, "#6fbf73");
     rect(552, 112, 22, 5, "#f2c14e");
-    rect(398, 294, 118, 58, "#263036");
-    for (let i = 0; i < 4; i += 1) rect(410 + i * 24, 308, 15, 30, ["#5da9e9", "#6fbf73", "#f2c14e", "#e36b5d"][i]);
+    rect(272, 300, 118, 58, "#263036");
+    for (let i = 0; i < 4; i += 1) rect(284 + i * 24, 314, 15, 30, ["#5da9e9", "#6fbf73", "#f2c14e", "#e36b5d"][i]);
     return;
   }
   if (id === "examHall") {
-    drawWorldLabel(564, 36, "Exam Gate", "#b089d6", 74);
+    drawWorldLabel(620, 40, "Exam Gate", "#b089d6", 74);
     rect(636, 118, 56, 34, "#263036");
     rect(642, 124, 44, 6, "#5da9e9");
     rect(642, 134, 34, 4, "#f5f0df");
@@ -7454,9 +7454,6 @@ function drawRegionLandmarks() {
     rect(556, 94, 16, 24, "#2d2521");
     rect(540, 78, 6, 6, "#f2c14e");
     rect(586, 78, 6, 6, "#f2c14e");
-    rect(292, 314, 330, 6, "#d7d0c3");
-    rect(306, 330, 302, 4, "#5c5470");
-    for (let x = 310; x < 610; x += 48) rect(x, 286, 18, 18, "#f2c14e");
   }
 }
 

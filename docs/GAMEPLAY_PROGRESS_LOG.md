@@ -2,6 +2,23 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Action Workshop + Exam Hall declutter
+
+Plan area: map readability — same cleanup applied to the last two crowded regions.
+
+What changed:
+- **Action Workshop**: spread the 5 NPCs along the central avenue / building fronts (Noor/Tess/Jules across the top road, Kai on the plaza, Mira by the SE town hall); separated the overlapping `surveyBox`+`dataCards` and moved `planningBoard`/`campaignTable` apart; repositioned the 4 signs; moved the `drawFineDetails` Tools stall + DATA kiosk + planning-board landmark visuals so they no longer overlap (renamed the floating label "Plan Board" → "Workshop Yard" onto open ground); moved the apathy trace.
+- **Exam Hall**: moved the 5 NPCs off the central practice-desk grid onto the 5 exam building fronts (Mira/Ash top, Nia/Leon bottom, Pip west) so they no longer stand on desks; moved the `examDesk`/`debateBench`/`sourceArchive` props out of the desk cluster; repositioned the 4 signs; deleted the gold decoration squares + accent lines that were drawn directly over the practice desks and nudged the "Exam Gate" label clear. The 5 `EXAM_PRACTICE_ROOMS` desks keep their positions and stay reachable.
+- Only these two regions changed; building rects/doors, exam-room data, save schema and quest/mini-game data untouched.
+- Bumped cache-bust to `2026.06.08.11`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js` (reachability of NPCs/doors/gates/mini-game triggers/exam rooms, NPC↔door ≥76px, no overlaps — pass)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 games)
+- `node qa-regional-quests-playthrough.mjs` (`blockingIssues: 0`, 6 regions, 30 quests)
+- Before/after review screenshots (6 framings each) confirmed spread NPCs, separated props, clear practice desks, and fixed labels/decor; then removed.
+
 ## 2026-06-08 — Participation Harbour declutter + road structure
 
 Plan area: map readability — same cleanup as Rights & Law, applied to Participation Harbour.

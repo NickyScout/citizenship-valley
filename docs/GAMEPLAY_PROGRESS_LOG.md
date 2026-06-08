@@ -2,6 +2,21 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — NPC chatter pool expansion
+
+Plan area: §3.3 — broaden the on-topic NPC speech-bubble phrase pool.
+
+What changed:
+- Roughly doubled `NPC_CHATTER` (5 → ~12 lines per region) using accurate GCSE content drawn from each region's quest topics: Modern Britain (identity, diversity, free press, migration, NGOs), Rights & Law (rule of law, civil vs criminal, rights limits, police safeguards, rehabilitation, due process), Democracy (manifestos, scrutiny, FPTP, constituencies, accountability), Participation (pressure groups, unions, petitions, lawful protest, fact-checking), Action Workshop (issue/research/plan/impact/evaluate), Exam Hall (command words, PEEL, source judging, timing). Village and `NPC_CHATTER_DEFAULT` also expanded.
+- Data-only change to existing string arrays — no logic, render, save, route or schema change. Longest new lines wrap to ≤2 lines as before.
+- Bumped cache-bust to `2026.06.08.8`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`)
+- Temporary capture confirmed the longest new phrases (e.g. "Judge a source's origin and purpose.") wrap cleanly above the head, then removed.
+
 ## 2026-06-08 — NPC speech bubbles (on-topic chatter, §G3 follow-up)
 
 Plan area: §3.3 — periodic NPC speech bubbles with short, on-topic GCSE Citizenship lines to make regions feel alive and reinforce learning.

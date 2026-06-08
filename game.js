@@ -7847,15 +7847,50 @@ function drawAmbientWalker(w) {
 // show one above their head, then it fades. Pure render + timer: no save schema, no
 // collisions, no routes; hidden during dialogue and under Reduced Motion.
 const NPC_CHATTER = {
-  village: ["Citizens have rights and duties.", "Every voice counts here.", "Rules keep things fair.", "Volunteering helps the valley.", "Be an active citizen!"],
-  modernBritain: ["The UK is wonderfully diverse.", "Check the source first!", "A free press holds power to account.", "Question what you read online.", "Many cultures, one community."],
-  rightsLaw: ["No one is above the law.", "Everyone has human rights.", "A fair trial matters.", "Rights come with responsibilities.", "Equal before the law."],
-  democracy: ["Parliament makes the laws.", "Your vote counts.", "One person, one vote.", "MPs represent us.", "Devolution shares power."],
-  participation: ["Sign the petition!", "Peaceful protest is a right.", "Volunteers make change.", "Join a pressure group.", "Change starts local."],
-  actionWorkshop: ["Research before you act.", "Plan, then take action.", "Evidence builds the case.", "Evaluate the impact.", "Small steps, real change."],
-  examHall: ["Explain means give reasons.", "Use evidence in answers.", "Balance both sides.", "Plan before you write.", "Mind the command word."]
+  village: [
+    "Citizens have rights and duties.", "Every voice counts here.", "Rules keep things fair.",
+    "Volunteering helps the valley.", "Be an active citizen!", "Ask questions, use evidence.",
+    "Respect other people's views.", "Fairness is for everyone.", "Help your community.",
+    "Knowledge is power.", "Small actions add up."
+  ],
+  modernBritain: [
+    "The UK is wonderfully diverse.", "Check the source first!", "A free press holds power to account.",
+    "Question what you read online.", "Many cultures, one community.", "Identity has many parts.",
+    "Shared values bring us together.", "Migration brings skills and culture.", "Spot the bias before you share.",
+    "NGOs help in a crisis.", "Respect builds cohesion.", "Weigh both sides of the story."
+  ],
+  rightsLaw: [
+    "No one is above the law.", "Everyone has human rights.", "A fair trial matters.",
+    "Rights come with responsibilities.", "Equal before the law.", "Civil law settles disputes.",
+    "Criminal law protects society.", "Rights can have fair limits.", "Police powers need safeguards.",
+    "Sentencing can rehabilitate.", "Due process keeps trials fair.", "Justice must be seen to be done."
+  ],
+  democracy: [
+    "Parliament makes the laws.", "Your vote counts.", "One person, one vote.",
+    "MPs represent us.", "Devolution shares power.", "Manifestos set out policies.",
+    "Parliament scrutinises government.", "Government runs the country.", "First Past the Post elects one MP.",
+    "Hold power to account.", "Elections give us a choice.", "Constituencies elect MPs."
+  ],
+  participation: [
+    "Sign the petition!", "Peaceful protest is a right.", "Volunteers make change.",
+    "Join a pressure group.", "Change starts local.", "Pressure groups influence policy.",
+    "Trade unions act together.", "A petition needs a clear aim.", "Protest within the law.",
+    "Check facts before you share.", "Online action can spread fast.", "Get involved, make a difference."
+  ],
+  actionWorkshop: [
+    "Research before you act.", "Plan, then take action.", "Evidence builds the case.",
+    "Evaluate the impact.", "Small steps, real change.", "Pick a specific issue.",
+    "Surveys gather real evidence.", "Set clear aims and targets.", "Measure who you reached.",
+    "Reflect, then improve.", "Data shows your impact.", "Turn ideas into action."
+  ],
+  examHall: [
+    "Explain means give reasons.", "Use evidence in answers.", "Balance both sides.",
+    "Plan before you write.", "Mind the command word.", "Identify means name it.",
+    "Point, evidence, explain, link.", "Judge a source's origin and purpose.", "A judgement needs reasons.",
+    "Develop every point.", "Watch your timing.", "Back up claims with examples."
+  ]
 };
-const NPC_CHATTER_DEFAULT = ["Be an active citizen!", "Every voice counts.", "Knowledge is power."];
+const NPC_CHATTER_DEFAULT = ["Be an active citizen!", "Every voice counts.", "Knowledge is power.", "Ask questions, use evidence.", "Fairness is for everyone."];
 const CHATTER_TTL_MS = 3200;
 const CHATTER_MAX_ACTIVE = 2;
 

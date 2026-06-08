@@ -641,6 +641,55 @@ const MINI_GAME_NPC_LINKS = {
   examMira2: { miniGameId: "examSimulation", conclusion: "Command words are your route map: identify, describe, explain, evaluate, then check sources." }
 };
 
+// Detailed "Talk" text per NPC id: who they are, what they do, and how they can help.
+// Shown by the Talk menu action (the short npc.intro is kept for avatarRole detection).
+// Tone stays consistent with the scenario: the Apathy Shade dims civic life across the
+// valley, and each NPC guards one GCSE Citizenship theme to help relight participation.
+const NPC_TALK = {
+  // --- Citizenship Village ---
+  mayor: "I'm Mayor Ada, and I keep Citizenship Valley going while the Apathy Shade tries to dim it. My work is local democracy: how councils, Parliament and government share power, take decisions, and answer to the people who elected them. Talk to me to understand accountability and how laws are made, and I keep a few supplies for citizens just starting out.",
+  priya: "I'm Priya, a campaigner. I show people that voting is only one way to take part: you can petition, join a party, volunteer, or protest peacefully and lawfully. Take on my Petition Regatta to practise turning public concern into a clear, evidence-backed demand, and I'll point you to the right decision-maker.",
+  sam: "I'm Sam, and I look after the valley's library of rights. Every right, from free expression to a fair trial, sits beside a responsibility to respect other people. Come to me to sort which freedoms the law protects and the duties that keep them meaningful.",
+  rowan: "I'm Justice Rowan. I guard the rule of law: the idea that everyone, even people in power, is subject to the law and treated equally by it. Independent courts weigh evidence and protect your legal rights; ask me how a fair trial and due process work.",
+  noor: "I'm Councillor Noor, and I help citizens turn ideas into real action. Active citizenship runs in a cycle: research the issue, plan, act, then evaluate what changed. Bring me a cause you care about and I'll help you plan a project the Shade can't ignore. I keep a few project supplies too.",
+  // --- Modern Britain Borough ---
+  editorVale: "Editor Vale, free press. A healthy democracy needs journalists who inform people and hold power to account, but rumour spreads just as fast. Play my Source Detective game and I'll train your eye for origin, evidence, purpose and bias before you share anything.",
+  historianIona: "I'm Historian Iona. Identity in modern Britain is layered: family, community, the four nations, language, faith, culture and personal experience all shape who we are. Ask me how shared values let a diverse country live together.",
+  aidMina: "I'm Mina, an aid worker. When crises strike, NGOs and international bodies provide humanitarian support, and citizens here help by raising awareness and funds. Talk to me about the UK's role in the wider world and our global responsibilities.",
+  dataOmar: "Data Clerk Omar. I track migration with statistics, not slogans: it can bring skills, culture and growth while raising real questions about services and housing. Ask me for a balanced, evidence-based way to discuss migration.",
+  elderGrace: "I'm Grace, an elder of this borough. I've watched diversity enrich our community, but cohesion needs mutual respect and equal rights, not stereotypes. Come to me to learn how different people build one community together.",
+  // --- Rights & Law Quarter ---
+  advocateFarah: "I'm Advocate Farah, a human-rights lawyer. Rights protect freedom, dignity and equality for everyone, though some may be limited to keep others safe. Try my Rights vs Responsibilities challenge and I'll show you how freedoms and duties balance. I also stock a rights kit.",
+  sergeantBlake: "Sergeant Blake. Police keep people safe, but our powers come with safeguards so investigations stay lawful, fair and accountable. Ask me why those checks protect both the public and people's trust in the law.",
+  mediatorChen: "I'm Mediator Chen. Not every dispute belongs in a criminal court: civil law settles disagreements between people and organisations. Talk to me to tell civil from criminal law and find fair, lawful solutions.",
+  youthEllis: "I'm Ellis, a youth worker. The justice system isn't only about punishment: sentencing can also deter, protect the public, repair harm and rehabilitate. Ask me how second chances and youth justice work.",
+  justiceRowan2: "Rowan again, and this is my court. Here the rule of law is more than words: cases are judged on evidence, with legal representation and an impartial decision. Ask me how courts apply the law equally to everyone.",
+  // --- Democracy Capital ---
+  speakerLark: "I'm Speaker Lark, keeper of order in Parliament. Parliament debates, scrutinises and passes laws, and holds the government to account through questions and committees. Ask me how a bill becomes law and why scrutiny matters.",
+  mpRivers: "MP Rivers, at your service. I represent a constituency, which means I act and speak for local citizens between elections, and you can always contact me. Ask me what an MP really does day to day.",
+  managerSol: "Campaign Manager Sol. Parties set out their plans in manifestos so voters can choose, and strong debate uses evidence, not insults. Step into my Debate Arena and I'll help you answer the other side and reach a fair judgement.",
+  officerJune: "I'm Returning Officer June. I run fair elections: one person, one vote, counted openly with observers watching. Try my Ballot Count to see how First Past the Post works and why transparency builds trust.",
+  heraldEwan: "Devolution Herald Ewan. Power isn't all held in Westminster: devolution gives some powers to Scotland, Wales and Northern Ireland while the UK Parliament keeps reserved ones. Ask me how the four nations share decisions.",
+  // --- Participation Harbour ---
+  campaignPriya2: "Priya again, and I've brought the campaign to the harbour. A strong petition needs a clear aim, evidence, public support and the right target, then real follow-up. Take my Petition Regatta to steer signatures past misinformation and into action.",
+  unionMorgan: "I'm Morgan, a trade union rep. On our own we're easy to ignore, but acting together gives working people a real voice. Ask me how unions and collective action push for fair treatment at work.",
+  charityAmina: "I'm Amina, and I lead a local charity. Volunteering turns concern into practical support and counts as active citizenship without any party politics. Talk to me about how volunteers and charities change communities.",
+  lobbyistPax: "Pax. I work with pressure groups: we try to influence policy by campaigning, lobbying, using the media and rallying supporters. Ask me how groups outside Parliament can still shape decisions.",
+  moderatorRae: "I'm Rae, a digital moderator. Online action spreads information fast, which means checking evidence and avoiding misinformation matters more than ever. Ask me how to take part responsibly on social media.",
+  // --- Action Workshop ---
+  plannerNoor2: "Noor again, and welcome to the workshop. Here we turn that citizenship cycle into a real plan: name your aims, targets, methods, timing and risks before you act. Bring me your issue and we'll build a campaign in my Campaign Planner.",
+  surveyorTess: "I'm Surveyor Tess. A good project starts with a real, researchable issue and honest evidence: surveys, interviews and reliable statistics, not guesses. Ask me how to gather evidence that people will trust.",
+  statJules: "Statistician Jules. Once you've acted, impact has to be measured: what changed, who you reached, and whether you met your aims. Talk to me about turning data and charts into proof of impact.",
+  organiserKai: "I'm Kai, an organiser. Action is where plans meet the real world: events, methods and people, all kept lawful and safe. Ask me which action methods best fit your campaign.",
+  examinerMira: "I'm Examiner Mira. A project isn't finished until you evaluate it, weighing impact, limitations, other viewpoints and what you'd improve. Talk to me about writing up active citizenship the way the exam rewards.",
+  // --- Exam Hall Castle ---
+  examMira2: "Mira again, and this is the Exam Hall, the Shade's last stand. Command words are your route map: identify, describe, explain, evaluate, then judge your sources. Sit my Exam Simulation and I'll mark all five sections with you.",
+  timeAsh: "I'm Ash, the timekeeper. Longer answers usually fail from a lack of planning and timing, not a lack of knowledge. Ask me how to budget your minutes, plan your points, and still leave room for a judgement.",
+  sourceNia: "I'm Nia, keeper of sources. A source's usefulness depends on its content, origin, purpose, accuracy and relevance, never just its length. Ask me how to judge and use sources under exam conditions.",
+  coachLeon: "Coach Leon. Top marks in evaluation come from balance: evidence on both sides and a conclusion that actually follows from it. Train with me in the Debate Arena to answer the other side fairly.",
+  scribePip: "I'm Pip, the paragraph scribe. Strong answers are built from PEEL paragraphs: make a Point, give Evidence, Explain it, then Link back to the question. Ask me to help you structure a paragraph that scores."
+};
+
 const PROFILE_PRESETS = [
   { id: "boySchool", label: "Schoolboy", gender: "boy", outfit: "schoolJumper", accent: "ember" },
   { id: "boyCampaign", label: "Campaigner", gender: "boy", outfit: "campaignBoots", accent: "forest" },
@@ -8220,7 +8269,7 @@ choicePanel.addEventListener("click", (event) => {
     if (action === "back" && npc) showNpcMenu(npc);
     if (action === "talk" && npc) {
       hidePanel();
-      showDialogue(npc.name, npc.intro, "Press E to close.", "talk");
+      showDialogue(npc.name, NPC_TALK[npc.id] || npc.intro, "Press E to close.", "talk");
     }
     if (action === "quests" && npc) showQuestList(npc);
     if (action === "askQuest" && npc) askQuestTarget(npc);

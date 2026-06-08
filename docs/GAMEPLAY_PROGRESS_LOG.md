@@ -2,6 +2,24 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Detailed NPC Talk text
+
+Plan area: §7 learning depth / dialogue — give each NPC a proper self-introduction in the Talk menu.
+
+What changed:
+- Added an `NPC_TALK` map (keyed by NPC id) with a 3-sentence introduction for every NPC id that appears in the world (35 ids = 31 unique characters + the 4 recurring ids campaignPriya2/justiceRowan2/plannerNoor2/examMira2). Each line says who they are, what their civic role/topic is, and how they can help the player, written to stay consistent with the scenario (the Apathy Shade dims civic life; each NPC guards one GCSE Citizenship theme) and the character details in `docs/NPC_CHARACTER_GUIDE.md`. Content is accurate and age-appropriate.
+- The Talk menu action now shows `NPC_TALK[npc.id] || npc.intro`. The short `npc.intro` is deliberately kept unchanged because `avatarRole()` keyword-matches on it for procedural portraits/world bodies — so portraits and role kits are unaffected.
+- Recurring NPCs reference their current region (e.g. Priya at the harbour, Rowan in his court, Noor at the workshop, Mira in the Exam Hall) so the text fits where the player meets them.
+- Dialogue layout unchanged: `.npc-copy` already scrolls (`overflow:auto`), so the longer text fits on desktop and mobile.
+- No map, route, quest, mini-game or save-schema change. Bumped cache-bust to `2026.06.08.12`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-ui.js`, `node scripts\validate-world.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0` — mobile overflow OK)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 games — NPC menu path intact)
+- Talk dialogue screenshots (desktop Noor/Mayor, mobile Farah) confirmed the full text renders with the portrait and fits/scrolls; then removed.
+
 ## 2026-06-08 — Action Workshop + Exam Hall declutter
 
 Plan area: map readability — same cleanup applied to the last two crowded regions.

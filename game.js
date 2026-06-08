@@ -1375,19 +1375,19 @@ const WORLD_LAYOUTS = {
       "##############################",
       "#............................#",
       "#............................#",
-      "#...........::::::::.........#",
-      "#...........::::::::.........#",
-      "#...........::::::::.........#",
       "#............................#",
-      "#.............::::...........#",
-      "#.............::::...........#",
-      "#......::::::::::::::::......#",
-      "#.............::::...........#",
-      "#.............::::...........#",
       "#............................#",
-      "#.............::::...........#",
-      "#.............::::...........#",
-      "#.............::::...........#",
+      "#............................#",
+      "#............................#",
+      "#.........::::::::::.........#",
+      "#.........::::::::::.........#",
+      "#.........::::::::::.........#",
+      "#.........::::::::::.........#",
+      "#.........::::::::::.........#",
+      "#...,,,,,,,,,,,,,,,,,,,......#",
+      "#..................,,........#",
+      "#..................,,........#",
+      "#..................,,........#",
       "#............................#",
       "#............................#",
       "##############################"
@@ -2572,11 +2572,11 @@ const locationBlueprints = [
     travel: "Clock-lift to Democracy Capital",
     visual: { sky: "#586a75", water: "#245666", road: "#93908a", roofA: "#4b5a65", roofB: "#5c5470", roofC: "#7b6d65", roofD: "#2f4f5f" },
     npcs: [
-      ["advocateFarah", "Advocate Farah", 72, 218, "#466d9f", "Human rights, equality, and discrimination."],
-      ["sergeantBlake", "Sergeant Blake", 372, 292, "#31405a", "Police powers, safeguards, and accountability."],
-      ["mediatorChen", "Mediator Chen", 612, 220, "#d88c5a", "Civil disputes and legal solutions."],
-      ["youthEllis", "Youth Worker Ellis", 356, 430, "#6fbf73", "Youth justice and rehabilitation."],
-      ["justiceRowan2", "Justice Rowan", 604, 360, "#b089d6", "Courts, rule of law, and fair trials."]
+      ["advocateFarah", "Advocate Farah", 372, 268, "#466d9f", "Human rights, equality, and discrimination."],
+      ["sergeantBlake", "Sergeant Blake", 612, 432, "#31405a", "Police powers, safeguards, and accountability."],
+      ["mediatorChen", "Mediator Chen", 588, 342, "#d88c5a", "Civil disputes and legal solutions."],
+      ["youthEllis", "Youth Worker Ellis", 380, 346, "#6fbf73", "Youth justice and rehabilitation."],
+      ["justiceRowan2", "Justice Rowan", 592, 256, "#b089d6", "Courts, rule of law, and fair trials."]
     ],
     topics: [
       ["ruleLaw", "Rule of Law Seal", "justiceRowan2", "advocateFarah", "Ask Farah why power must be limited by law.", "The rule of law means everyone is subject to law, including people in power, and laws should be applied fairly.", "Which statement best fits rule of law?", ["No one is above the law", "Power has no limits", "Only citizens obey law"]],
@@ -2968,22 +2968,22 @@ const signs = [
   },
   {
     location: "rightsLaw",
-    x: 428,
-    y: 244,
-    title: "Court Square",
+    x: 440,
+    y: 360,
+    title: "Quarter Map",
     body: "Route note: the court square links the Rights Aid desk, legal archive, court, and police safeguards."
   },
   {
     location: "rightsLaw",
-    x: 126,
-    y: 196,
+    x: 288,
+    y: 262,
     title: "Rights Cards",
     body: "Rights vs Responsibilities starts with Advocate Farah. Match freedoms with fairness and responsibility."
   },
   {
     location: "rightsLaw",
-    x: 748,
-    y: 394,
+    x: 628,
+    y: 304,
     title: "Clock Lift Gate",
     body: "Complete the law quarter topics, then use any NPC travel gate to move toward Democracy Capital."
   },
@@ -3110,10 +3110,10 @@ const props = [
   { location: "modernBritain", type: "bench", x: 438, y: 308 },
   { location: "modernBritain", type: "lamp", x: 316, y: 342 },
   { location: "modernBritain", type: "crate", x: 602, y: 270 },
-  { location: "rightsLaw", type: "scales", x: 470, y: 246 },
-  { location: "rightsLaw", type: "notice", x: 244, y: 252, miniGameId: "rightsMatch" },
-  { location: "rightsLaw", type: "bench", x: 430, y: 342 },
-  { location: "rightsLaw", type: "lamp", x: 824, y: 394 },
+  { location: "rightsLaw", type: "scales", x: 478, y: 298 },
+  { location: "rightsLaw", type: "notice", x: 320, y: 322, miniGameId: "rightsMatch" },
+  { location: "rightsLaw", type: "bench", x: 242, y: 392 },
+  { location: "rightsLaw", type: "lamp", x: 660, y: 392 },
   { location: "democracy", type: "ballotBox", x: 420, y: 384, miniGameId: "ballotCount" },
   { location: "democracy", type: "podium", x: 690, y: 246, miniGameId: "debateArena" },
   { location: "democracy", type: "poster", x: 596, y: 304 },
@@ -7289,7 +7289,7 @@ function drawMiniGameTriggerMarkers() {
 
 const APATHY_TRACE_POINTS = {
   modernBritain: { flag: "challengedRumour", x: 548, y: 190 },
-  rightsLaw: { flag: "defendedRights", x: 566, y: 70 },
+  rightsLaw: { flag: "defendedRights", x: 140, y: 96 },
   democracy: { flag: "usedEvidenceInDebate", x: 565, y: 54 },
   participation: { flag: "helpedVolunteer", x: 604, y: 80 },
   actionWorkshop: { flag: "plannedAction", x: 462, y: 286 }
@@ -7390,17 +7390,7 @@ function drawRegionLandmarks() {
     return;
   }
   if (id === "rightsLaw") {
-    drawWorldLabel(564, 52, "Court Square", "#d7d0c3", 86);
-    rect(648, 100, 4, 36, "#f2c14e");
-    rect(630, 112, 40, 4, "#f2c14e");
-    rect(636, 118, 12, 8, "#d7d0c3");
-    rect(654, 118, 12, 8, "#d7d0c3");
-    rect(536, 82, 56, 34, "#d7d0c3");
-    rect(532, 78, 64, 6, "#665a7d");
-    for (let i = 0; i < 4; i += 1) rect(542 + i * 11, 87, 5, 26, "#8d867d");
-    rect(548, 72, 32, 5, "#f2c14e");
-    rect(292, 242, 328, 5, "#d7d0c3");
-    rect(292, 308, 328, 5, "#6f685f");
+    drawWorldLabel(548, 208, "Court Square", "#d7d0c3", 86);
     return;
   }
   if (id === "democracy") {

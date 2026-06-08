@@ -2,6 +2,28 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Rights & Law Quarter declutter + road structure
+
+Plan area: map readability (§3.1 reachability invariant) — the Rights & Law region was cluttered with overlapping objects and had no coherent road structure.
+
+Problems fixed:
+- The old plaza was a broken "plus" with a 1-tile horizontal link; buildings floated in grass and the Police station had no road to it. Scales, the "Court Square" sign, a bench and a floating gold civic-crest all stacked in the centre with three NPCs on top of each other; the left corner stacked three markers (Archive sign + Play + Game). A decorative colonnade + gold cross drawn by `drawFineDetails` sat over the old plaza.
+
+What changed:
+- Redesigned `WORLD_LAYOUTS.rightsLaw.map`: one readable central **Court Square** plaza (rows 7–11), a horizontal **avenue** (row 12) linking the Archive (left) to the right Court, and a **spur road** (rows 13–15) down to the Police station so it is no longer an island. ASCII map only — building rects/doors unchanged, so `BUILDING_DOORS` and door sides are intact.
+- Spread the 5 NPCs around the square, each near its building and clear of doors (≥76px) and props: Farah by the Rights/Archive side, Rowan + Chen by the right court, Ellis on the plaza, Blake by the Police spur.
+- Moved props so nothing overlaps: scales = plaza centrepiece (478,298), rights `notice` mini-game trigger on the plaza approach (320,322), bench to the SW lawn, lamp by the Police spur.
+- Repositioned the 3 signs (renamed the central one to "Quarter Map" so it doesn't duplicate the landmark label), moved the Apathy-trace to a free top-left spot, and moved the floating "Court Square" `drawWorldLabel` onto the new plaza while deleting the now-misplaced colonnade/cross/accent-line decorations.
+- Only the Rights & Law region changed; no other maps, no save schema, no quest/mini-game data.
+- Bumped cache-bust to `2026.06.08.9`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js` (reachability of doors/NPCs/gate/mini-game trigger, NPC↔door ≥76px, no NPC/label/prop overlaps — all pass)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 games — rightsMatch host reachable)
+- `node qa-regional-quests-playthrough.mjs` (`blockingIssues: 0`, 6 regions, 30 quests)
+- Before/after review screenshots (temporary script) from 5 framings confirmed the plaza, avenue, police spur, spread NPCs, and that the floating crest/colonnade are gone; then removed.
+
 ## 2026-06-08 — NPC chatter pool expansion
 
 Plan area: §3.3 — broaden the on-topic NPC speech-bubble phrase pool.

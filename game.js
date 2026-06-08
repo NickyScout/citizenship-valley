@@ -76,6 +76,37 @@ let animationClockMs = 0;
 let regionTransitionMs = 0;
 const REGION_TRANSITION_MS = 440;
 const footstepDust = [];
+// Region pet: one decorative animal per location that wanders and occasionally "speaks"
+// (its sound, or rarely a short, neutral, school-safe Citizenship joke). Separate from
+// npcs/walkers; NOT solid to the player; not saved; rebuilt on every setLocation.
+let regionPet = null;
+const REGION_PET_KIND = {
+  village: "dog", modernBritain: "cat", rightsLaw: "owl",
+  democracy: "dog", participation: "duck", actionWorkshop: "cat", examHall: "owl"
+};
+const PET_SOUNDS = {
+  dog: ["Woof!", "Woof woof!", "Arf!"],
+  cat: ["Meow!", "Purr...", "Mrrp!"],
+  duck: ["Quack!", "Quack quack!"],
+  owl: ["Hoot!", "Whoo!", "Hoo hoo!"]
+};
+// Short, neutral, school-appropriate Citizenship puns. No politics, parties, religion,
+// ethnicity or any group reference — only abstract civic ideas (voting, law, petitions,
+// rights, councils, debate, sources, community).
+const PET_JOKES = [
+  "Why was the ballot calm? It knew it would be counted!",
+  "What tea do good citizens love? Liber-tea!",
+  "Why did the law book do well? Great sentences!",
+  "How does a council stay cool? It opens a debate!",
+  "Why did the petition smile? Lots of signatures!",
+  "What did one vote say to another? We make a difference!",
+  "Why did the source hit the gym? To get more reliable!",
+  "Why are rights like good friends? They bring responsibilities!",
+  "What do you call a fair ruler? Just right!",
+  "Why did the jury pack lunch? For a balanced verdict!",
+  "How do you spot a great citizen? They lend a hand!",
+  "Why did the town plant trees? To grow the community!"
+];
 
 const imageCache = {};
 
@@ -2938,6 +2969,7 @@ function setLocation(locationId, options = {}) {
     npc.questIds = location.questIds.filter((id) => QUESTS[id].giver === npc.id);
   });
   spawnAmbientWalkers();
+  spawnRegionPet();
   activeNpc = null;
   activeQuestion = null;
   pendingQuestTurnIn = null;
@@ -7988,21 +8020,22 @@ function updateNpcChatter(dt) {
 
 function drawNpcSpeechBubbles() {
   if (isInteriorLocation() || settings.reducedMotion || chatterInputBlocked()) return;
-  [...ambientWalkers, ...npcs].forEach((entity) => {
+  [...ambientWalkers, ...npcs, ...(regionPet ? [regionPet] : [])].forEach((entity) => {
     if (entity.bubble) drawNpcSpeechBubble(entity);
   });
 }
 
 function drawNpcSpeechBubble(entity) {
   const b = entity.bubble;
+  const ttl = b.ttl || CHATTER_TTL_MS;
   const fadeIn = Math.min(1, b.ageMs / 260);
-  const fadeOut = Math.min(1, (CHATTER_TTL_MS - b.ageMs) / 600);
+  const fadeOut = Math.min(1, (ttl - b.ageMs) / 600);
   const alpha = Math.max(0, Math.min(fadeIn, fadeOut));
   if (alpha <= 0) return;
   ctx.save();
   ctx.font = "8px Georgia";
   ctx.textBaseline = "middle";
-  const lines = wrapChatterText(b.text, 116);
+  const lines = wrapChatterText(b.text, 116, b.maxLines || 2);
   let textW = 0;
   lines.forEach((ln) => { textW = Math.max(textW, ctx.measureText(ln).width); });
   const padX = 6;
@@ -8069,16 +8102,233 @@ function chatterRoundRect(x, y, w, h, r) {
   ctx.closePath();
 }
 
+// === SECTION: REGION PET (wandering animal + sounds/jokes) ===
+function spawnRegionPet() {
+  regionPet = null;
+  if (isInteriorLocation()) return;
+  const kind = REGION_PET_KIND[state.currentLocation];
+  if (!kind) return;
+  const map = currentMap();
+  const cols = map[0].length;
+  const rows = map.length;
+  const spawn = safeSpawnFor();
+  for (let tries = 0; tries < 260; tries += 1) {
+    const seed = tries * 2.11 + 5.7;
+    const col = 2 + Math.floor(hashNoise(seed, 9, 53) * (cols - 4));
+    const row = 2 + Math.floor(hashNoise(seed, 8, 53) * (rows - 4));
+    const x = col * LOGICAL_TILE + 6;
+    const y = row * LOGICAL_TILE + 8;
+    const k = tileKind(map[row][col]);
+    if (k !== "grass" && k !== "road" && k !== "plaza") continue;
+    if (isBlocked(x, y, 20, 14)) continue;
+    if (Math.hypot(x - spawn.x, y - spawn.y) < 80) continue;
+    regionPet = {
+      kind, x, y, homeX: x, homeY: y, tx: x, ty: y,
+      w: 20, h: 14, dir: "right", step: 0, moving: false,
+      pause: 400 + hashNoise(seed, 7, 53) * 1500,
+      speed: 0.05 + hashNoise(seed, 6, 53) * 0.03,
+      bubble: null, nextSpeakMs: 2600 + Math.random() * 4200, lastJoke: -1
+    };
+    return;
+  }
+}
+
+function pickPetTarget(p) {
+  const radius = 70;
+  for (let i = 0; i < 8; i += 1) {
+    const ang = Math.random() * Math.PI * 2;
+    const dist = 18 + Math.random() * radius;
+    const tx = p.homeX + Math.cos(ang) * dist;
+    const ty = p.homeY + Math.sin(ang) * dist;
+    if (!isBlocked(tx, ty, p.w, p.h)) {
+      p.tx = tx;
+      p.ty = ty;
+      return;
+    }
+  }
+  p.tx = p.homeX;
+  p.ty = p.homeY;
+}
+
+function petSpeak(p) {
+  // Jokes are rare; most of the time the pet just makes its animal sound.
+  if (Math.random() < 0.17 && PET_JOKES.length) {
+    let idx = Math.floor(Math.random() * PET_JOKES.length);
+    if (PET_JOKES.length > 1 && idx === p.lastJoke) idx = (idx + 1) % PET_JOKES.length;
+    p.lastJoke = idx;
+    p.bubble = { text: PET_JOKES[idx], ageMs: 0, ttl: 4800, maxLines: 3 };
+  } else {
+    const sounds = PET_SOUNDS[p.kind] || ["..."];
+    p.bubble = { text: sounds[Math.floor(Math.random() * sounds.length)], ageMs: 0, ttl: 1700, maxLines: 1 };
+  }
+}
+
+function updateRegionPet(dt) {
+  if (!regionPet || isInteriorLocation()) return;
+  const p = regionPet;
+  if (settings.reducedMotion) {
+    p.moving = false;
+    p.bubble = null;
+    return;
+  }
+  if (p.pause > 0) {
+    p.pause -= dt;
+    p.moving = false;
+  } else {
+    const dx = p.tx - p.x;
+    const dy = p.ty - p.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 1.5) {
+      p.pause = 600 + Math.random() * 2600;
+      p.moving = false;
+      pickPetTarget(p);
+    } else {
+      const stepPx = Math.min(dist, p.speed * dt);
+      const ux = dx / dist;
+      const uy = dy / dist;
+      const nx = p.x + ux * stepPx;
+      const ny = p.y + uy * stepPx;
+      let moved = false;
+      if (!isBlocked(nx, p.y, p.w, p.h)) { p.x = nx; moved = true; }
+      if (!isBlocked(p.x, ny, p.w, p.h)) { p.y = ny; moved = true; }
+      if (!moved) {
+        p.pause = 300 + Math.random() * 900;
+        pickPetTarget(p);
+        p.moving = false;
+      } else {
+        p.dir = Math.abs(ux) > Math.abs(uy) ? (ux < 0 ? "left" : "right") : (uy < 0 ? "up" : "down");
+        p.step += stepPx;
+        p.moving = true;
+      }
+    }
+  }
+  // Speaking: hidden while a dialogue/question is open (like NPC chatter).
+  if (chatterInputBlocked()) {
+    p.bubble = null;
+    return;
+  }
+  if (p.bubble) {
+    p.bubble.ageMs += dt;
+    if (p.bubble.ageMs >= p.bubble.ttl) {
+      p.bubble = null;
+      p.nextSpeakMs = 4200 + Math.random() * 5400;
+    }
+    return;
+  }
+  if (p.nextSpeakMs === undefined) {
+    p.nextSpeakMs = 2600 + Math.random() * 4200;
+    return;
+  }
+  p.nextSpeakMs -= dt;
+  if (p.nextSpeakMs <= 0) petSpeak(p);
+}
+
+function drawRegionPet() {
+  if (!regionPet) return;
+  const p = regionPet;
+  const x = Math.round(p.x);
+  const y = Math.round(p.y);
+  ctx.save();
+  ctx.globalAlpha = .24;
+  ctx.fillStyle = "#10160f";
+  ctx.beginPath();
+  ctx.ellipse(x + 10, y + 17, 11, 3.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  const step = p.moving ? Math.floor(p.step / 6) % 2 : 0;
+  ctx.save();
+  if (p.dir === "left") {
+    ctx.translate(x + 20, y);
+    ctx.scale(-1, 1);
+  } else {
+    ctx.translate(x, y);
+  }
+  if (p.kind === "dog") drawPetDog(step);
+  else if (p.kind === "cat") drawPetCat(step);
+  else if (p.kind === "duck") drawPetDuck(step);
+  else drawPetOwl(step);
+  ctx.restore();
+}
+
+function drawPetDog(step) {
+  const body = "#9a6a44", dk = "#6f4a30", lt = "#c08a58", ear = "#5b3b2c";
+  const a = step ? 1 : 0;
+  rect(5, 13, 3, 5 - a, dk);
+  rect(13, 13, 3, 5 - (1 - a) * 0, dk);
+  rect(3, 7, 16, 7, body);
+  rect(3, 7, 16, 1, lt);
+  rect(3, 12, 16, 2, dk);
+  rect(0, 4, 4, 4, body);
+  rect(17, 5, 6, 7, body);
+  rect(22, 8, 2, 3, body);
+  rect(16, 3, 4, 4, ear);
+  rect(23, 8, 1, 2, "#2d2521");
+  rect(20, 7, 1, 1, "#1b232c");
+}
+
+function drawPetCat(step) {
+  const body = "#8f8a82", dk = "#5f5a52", lt = "#b3aea4";
+  const a = step ? 1 : 0;
+  rect(5, 13, 2, 5 - a, dk);
+  rect(13, 13, 2, 5 - (1 - a), dk);
+  rect(3, 8, 15, 6, body);
+  rect(3, 8, 15, 1, lt);
+  rect(6, 9, 1, 5, dk);
+  rect(10, 9, 1, 5, dk);
+  rect(0, 5, 3, 9, body);
+  rect(0, 4, 4, 3, body);
+  rect(16, 6, 6, 6, body);
+  rect(16, 3, 2, 3, dk);
+  rect(20, 3, 2, 3, dk);
+  rect(19, 8, 1, 1, "#6fbf73");
+  rect(22, 9, 1, 1, "#2d2521");
+}
+
+function drawPetDuck(step) {
+  const body = "#eef0ec", dk = "#cbcec6", beak = "#f2b24a";
+  const a = step ? 1 : 0;
+  rect(8, 14, 2, 3 - a, beak);
+  rect(12, 14, 2, 2 + a, beak);
+  rect(4, 8, 12, 7, body);
+  rect(4, 8, 12, 1, "#ffffff");
+  rect(6, 10, 8, 3, dk);
+  rect(2, 7, 4, 3, body);
+  rect(14, 3, 5, 7, body);
+  rect(18, 6, 4, 3, beak);
+  rect(16, 5, 1, 1, "#2d2521");
+}
+
+function drawPetOwl(step) {
+  const body = "#8a6a4a", dk = "#5b4530", face = "#d8c4a0", beak = "#f2a13a";
+  const a = step ? 1 : 0;
+  rect(7, 16, 2, 2 - a, beak);
+  rect(11, 16, 2, 1 + a, beak);
+  rect(4, 6, 2, 9, dk);
+  rect(14, 6, 2, 9, dk);
+  rect(5, 5, 10, 12, body);
+  rect(5, 3, 3, 3, dk);
+  rect(12, 3, 3, 3, dk);
+  rect(6, 6, 8, 7, face);
+  rect(6, 13, 8, 3, "#b08a5a");
+  rect(7, 7, 3, 3, "#f5f0df");
+  rect(11, 7, 3, 3, "#f5f0df");
+  rect(8, 8, 1, 1, "#1b232c");
+  rect(12, 8, 1, 1, "#1b232c");
+  rect(9, 10, 2, 2, beak);
+}
+
 function drawCharacterLayer() {
   const renderables = [
     ...npcs.map((npc) => ({ type: "npc", y: npc.y + 48, entity: npc })),
     ...ambientWalkers.map((w) => ({ type: "walker", y: w.y + 48, entity: w })),
+    ...(regionPet ? [{ type: "pet", y: regionPet.y + 16, entity: regionPet }] : []),
     { type: "player", y: state.player.y + state.player.h, entity: state.player }
   ].sort((a, b) => a.y - b.y);
 
   renderables.forEach((renderable) => {
     if (renderable.type === "player") drawPlayer();
     else if (renderable.type === "walker") drawAmbientWalker(renderable.entity);
+    else if (renderable.type === "pet") drawRegionPet();
     else drawPerson(renderable.entity);
   });
   drawMiniGameHostMarkers();
@@ -8141,6 +8391,7 @@ function loop() {
 
   movePlayer();
   updateAmbientWalkers(frameDeltaMs);
+  updateRegionPet(frameDeltaMs);
   updateNpcChatter(frameDeltaMs);
   updateFootstepDust(frameDeltaMs);
   if (regionTransitionMs > 0) regionTransitionMs = Math.max(0, regionTransitionMs - frameDeltaMs);

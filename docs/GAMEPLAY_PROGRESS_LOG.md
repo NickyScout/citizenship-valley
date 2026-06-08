@@ -2,6 +2,27 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-08 — Region pets (wandering animal + sounds/jokes)
+
+Plan area: ambience/fun — one decorative animal per location that wanders and occasionally "speaks".
+
+What changed:
+- Added a single `regionPet` per location (`REGION_PET_KIND`: village/democracy = dog, modernBritain/actionWorkshop = cat, rightsLaw/examHall = owl, participation = duck). Like ambient walkers it is decorative-only: separate from `npcs`, NOT solid to the player, not saved, rebuilt on every `setLocation` via `spawnRegionPet()` (spawns on reachable grass/road/plaza away from the player spawn).
+- `updateRegionPet(dt)` (in `loop()`): eased wander within ~70px of its home with `isBlocked` collision and pauses; gated by Reduced Motion (pet stands still and stays silent).
+- Speaking: most of the time the pet makes its animal sound (`PET_SOUNDS`: Woof/Meow/Quack/Hoot etc.); rarely (~17% of the time it speaks) it tells a short, neutral, school-safe Citizenship pun from `PET_JOKES`. The jokes are deliberately abstract civic wordplay (voting, law, petitions, rights, councils, debate, sources, community) with **no** politics, parties, religion, ethnicity, or any group reference — checked for being age-appropriate and inoffensive.
+- New 4 tiny pixel animal sprites (`drawPetDog/Cat/Duck/Owl`) with a 2-frame walk and left/right mirroring; z-sorted with NPCs/walkers/player in `drawCharacterLayer`.
+- Reused the speech-bubble renderer: generalised `wrapChatterText`/`drawNpcSpeechBubble` to take per-bubble `ttl` + `maxLines` (jokes get 3 lines / 4.8s, sounds 1 line / 1.7s). Bubbles hide during dialogue/question and under Reduced Motion, like NPC chatter.
+- Pure render + timer; no map, route, quest, collision or save-schema change.
+- Bumped cache-bust to `2026.06.08.13`.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js`, `node scripts\validate-ui.js`
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 games — pet doesn't affect reachability)
+- `node qa-regional-quests-playthrough.mjs` (`blockingIssues: 0`, 6 regions, 30 quests)
+- Temporary review captured each region's animal (dog/cat/owl/duck) with a sound and a joke bubble, then removed.
+
 ## 2026-06-08 — Detailed NPC Talk text
 
 Plan area: §7 learning depth / dialogue — give each NPC a proper self-introduction in the Talk menu.

@@ -2,6 +2,114 @@
 
 This document records what changed at each implementation step while we work through `GAMEPLAY_UPGRADE_PLAN.md`.
 
+## 2026-06-12 — Spaced review queue ("come back and revise") (§G8 / §7 — final G8 item)
+
+Plan area: §7 — a light spaced-repetition layer so students are nudged to revisit topics they have already completed, closing the last open G8 item.
+
+What changed:
+- New persisted `reviewLog` ({ [questId]: { reps, dueMs } }); **SAVE_VERSION bumped 6 → 7** with a migration that defaults `reviewLog` to `{}` for older saves (verified: validate-ui now reports "save migration to v7"). Added to default state, `serializeGame`, `loadGame`, and `resetGame`.
+- Completing a quest schedules its first review (`scheduleReview` in `completeQuest`). "Mark reviewed" pushes the next due date out on a 1 → 2 → 4 → 8 day ladder (`REVIEW_INTERVAL_DAYS`, capped). A topic is "due" when its `dueMs` has passed, or when it has no log entry yet (so quests completed on a pre-v7 save still surface for review).
+- Revision Journal upgraded: a gold "Come back and revise (N)" queue lists due topics (most overdue first); opening a due topic shows a "Mark reviewed" button; non-due quests show "Next review in about N days"; when nothing is due it shows a green "All caught up" card. Helpers `dueReviewTopics`, `reviewNextDueText`, `markReviewed`; `data-review-done` handler added to the choice-panel click listener.
+- CSS: `.review-due` (gold call-out, `.is-clear` green variant), `.review-due-list`, `.review-next-due`.
+- No quest/route/world change. Bumped cache-bust to `2026.06.12.13` and deployed live.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js` (7 locations, 45 quests)
+- `node scripts\validate-ui.js` (save migration to v7; render smoke pass)
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`)
+- `node qa-regional-quests-playthrough.mjs` (`blockingIssues: 0`, 6 regions, 30 quests — `scheduleReview` on quest completion does not affect progression)
+- Live browser check: a freshly completed quest schedules a future review (not due); a completed quest with no log entry and an overdue one both appear in the due queue; "Mark reviewed" removes a topic from the queue and advances its interval (reps 1 → 2, due moves 1 → 2 days); screenshot confirmed the queue + Mark reviewed UI.
+
+## 2026-06-12 — Hero outfit now recolours in the world (customisation fix)
+
+Plan area: §3.2 hero customisation — the chosen start preset/outfit barely changed the in-world hero, so it looked the same regardless of choice.
+
+What changed:
+- Root cause: the base hero spritesheet has a fixed blue jumper baked in. The world overlays only repainted hair colour, cap, accent scarf and shoes (small areas); the torso/clothing colour was never applied, so the biggest visual element never changed. (The profile itself flows correctly: custom screen → `startGameNew` → `resetGame` → `state.profile` + `state.equipped.outfit`, and `heroVisual()` reads it.)
+- Added `drawHeroOutfit(p, bob, visual)`: repaints the torso (below the neck, above the belt) in the chosen outfit colour with a light/dark two-tone, in all four facings, matching the fallback sprite footprints. Called first in `drawHeroProfileMarkers` so hair, cap, scarf and arm overlays layer on top.
+- `drawHeroSideArm` now uses the outfit colour for the sleeve (was a hardcoded blue), so the side view matches.
+- Outfit colours are distinct per preset (school blue, campaign green, council red-brown, liberty steel-blue), so the four start choices now look clearly different in the world as well as in the portrait.
+- No save-schema, quest, route, or world change. Bumped cache-bust to `2026.06.12.12` and deployed live.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-ui.js` (11 mini-games; render smoke pass)
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`)
+- Live browser check: deterministic rect-capture confirmed the outfit colour is now drawn for every preset in the down/right/up facings (schoolJumper #2f638f, campaignBoots #3f7d4f, councilCloak #8f4f44, libertyCoat #466d9f).
+
+## 2026-06-12 — Curriculum mastery tracking (§G8 / §7 learning depth)
+
+Plan area: §7 — turn the Curriculum tab from a flat "links complete" percentage into a real per-topic mastery view that shows how secure each GCSE topic is.
+
+What changed:
+- New mastery model (4 tiers: To start → Learning → Secure → Mastered) derived ONLY from already-persisted signals — completed quests + the area's mini-game medals + study stations — so there is NO save-schema change. A topic needs its quest completed to leave "To start"; doing the area's mini-games and study stations then lifts every completed topic in that area Learning → Secure → Mastered. Tutorial-style areas with no extra practice (Core Citizenship) reach Mastered on quest completion.
+- Helpers `areaReinforcementRatio`, `topicMasteryLevel`, `curriculumNextAction`, and `MASTERY_TIERS` added near `curriculumAreaSummary`.
+- `renderProgressCurriculum` rewritten: a top "Curriculum mastery: X%" card with a count summary (mastered/secure/learning/to start) and a colour legend, then per-area cards each showing an area mastery %, a bar, a per-topic list with a coloured mastery pill, and a "Next" hint (complete a quest, or finish the area's mini-games/stations to reach mastered).
+- CSS: `.mastery-list`, `.mastery-topic`, `.mastery-pill` (is-none/is-learning/is-secure/is-mastered) colour-coded pills + `.mastery-legend`.
+- No quest data, route, world, or save-schema change. Bumped cache-bust to `2026.06.12.11` and deployed live.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js` (7 locations, 45 quests)
+- `node scripts\validate-ui.js` (curriculum render smoke passes; 11 mini-games)
+- Live browser check: with a fresh save the tab shows 0% / "45 to start"; completing a Modern Britain quest moved that topic To start → Learning, adding the sourceDetective medal → Secure, and finishing the library study stations → Mastered (area 20%, overall 2%); screenshot confirmed the colour-coded pills and legend.
+
+## 2026-06-12 — Quest "Why this matters" explanation block (§G8 / §7 learning depth)
+
+Plan area: §7 — after answering a regional quest, surface the full curriculum explanation as a clear, separate teaching block instead of a single feedback line blended with the reward.
+
+What changed:
+- `renderNpcWindow` and `showDialogue` gained an optional `explain` argument; when present they render a styled `.npc-explain` block ("Why this matters" + the explanation paragraph) inside the dialogue window.
+- New helper `questWhyExplanation(quest)` returns the curriculum answer + note (`quest.curriculum.correctAnswer` + `note`), falling back to `quest.clue` for quests not mapped in the curriculum guide.
+- `completeQuest` now shows the reward line in the main body and the full curriculum explanation in the dedicated block (previously the explanation was concatenated into the feedback string and easy to miss). `answerQuest` (wrong answer) now also shows the same explanation block so a mistake becomes a teaching moment.
+- CSS: `.npc-explain` is a gold-accented call-out (left border, tinted background, uppercase heading) that reads clearly in the dialogue and on mobile.
+- Banners reminder: the earlier magical-title banner work shipped at v.8.
+- No quest data, route, world, or save-schema change. Bumped cache-bust to `2026.06.12.9` and deployed live.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js` (7 locations, 45 quests)
+- `node scripts\validate-ui.js` (11 mini-games; render smoke pass)
+- Live browser check: `questWhyExplanation` returns the full curriculum text (e.g. mayorVote, 326 chars) and `showDialogue(..., explain)` renders the "Why this matters" block; screenshot confirmed reward line + gold explanation call-out.
+
+## 2026-06-12 — Spark Sorter (real-time sort-into-buckets mini-game, §G8)
+
+Plan area: §G8 / §6 — a second graphically distinct, non-MCQ mini-game introducing a new "sort into categories" mechanic, reusing the Keyword Catcher arcade engine.
+
+What changed:
+- New `MINI_GAMES.sparkSorter` (`type: "sorter"`, region "Rights & Law", hub-only — not linked to a regional NPC, so route/quest QA still finds 8 hosts / 7 regional games). 5 rounds: each is a short case (e.g. "Shoplifting", "Contract dispute") that the player must classify as **Criminal law** or **Civil law**, with a "why" explanation. Each round carries `prompt`/`card`/`choices`/`correct`/`explain` so it satisfies the `validate-ui` round contract and doubles as a plain multiple-choice round.
+- New mechanic on the shared real-time engine: one case card falls from the top of a `<canvas>`; the player steers it left/right (arrow keys, A/D, or pointer drag) into one of two labelled buckets at the bottom. Landing over the correct bucket scores the round. One card per round (no lives). Same 10-second read/countdown phase as Keyword Catcher (with a "Start now" button), so the player can read the case before it falls.
+- **Accessibility**: under Reduced Motion the round renders as the standard static multiple-choice panel (no canvas). Movement of the hero stays paused while the mini-game panel is open.
+- Art: scene banner `assets/minigames/sparkSorter.svg` (sorting bench with two buckets) + shared `.sorter-canvas` CSS. Scoring, medal, save and the hub listing reuse the existing pipeline.
+- No quest, route, world, or save-schema change. Bumped cache-bust to `2026.06.12.7` and deployed live.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js` (7 locations, 45 quests)
+- `node scripts\validate-ui.js` (now 11 mini-games; round contract + render smoke pass)
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- Live browser end-to-end check: steering a criminal case left scores, a civil case right scores, the wrong side scores nothing, and the Reduced-Motion fallback renders multiple-choice buttons with no canvas.
+
+## 2026-06-12 — Keyword Catcher (real-time falling-word mini-game, §G8)
+
+Plan area: §G8 / §6 — add a graphically distinct, non-MCQ mini-game that practises civic vocabulary as an arcade catch game, while keeping it accessible.
+
+What changed:
+- New `MINI_GAMES.keywordCatcher` (`type: "catcher"`, region "Citizenship Village", hub-only — not linked to a regional NPC, so the route/quest QA still finds exactly 8 hosts / 7 regional games). 5 rounds, each a clue + civic keyword choices (Democracy, Accountability, Devolution, Petition, Rule of law) with plausible distractors and a "why" explanation. Because each round carries `prompt`/`choices`/`correct`/`explain`, it satisfies the `validate-ui` round contract and doubles as a normal multiple-choice round.
+- First **real-time** mini-game: keyword tiles fall from the top of a `<canvas>`; the player slides a basket (arrow keys / A-D or pointer drag) to catch the tile that matches the clue and avoid distractors. Catching the correct term scores the round; a wrong catch costs one of three catches; running out shows the answer with no point. Fall speed and spawn rate ramp gently per clue, and the correct term is guaranteed to appear at least every third tile so a round is always winnable. Driven by `updateMiniGameCatcher(frameDeltaMs)` in `loop()`.
+- **Accessibility**: under Reduced Motion the same round data renders as the standard static multiple-choice panel (no animation, no canvas), reusing `answerMiniGame`/`advanceMiniGame`. `movePlayer()` now also pauses while the mini-game panel is open so the catcher's arrow keys do not drive the hidden hero.
+- Art: illustrated scene banner `assets/minigames/keywordCatcher.svg` (keyword sky + falling tiles + basket) + CSS for the banner and the `.catcher-canvas` (responsive, touch-action none). Scoring, medal, save (`miniGameScores`) and the mini-game hub listing reuse the existing pipeline.
+- No quest, route, world, or save-schema change. Bumped cache-bust to `2026.06.12.3` and deployed to the live site.
+
+Validation:
+- `node --check game.js`
+- `node scripts\validate-world.js` (7 locations, 45 quests)
+- `node scripts\validate-ui.js` (now 10 mini-games; round contract + render smoke pass)
+- `node qa-visual-smoke.mjs` (`blockingIssues: 0`, 12 screenshots)
+- `node qa-regional-playthrough.mjs` (`blockingIssues: 0`, 8 hosts, 7 unique games — catcher correctly hub-only)
+- Live browser end-to-end check: opened Keyword Catcher, confirmed the canvas renders falling tiles + basket, a correct catch scores and shows "Correct", a wrong catch reduces catches left, and the Reduced-Motion fallback renders multiple-choice buttons with no canvas.
+
 ## 2026-06-08 — Terrain tile art upgrade (roads/water/bridges/greenery)
 
 Plan area: §3.1 terrain quality — lift the background tiles toward the reference screenshots, license-clean (self-authored SVG, no third-party art).

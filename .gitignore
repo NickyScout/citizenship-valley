@@ -5,3 +5,8 @@ Thumbs.db
 .tools
 dist
 node_modules
+.vite
+publish
+qa-screenshots
+*-result.json
+.git-broken-backup

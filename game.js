@@ -55,7 +55,7 @@ const VIEW_W = canvas.width / RENDER_SCALE;
 const VIEW_H = canvas.height / RENDER_SCALE;
 const SAVE_KEY = "citizenshipValleySaveV1";
 const SETTINGS_KEY = "citizenshipValleySettingsV1";
-const SAVE_VERSION = 6;
+const SAVE_VERSION = 7;
 const keys = new Set();
 let activeNpc = null;
 let activeQuestion = null;
@@ -601,6 +601,89 @@ const MINI_GAMES = {
         explain: "The rule of law means laws apply equally to all, protecting citizens from unfair or arbitrary power."
       }
     ]
+  },
+  keywordCatcher: {
+    title: "Keyword Catcher",
+    region: "Citizenship Village",
+    summary: "Read each clue and catch the civic keyword that matches before it slips past.",
+    type: "catcher",
+    reward: { coins: 10, xp: 14, knowledge: 2, rhetoric: 1 },
+    rounds: [
+      {
+        prompt: "Catch the word: citizens choose who governs through regular, free and fair elections.",
+        choices: ["Democracy", "Dictatorship", "Monarchy"],
+        correct: 0,
+        explain: "Democracy means the people hold power and can replace their representatives through elections."
+      },
+      {
+        prompt: "Catch the word: people in power must explain decisions and can be questioned or replaced.",
+        choices: ["Accountability", "Secrecy", "Privilege"],
+        correct: 0,
+        explain: "Accountability lets citizens check power through scrutiny, elections, and a free press."
+      },
+      {
+        prompt: "Catch the word: passing some powers from the UK Parliament to Scotland, Wales and Northern Ireland.",
+        choices: ["Devolution", "Centralisation", "Isolation"],
+        correct: 0,
+        explain: "Devolution shares certain powers with the nations while the UK Parliament stays sovereign."
+      },
+      {
+        prompt: "Catch the word: a formal, signed request asking decision-makers to change something.",
+        choices: ["Petition", "Verdict", "Manifesto"],
+        correct: 0,
+        explain: "A petition gathers public support behind a clear request and can be sent to the right authority."
+      },
+      {
+        prompt: "Catch the words: everyone, including the government, must obey the law and be treated equally by it.",
+        choices: ["Rule of law", "Royal command", "Mob rule"],
+        correct: 0,
+        explain: "The rule of law means laws apply equally to all and protect citizens from arbitrary power."
+      }
+    ]
+  },
+  sparkSorter: {
+    title: "Spark Sorter",
+    region: "Rights & Law",
+    summary: "Steer each case into criminal or civil law before it lands in a bucket.",
+    type: "sorter",
+    reward: { coins: 10, xp: 14, knowledge: 1, integrity: 2 },
+    rounds: [
+      {
+        prompt: "A shopper is caught taking goods from a store without paying.",
+        card: "Shoplifting",
+        choices: ["Criminal law", "Civil law"],
+        correct: 0,
+        explain: "Theft is an offence against society, so the state prosecutes it under criminal law."
+      },
+      {
+        prompt: "Two businesses disagree over a signed contract that was not honoured.",
+        card: "Contract dispute",
+        choices: ["Criminal law", "Civil law"],
+        correct: 1,
+        explain: "Disagreements over contracts between organisations are settled under civil law."
+      },
+      {
+        prompt: "Someone is accused of attacking another person in the street.",
+        card: "Assault",
+        choices: ["Criminal law", "Civil law"],
+        correct: 0,
+        explain: "Assault is a crime, so it is dealt with by criminal law with the state prosecuting."
+      },
+      {
+        prompt: "A customer asks a court for compensation over faulty goods.",
+        card: "Faulty goods claim",
+        choices: ["Criminal law", "Civil law"],
+        correct: 1,
+        explain: "Claims for compensation between a person and a business are civil law matters."
+      },
+      {
+        prompt: "The police charge a driver for driving dangerously.",
+        card: "Dangerous driving",
+        choices: ["Criminal law", "Civil law"],
+        correct: 0,
+        explain: "Dangerous driving is a criminal offence prosecuted by the state."
+      }
+    ]
   }
 };
 
@@ -658,6 +741,18 @@ const MINI_GAME_VISUALS = {
     cue: "Evidence word board",
     labels: ["Letters", "Case term", "Meaning"],
     result: "Caseword court seal"
+  },
+  keywordCatcher: {
+    layout: "wordcatch",
+    cue: "Keyword sky",
+    labels: ["Clue", "Catch", "Meaning"],
+    result: "Keyword catcher badge"
+  },
+  sparkSorter: {
+    layout: "wordsort",
+    cue: "Sorting bench",
+    labels: ["Case", "Sort", "Bucket"],
+    result: "Spark sorter badge"
   }
 };
 
@@ -936,6 +1031,7 @@ const state = {
   storySeen: new Set(),
   storyFlags: {},
   storyEnding: null,
+  reviewLog: {},
   currentLocation: "village",
   unlockedLocations: new Set(["village"]),
   pendingGate: null,
@@ -978,6 +1074,7 @@ function serializeGame() {
     storySeen: [...state.storySeen],
     storyFlags: state.storyFlags,
     storyEnding: state.storyEnding,
+    reviewLog: state.reviewLog,
     currentLocation: state.currentLocation,
     unlockedLocations: [...state.unlockedLocations],
     pendingGate: state.pendingGate,
@@ -1057,6 +1154,10 @@ function migrateSave(raw) {
     data.storyFlags = data.storyFlags && typeof data.storyFlags === "object" ? data.storyFlags : {};
     data.saveVersion = 6;
   }
+  if (data.saveVersion < 7) {
+    data.reviewLog = data.reviewLog && typeof data.reviewLog === "object" ? data.reviewLog : {};
+    data.saveVersion = 7;
+  }
   return data;
 }
 
@@ -1107,6 +1208,7 @@ function loadGame() {
     state.storySeen = new Set(Array.isArray(saved.storySeen) ? saved.storySeen.filter((id) => STORY_BEATS[id] || STORY_ENDINGS[id]) : []);
     state.storyFlags = sanitiseStoryFlags(saved.storyFlags);
     state.storyEnding = saved.storyEnding || null;
+    state.reviewLog = saved.reviewLog && typeof saved.reviewLog === "object" ? saved.reviewLog : {};
     state.unlockedLocations = new Set(Array.isArray(saved.unlockedLocations) ? saved.unlockedLocations : ["village"]);
     state.pendingGate = saved.pendingGate || null;
     state.lastDoorReturn = saved.lastDoorReturn && WORLD_LAYOUTS[saved.lastDoorReturn.from]
@@ -1166,6 +1268,7 @@ function resetGame(options = {}) {
   state.storySeen = new Set();
   state.storyFlags = {};
   state.storyEnding = null;
+  state.reviewLog = {};
   state.unlockedLocations = new Set(["village"]);
   state.activeQuest = null;
   state.pendingGate = null;
@@ -3444,6 +3547,52 @@ function journalEntries() {
   return [...studyJournalEntries(), ...reviewEntries()];
 }
 
+// === SECTION: SPACED REVIEW (§G8 / §7 "come back and revise" weak/old topics) ===
+// A light spaced-repetition layer over completed quest topics. Each completed topic gets
+// a reviewLog entry { reps, dueMs }; finishing the quest schedules the first review, and
+// "Mark reviewed" pushes the next due date further out (1 -> 2 -> 4 -> 8 days). A topic is
+// "due" when its dueMs has passed (or it has no log entry yet, e.g. an older save), so the
+// Revision Journal can surface a prioritised "come back and revise" queue. reviewLog is
+// persisted (save v7); no quest/route/world change.
+const REVIEW_INTERVAL_DAYS = [1, 2, 4, 8];
+
+function reviewIntervalMs(reps) {
+  const days = REVIEW_INTERVAL_DAYS[Math.min(reps, REVIEW_INTERVAL_DAYS.length) - 1] || REVIEW_INTERVAL_DAYS[0];
+  return days * 24 * 60 * 60 * 1000;
+}
+
+function scheduleReview(questId) {
+  if (!questId) return;
+  if (!state.reviewLog || typeof state.reviewLog !== "object") state.reviewLog = {};
+  const prev = state.reviewLog[questId];
+  const reps = prev ? Math.min((prev.reps || 0) + 1, REVIEW_INTERVAL_DAYS.length) : 1;
+  state.reviewLog[questId] = { reps, dueMs: Date.now() + reviewIntervalMs(reps) };
+}
+
+function markReviewed(questId) {
+  if (!state.completedQuests.has(questId)) return;
+  scheduleReview(questId);
+  saveGame();
+  showReviewJournal(questId);
+}
+
+// Completed topics whose review is due now (passed dueMs, or no log entry yet), most
+// overdue first. Powers the "Due for review" queue in the Revision Journal.
+function dueReviewTopics() {
+  const now = Date.now();
+  return reviewEntries()
+    .map((entry) => ({ ...entry, dueMs: state.reviewLog?.[entry.id]?.dueMs ?? 0 }))
+    .filter((entry) => entry.dueMs <= now)
+    .sort((left, right) => left.dueMs - right.dueMs);
+}
+
+function reviewNextDueText(questId) {
+  const dueMs = state.reviewLog?.[questId]?.dueMs;
+  if (!dueMs) return "";
+  const days = Math.max(1, Math.round((dueMs - Date.now()) / (24 * 60 * 60 * 1000)));
+  return `Next review in about ${days} day${days === 1 ? "" : "s"}.`;
+}
+
 function renderReviewList() {
   const studyEntries = studyJournalEntries()
     .filter((entry) => entry.done > 0 || entry.locationId === state.currentLocation)
@@ -3501,16 +3650,31 @@ function showReviewJournal(selectedEntryId = null) {
     showPanel("<button type=\"button\" disabled>Complete quests or building stations to unlock revision notes.</button><button type=\"button\" data-menu=\"close\">Close</button>", "Revision Journal", "book");
     return;
   }
+  const due = dueReviewTopics();
+  const dueIds = new Set(due.map((entry) => entry.id));
   const selected = entries.find((entry) => entry.id === selectedEntryId)
+    || due[0]
     || entries.find((entry) => entry.kind === "study" && entry.locationId === state.currentLocation)
     || entries.at(-1);
+  const dueSection = due.length
+    ? `<div class="review-due"><strong>Come back and revise (${due.length})</strong><small>Topics ready for a quick refresher.</small><div class="review-due-list">${due.slice(0, 6).map((entry) => `<button type="button" data-review-entry="${entry.id}">${escapeHtml(entry.region)}: ${escapeHtml(entry.title)}</button>`).join("")}</div></div>`
+    : `<div class="review-due is-clear"><strong>All caught up</strong><small>No topics are due for review right now.</small></div>`;
+  const isDueQuest = selected.kind === "quest" && dueIds.has(selected.id);
+  const detail = selected.kind === "study" ? renderStudyJournalDetail(selected) : renderQuestJournalDetail(selected);
+  const reviewAction = isDueQuest
+    ? `<button type="button" data-review-done="${selected.id}">Mark reviewed</button>`
+    : selected.kind === "quest" && reviewNextDueText(selected.id)
+      ? `<p class="review-next-due">${escapeHtml(reviewNextDueText(selected.id))}</p>`
+      : "";
   const buttons = entries.map((entry) => `
     <button type="button" data-review-entry="${entry.id}">
       ${entry.id === selected.id ? "[Selected] " : ""}${escapeHtml(entry.region)}: ${escapeHtml(entry.title)}${entry.kind === "study" ? ` (${entry.done}/${entry.total})` : ""}
     </button>
   `).join("");
   const html = `
-    ${selected.kind === "study" ? renderStudyJournalDetail(selected) : renderQuestJournalDetail(selected)}
+    ${dueSection}
+    ${detail}
+    ${reviewAction}
     <div class="review-menu">${buttons}</div>
     <button type="button" data-menu="close">Close</button>
   `;
@@ -3915,6 +4079,45 @@ function curriculumAreasForMiniGame(id) {
   return CURRICULUM_AREAS.filter((area) => curriculumAreaSummary(area).miniGameRefs.includes(id));
 }
 
+// === SECTION: CURRICULUM MASTERY (§G8 / §7 learning depth) ===
+// Per-topic mastery derived ONLY from already-persisted signals (completed quests + the
+// area's mini-game medals + study stations) — no save-schema change. A topic needs its
+// quest completed to leave "to start"; doing the area's mini-games and study stations
+// then lifts every completed topic in that area learning -> secure -> mastered.
+const MASTERY_TIERS = [
+  { key: "none", label: "To start" },
+  { key: "learning", label: "Learning" },
+  { key: "secure", label: "Secure" },
+  { key: "mastered", label: "Mastered" }
+];
+
+function areaReinforcementRatio(summary) {
+  const total = summary.miniGameRefs.length + summary.studyTotal;
+  if (!total) return null; // tutorial-style area with no extra practice available
+  return (summary.miniDone + summary.studyDone) / total;
+}
+
+function topicMasteryLevel(topicId, reinforceRatio) {
+  if (!state.completedQuests.has(topicId)) return 0;
+  if (reinforceRatio === null || reinforceRatio >= 1) return 3;
+  if (reinforceRatio > 0) return 2;
+  return 1;
+}
+
+function curriculumNextAction(summary, ratio, topics) {
+  const toStart = topics.find((entry) => entry.level === 0);
+  if (toStart) return `Next: complete "${toStart.title}".`;
+  if (ratio !== null && ratio < 1) {
+    const games = summary.miniGameRefs.length - summary.miniDone;
+    const stations = summary.studyTotal - summary.studyDone;
+    const bits = [];
+    if (games > 0) bits.push(`${games} mini-game${games === 1 ? "" : "s"}`);
+    if (stations > 0) bits.push(`${stations} study station${stations === 1 ? "" : "s"}`);
+    return `Boost to mastered: finish ${bits.join(" and ")}.`;
+  }
+  return "Area mastered. Great revision!";
+}
+
 function miniGameCurriculumNote(id) {
   const areas = curriculumAreasForMiniGame(id);
   return areas.length ? ` Curriculum improved: ${areas.join(", ")}.` : "";
@@ -3922,29 +4125,48 @@ function miniGameCurriculumNote(id) {
 
 function renderProgressCurriculum() {
   const summaries = CURRICULUM_AREAS.map(curriculumAreaSummary);
-  const total = summaries.reduce((sum, area) => sum + area.total, 0);
-  const done = summaries.reduce((sum, area) => sum + area.done, 0);
-  const overall = total ? Math.round((done / total) * 100) : 0;
-  const cards = summaries.map((summary) => {
-    const nextTopic = summary.topics.find((topic) => !state.completedQuests.has(topic.id));
-    const miniText = summary.miniGameRefs.length ? `${summary.miniDone}/${summary.miniGameRefs.length} mini-games` : "No mini-game link yet";
-    const stationText = summary.studyTotal ? `${summary.studyDone}/${summary.studyTotal} study stations` : "No study station link yet";
+  let totalPoints = 0;
+  let maxPoints = 0;
+  const counts = { mastered: 0, secure: 0, learning: 0, none: 0 };
+  const areaData = summaries.map((summary) => {
+    const ratio = areaReinforcementRatio(summary);
+    const topics = summary.topics.map((topic) => {
+      const level = topicMasteryLevel(topic.id, ratio);
+      counts[MASTERY_TIERS[level].key] += 1;
+      totalPoints += level;
+      maxPoints += 3;
+      return { topic, level, title: QUESTS[topic.id]?.title || topic.asks || "Topic" };
+    });
+    const areaPoints = topics.reduce((sum, entry) => sum + entry.level, 0);
+    const areaMax = topics.length * 3 || 1;
+    return { summary, ratio, topics, areaPct: Math.round((areaPoints / areaMax) * 100) };
+  });
+  const overall = maxPoints ? Math.round((totalPoints / maxPoints) * 100) : 0;
+  const legend = MASTERY_TIERS.map((tier) => `<span class="mastery-pill is-${tier.key}">${escapeHtml(tier.label)}</span>`).join("");
+  const cards = areaData.map(({ summary, ratio, topics, areaPct }) => {
+    const rows = topics.map((entry) => `
+      <li class="mastery-topic">
+        <span class="mastery-topic-name">${escapeHtml(entry.title)}</span>
+        <span class="mastery-pill is-${MASTERY_TIERS[entry.level].key}">${escapeHtml(MASTERY_TIERS[entry.level].label)}</span>
+      </li>
+    `).join("");
     return `
       <div class="progress-card">
         <strong>${escapeHtml(summary.area)}</strong>
-        <small>${summary.done}/${summary.total} learning links complete</small>
-        <div class="progress-bar mini"><span style="width:${summary.percent}%"></span></div>
-        <p>${summary.percent}% learned - ${summary.topicDone}/${summary.topics.length} topics, ${escapeHtml(miniText)}, ${escapeHtml(stationText)}.</p>
-        <small>Next: ${escapeHtml(nextTopic?.asks || "All linked topics complete")}</small>
+        <small>${areaPct}% mastery</small>
+        <div class="progress-bar mini"><span style="width:${areaPct}%"></span></div>
+        <ul class="progress-list mastery-list">${rows}</ul>
+        <small>${escapeHtml(curriculumNextAction(summary, ratio, topics))}</small>
       </div>
     `;
   }).join("");
   return `
     <section class="progress-section">
       <div class="progress-card is-active">
-        <strong>Curriculum progress: ${overall}%</strong>
-        <small>${done}/${total} linked learning activities complete</small>
+        <strong>Curriculum mastery: ${overall}%</strong>
+        <small>${counts.mastered} mastered &middot; ${counts.secure} secure &middot; ${counts.learning} learning &middot; ${counts.none} to start</small>
         <div class="progress-bar"><span style="width:${overall}%"></span></div>
+        <div class="mastery-legend">${legend}</div>
       </div>
       <div class="progress-card-grid">${cards}</div>
     </section>
@@ -3997,17 +4219,14 @@ function miniGameVisualMeta(id) {
 
 function renderMiniGameVisual(id, round, index, total) {
   const meta = miniGameVisualMeta(id);
-  const labelChips = meta.labels.map((label) => `<span>${escapeHtml(label)}</span>`).join("");
-  const roundLabel = round.section || `Round ${index + 1}`;
+  const game = MINI_GAMES[id];
+  const title = (game && game.title) || meta.cue;
   return `
     <div class="minigame-visual minigame-stage-${safeClassName(meta.layout)} minigame-visual-${safeClassName(id)}" aria-hidden="true">
-      <div class="minigame-banner"></div>
-      <div class="minigame-stage-prop prop-a"></div>
-      <div class="minigame-stage-prop prop-b"></div>
-      <div class="minigame-stage-prop prop-c"></div>
-      <div class="minigame-stage-labels">${labelChips}</div>
-      <strong>${escapeHtml(meta.cue)}</strong>
-      <small>${escapeHtml(roundLabel)} ${index + 1}/${total}</small>
+      <div class="minigame-banner">
+        <strong class="minigame-banner-title">${escapeHtml(title)}</strong>
+        <em class="minigame-banner-sub">${escapeHtml(meta.cue)}</em>
+      </div>
     </div>
   `;
 }
@@ -4037,6 +4256,32 @@ function openMiniGame(id) {
       score: 0,
       type: "wordReveal",
       ...makeWordRevealRound(game.rounds[0])
+    };
+    renderMiniGamePanel();
+    miniGamePanel?.classList.remove("hidden");
+    return;
+  }
+  if (game.type === "catcher") {
+    activeMiniGame = {
+      id,
+      index: 0,
+      score: 0,
+      type: "catcher",
+      orders: game.rounds.map((round) => shuffledAnswerIndexes(round.choices.length)),
+      ...makeCatcherRound()
+    };
+    renderMiniGamePanel();
+    miniGamePanel?.classList.remove("hidden");
+    return;
+  }
+  if (game.type === "sorter") {
+    activeMiniGame = {
+      id,
+      index: 0,
+      score: 0,
+      type: "sorter",
+      orders: game.rounds.map((round) => shuffledAnswerIndexes(round.choices.length)),
+      ...makeSorterRound()
     };
     renderMiniGamePanel();
     miniGamePanel?.classList.remove("hidden");
@@ -4078,11 +4323,481 @@ function wordRevealIsSolved(round, revealed) {
   return wordRevealLettersNeeded(round.word).every((letter) => revealed.includes(letter));
 }
 
+// === SECTION: KEYWORD CATCHER (real-time falling-word arcade mini-game, type "catcher") ===
+// Falling keyword tiles drop from the top; the player slides a basket to catch the tile
+// that matches the clue and avoid the distractors. Pure runtime state (blocks/basket/
+// misses) lives on activeMiniGame and is NOT saved. Under Reduced Motion the same round
+// data falls back to the standard multiple-choice renderer (no animation) via
+// renderMiniGamePanel routing, so it stays fully accessible. Scoring/medal/save reuse the
+// shared mini-game pipeline (one point per clue, score out of rounds.length).
+const CATCHER_W = 360;
+const CATCHER_H = 240;
+const CATCHER_BASKET_W = 55;
+const CATCHER_BASKET_H = 28;
+const CATCHER_BLOCK_W = 118;
+const CATCHER_BLOCK_H = 34;
+const CATCHER_MAX_MISSES = 3;
+// Give the player time to read the clue before any keyword tiles begin to fall.
+const CATCHER_READ_MS = 10000;
+
+function makeCatcherRound() {
+  return {
+    answered: false,
+    selected: null,
+    caughtCorrect: false,
+    blocks: [],
+    basketX: (CATCHER_W - CATCHER_BASKET_W) / 2,
+    spawnTimerMs: 0,
+    spawnCount: 0,
+    missesLeft: CATCHER_MAX_MISSES,
+    flashMs: 0,
+    readMs: CATCHER_READ_MS
+  };
+}
+
+function renderCatcherPanel(game) {
+  const run = activeMiniGame;
+  const round = game.rounds[run.index];
+  let body;
+  if (run.answered) {
+    const title = run.caughtCorrect ? "Correct" : "Out of catches";
+    body = `
+      <div class="minigame-feedback">
+        <strong>${title}</strong>
+        <p>${escapeHtml(round.explain)}</p>
+        <button type="button" data-minigame-next>${run.index >= game.rounds.length - 1 ? "Finish" : "Next clue"}</button>
+      </div>
+    `;
+  } else {
+    const playHint = run.readMs > 0
+      ? `<small class="catcher-hint">Read the clue while the timer counts down. Move your basket now with the arrow keys or by dragging; keywords start falling when it reaches zero.</small><button type="button" class="catcher-start-btn" data-minigame-catcher-start>Start now</button>`
+      : `<small class="catcher-hint">Slide the basket with the arrow keys or by dragging, and catch the keyword that matches the clue. Catches left: ${run.missesLeft}.</small>`;
+    body = `
+      <canvas class="catcher-canvas" width="${CATCHER_W}" height="${CATCHER_H}" role="img" aria-label="Keyword catcher play area"></canvas>
+      ${playHint}
+    `;
+  }
+  miniGamePanelBody.innerHTML = `
+    <div class="minigame-header">
+      <strong>${escapeHtml(game.title)}</strong>
+      <small>${escapeHtml(game.region)} - ${miniGameScoreText(run.id)}</small>
+    </div>
+    ${renderMiniGameVisual(run.id, round, run.index, game.rounds.length)}
+    <div class="minigame-meter"><span style="width:${(run.index / game.rounds.length) * 100}%"></span></div>
+    <div class="minigame-round minigame-catcher">
+      <small>Clue ${run.index + 1}/${game.rounds.length} - Score ${run.score}</small>
+      <p>${escapeHtml(round.prompt)}</p>
+      ${body}
+    </div>
+  `;
+  if (!run.answered) attachCatcherPointer();
+}
+
+function attachCatcherPointer() {
+  const canvas = miniGamePanelBody?.querySelector(".catcher-canvas");
+  if (!canvas) return;
+  let dragging = false;
+  const setFromEvent = (event) => {
+    const run = activeMiniGame;
+    if (!run || run.type !== "catcher" || run.answered) return;
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width) return;
+    const logicalX = ((event.clientX - rect.left) / rect.width) * CATCHER_W;
+    run.basketX = Math.max(0, Math.min(CATCHER_W - CATCHER_BASKET_W, logicalX - CATCHER_BASKET_W / 2));
+  };
+  canvas.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    dragging = true;
+    canvas.setPointerCapture?.(event.pointerId);
+    setFromEvent(event);
+  });
+  canvas.addEventListener("pointermove", (event) => { if (dragging) setFromEvent(event); });
+  const stop = () => { dragging = false; };
+  canvas.addEventListener("pointerup", stop);
+  canvas.addEventListener("pointercancel", stop);
+  canvas.addEventListener("lostpointercapture", stop);
+}
+
+function spawnCatcherBlock(run, round) {
+  run.spawnCount += 1;
+  // Guarantee the correct keyword appears often enough to win (at least every 3rd tile).
+  const forceCorrect = run.spawnCount % 3 === 0;
+  let choiceIndex;
+  if (forceCorrect || Math.random() < 0.4) {
+    choiceIndex = round.correct;
+  } else {
+    const wrong = round.choices.map((_, i) => i).filter((i) => i !== round.correct);
+    choiceIndex = wrong[Math.floor(Math.random() * wrong.length)];
+  }
+  run.blocks.push({
+    x: Math.random() * (CATCHER_W - CATCHER_BLOCK_W),
+    y: -CATCHER_BLOCK_H,
+    choiceIndex
+  });
+}
+
+function stepCatcher(run, round, dt) {
+  const step = Math.min(50, dt);
+  const moveSpeed = 0.42; // logical px per ms
+  if (keys.has("arrowleft") || keys.has("a")) run.basketX -= moveSpeed * step;
+  if (keys.has("arrowright") || keys.has("d")) run.basketX += moveSpeed * step;
+  run.basketX = Math.max(0, Math.min(CATCHER_W - CATCHER_BASKET_W, run.basketX));
+  if (run.flashMs > 0) run.flashMs = Math.max(0, run.flashMs - step);
+  // Read phase: the player can reposition the basket, but nothing falls until the
+  // countdown ends (or they press "Start now", which sets readMs to 0).
+  if (run.readMs > 0) {
+    run.readMs -= step;
+    if (run.readMs <= 0) {
+      run.readMs = 0;
+      renderMiniGamePanel(); // refresh the hint (drops the Start button) once falling begins
+    }
+    return;
+  }
+  const fallSpeed = 0.05 + run.index * 0.006; // logical px per ms, gentle ramp per clue
+  // Vertical gap between tiles ≈ fallSpeed × spawnInterval, so a longer interval spaces
+  // the falling words further apart and keeps the board readable.
+  const spawnInterval = Math.max(1150, 1750 - run.index * 70);
+  run.spawnTimerMs -= step;
+  if (run.spawnTimerMs <= 0) {
+    run.spawnTimerMs = spawnInterval;
+    spawnCatcherBlock(run, round);
+  }
+  const basketTop = CATCHER_H - CATCHER_BASKET_H - 4;
+  for (let i = run.blocks.length - 1; i >= 0; i -= 1) {
+    const b = run.blocks[i];
+    b.y += fallSpeed * step;
+    const caught = b.y + CATCHER_BLOCK_H >= basketTop && b.y < CATCHER_H &&
+      b.x + CATCHER_BLOCK_W > run.basketX && b.x < run.basketX + CATCHER_BASKET_W;
+    if (caught) {
+      run.blocks.splice(i, 1);
+      if (b.choiceIndex === round.correct) {
+        run.score += 1;
+        run.caughtCorrect = true;
+        run.answered = true;
+        renderMiniGamePanel();
+        return;
+      }
+      run.missesLeft -= 1;
+      run.flashMs = 240;
+      if (run.missesLeft <= 0) {
+        run.caughtCorrect = false;
+        run.answered = true;
+        renderMiniGamePanel();
+        return;
+      }
+    } else if (b.y > CATCHER_H) {
+      run.blocks.splice(i, 1);
+    }
+  }
+}
+
+function updateMiniGameCatcher(dt) {
+  const run = activeMiniGame;
+  if (!run || run.type !== "catcher" || settings.reducedMotion) return;
+  if (!miniGamePanel || miniGamePanel.classList.contains("hidden")) return;
+  const canvas = miniGamePanelBody?.querySelector(".catcher-canvas");
+  if (!canvas || typeof canvas.getContext !== "function") return;
+  const game = MINI_GAMES[run.id];
+  const round = game.rounds[run.index];
+  if (!run.answered) stepCatcher(run, round, dt);
+  drawCatcher(canvas, run, round);
+}
+
+function catcherRoundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function fitCatcherLabel(c, label) {
+  let text = label;
+  while (text.length > 3 && c.measureText(text).width > CATCHER_BLOCK_W - 14) {
+    text = text.slice(0, -1);
+  }
+  return text === label ? label : `${text.trim()}\u2026`;
+}
+
+function drawCatcher(canvas, run, round) {
+  const c = canvas.getContext("2d");
+  if (!c) return;
+  c.clearRect(0, 0, CATCHER_W, CATCHER_H);
+  const sky = c.createLinearGradient(0, 0, 0, CATCHER_H);
+  sky.addColorStop(0, "#1c2c3b");
+  sky.addColorStop(1, "#0f181f");
+  c.fillStyle = sky;
+  c.fillRect(0, 0, CATCHER_W, CATCHER_H);
+  if (run.flashMs > 0) {
+    c.fillStyle = `rgba(214,90,74,${((run.flashMs / 240) * 0.32).toFixed(3)})`;
+    c.fillRect(0, 0, CATCHER_W, CATCHER_H);
+  }
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.font = "bold 13px Georgia";
+  run.blocks.forEach((b) => {
+    const isCorrectTile = b.choiceIndex === round.correct;
+    c.fillStyle = "#f6f1df";
+    catcherRoundRect(c, b.x, b.y, CATCHER_BLOCK_W, CATCHER_BLOCK_H, 7);
+    c.fill();
+    c.lineWidth = 2;
+    c.strokeStyle = isCorrectTile ? "#3a2f28" : "#3a2f28";
+    c.stroke();
+    c.fillStyle = "#26313a";
+    c.fillText(fitCatcherLabel(c, round.choices[b.choiceIndex]), b.x + CATCHER_BLOCK_W / 2, b.y + CATCHER_BLOCK_H / 2 + 1);
+  });
+  const bx = run.basketX;
+  const by = CATCHER_H - CATCHER_BASKET_H - 2;
+  c.fillStyle = "#f2c14e";
+  catcherRoundRect(c, bx, by, CATCHER_BASKET_W, CATCHER_BASKET_H, 8);
+  c.fill();
+  c.lineWidth = 2;
+  c.strokeStyle = "#6b4f1c";
+  c.stroke();
+  c.strokeStyle = "rgba(107,79,28,.5)";
+  c.lineWidth = 1;
+  for (let i = 1; i < 4; i += 1) {
+    const lx = bx + (CATCHER_BASKET_W / 4) * i;
+    c.beginPath();
+    c.moveTo(lx, by + 3);
+    c.lineTo(lx, by + CATCHER_BASKET_H - 3);
+    c.stroke();
+  }
+  c.textAlign = "left";
+  c.textBaseline = "alphabetic";
+  c.font = "12px Georgia";
+  c.fillStyle = "#f6c0b5";
+  c.fillText(`Catches left: ${run.missesLeft}`, 8, 17);
+  // Read phase: dim the play area and show a big "get ready" countdown so the player
+  // can read the clue before any keyword tiles start to fall.
+  if (run.readMs > 0) {
+    c.fillStyle = "rgba(8,12,16,.6)";
+    c.fillRect(0, 0, CATCHER_W, CATCHER_H);
+    c.textAlign = "center";
+    c.fillStyle = "#f6f1df";
+    c.font = "bold 15px Georgia";
+    c.fillText("Read the clue", CATCHER_W / 2, CATCHER_H / 2 - 34);
+    c.fillStyle = "#f2c14e";
+    c.font = "bold 52px Georgia";
+    c.fillText(String(Math.ceil(run.readMs / 1000)), CATCHER_W / 2, CATCHER_H / 2 + 18);
+    c.fillStyle = "#cdd6da";
+    c.font = "12px Georgia";
+    c.fillText("Keywords start falling soon", CATCHER_W / 2, CATCHER_H / 2 + 46);
+    c.textAlign = "left";
+  }
+}
+
+// === SECTION: SPARK SORTER (real-time sort-into-two-buckets mini-game, type "sorter") ===
+// Reuses the Keyword Catcher arcade pattern (canvas + frameDeltaMs tick + 10s read phase
+// + reduced-motion MCQ fallback) but with a NEW mechanic: one case card falls and the
+// player steers it left/right into one of two labelled buckets (e.g. Criminal vs Civil
+// law). Runtime-only state on activeMiniGame; not saved. Each round = one case; landing
+// over the correct bucket scores it (score out of rounds.length, shared pipeline). Under
+// Reduced Motion it falls back to the standard multiple-choice renderer.
+const SORTER_W = 360;
+const SORTER_H = 240;
+const SORTER_CARD_W = 134;
+const SORTER_CARD_H = 42;
+const SORTER_BUCKET_H = 48;
+const SORTER_READ_MS = 10000;
+
+function makeSorterRound() {
+  return {
+    answered: false,
+    selected: null,
+    sortedCorrect: false,
+    cardX: (SORTER_W - SORTER_CARD_W) / 2,
+    cardY: 12,
+    readMs: SORTER_READ_MS
+  };
+}
+
+function renderSorterPanel(game) {
+  const run = activeMiniGame;
+  const round = game.rounds[run.index];
+  let body;
+  if (run.answered) {
+    const title = run.sortedCorrect ? "Correct" : "Not quite";
+    body = `
+      <div class="minigame-feedback">
+        <strong>${title}</strong>
+        <p>${escapeHtml(round.explain)}</p>
+        <button type="button" data-minigame-next>${run.index >= game.rounds.length - 1 ? "Finish" : "Next case"}</button>
+      </div>
+    `;
+  } else {
+    const playHint = run.readMs > 0
+      ? `<small class="catcher-hint">Read the case while the timer counts down. You can line up your bucket now with the arrow keys or by dragging; the case starts falling when it reaches zero.</small><button type="button" class="catcher-start-btn" data-minigame-sorter-start>Start now</button>`
+      : `<small class="catcher-hint">Steer the falling case into the correct law with the arrow keys or by dragging.</small>`;
+    body = `
+      <canvas class="sorter-canvas" width="${SORTER_W}" height="${SORTER_H}" role="img" aria-label="Spark sorter play area"></canvas>
+      ${playHint}
+    `;
+  }
+  miniGamePanelBody.innerHTML = `
+    <div class="minigame-header">
+      <strong>${escapeHtml(game.title)}</strong>
+      <small>${escapeHtml(game.region)} - ${miniGameScoreText(run.id)}</small>
+    </div>
+    ${renderMiniGameVisual(run.id, round, run.index, game.rounds.length)}
+    <div class="minigame-meter"><span style="width:${(run.index / game.rounds.length) * 100}%"></span></div>
+    <div class="minigame-round minigame-catcher">
+      <small>Case ${run.index + 1}/${game.rounds.length} - Score ${run.score}</small>
+      <p>${escapeHtml(round.prompt)}</p>
+      ${body}
+    </div>
+  `;
+  if (!run.answered) attachSorterPointer();
+}
+
+function attachSorterPointer() {
+  const canvas = miniGamePanelBody?.querySelector(".sorter-canvas");
+  if (!canvas) return;
+  let dragging = false;
+  const setFromEvent = (event) => {
+    const run = activeMiniGame;
+    if (!run || run.type !== "sorter" || run.answered) return;
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width) return;
+    const logicalX = ((event.clientX - rect.left) / rect.width) * SORTER_W;
+    run.cardX = Math.max(0, Math.min(SORTER_W - SORTER_CARD_W, logicalX - SORTER_CARD_W / 2));
+  };
+  canvas.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    dragging = true;
+    canvas.setPointerCapture?.(event.pointerId);
+    setFromEvent(event);
+  });
+  canvas.addEventListener("pointermove", (event) => { if (dragging) setFromEvent(event); });
+  const stop = () => { dragging = false; };
+  canvas.addEventListener("pointerup", stop);
+  canvas.addEventListener("pointercancel", stop);
+  canvas.addEventListener("lostpointercapture", stop);
+}
+
+function stepSorter(run, round, dt) {
+  const step = Math.min(50, dt);
+  const moveSpeed = 0.42; // logical px per ms
+  if (keys.has("arrowleft") || keys.has("a")) run.cardX -= moveSpeed * step;
+  if (keys.has("arrowright") || keys.has("d")) run.cardX += moveSpeed * step;
+  run.cardX = Math.max(0, Math.min(SORTER_W - SORTER_CARD_W, run.cardX));
+  if (run.readMs > 0) {
+    run.readMs -= step;
+    if (run.readMs <= 0) {
+      run.readMs = 0;
+      renderMiniGamePanel(); // drop the Start button once the case begins to fall
+    }
+    return;
+  }
+  const fallSpeed = 0.05; // logical px per ms — slow enough to steer precisely
+  run.cardY += fallSpeed * step;
+  const bucketTop = SORTER_H - SORTER_BUCKET_H;
+  if (run.cardY + SORTER_CARD_H >= bucketTop) {
+    const center = run.cardX + SORTER_CARD_W / 2;
+    const chosen = center < SORTER_W / 2 ? 0 : 1;
+    run.selected = chosen;
+    run.sortedCorrect = chosen === round.correct;
+    if (run.sortedCorrect) run.score += 1;
+    run.answered = true;
+    renderMiniGamePanel();
+  }
+}
+
+function updateMiniGameSorter(dt) {
+  const run = activeMiniGame;
+  if (!run || run.type !== "sorter" || settings.reducedMotion) return;
+  if (!miniGamePanel || miniGamePanel.classList.contains("hidden")) return;
+  const canvas = miniGamePanelBody?.querySelector(".sorter-canvas");
+  if (!canvas || typeof canvas.getContext !== "function") return;
+  const game = MINI_GAMES[run.id];
+  const round = game.rounds[run.index];
+  if (!run.answered) stepSorter(run, round, dt);
+  drawSorter(canvas, run, round);
+}
+
+function fitLabelToWidth(c, label, maxW) {
+  let text = label;
+  while (text.length > 3 && c.measureText(text).width > maxW) {
+    text = text.slice(0, -1);
+  }
+  return text === label ? label : `${text.trim()}\u2026`;
+}
+
+function drawSorter(canvas, run, round) {
+  const c = canvas.getContext("2d");
+  if (!c) return;
+  c.clearRect(0, 0, SORTER_W, SORTER_H);
+  const sky = c.createLinearGradient(0, 0, 0, SORTER_H);
+  sky.addColorStop(0, "#1c2c3b");
+  sky.addColorStop(1, "#0f181f");
+  c.fillStyle = sky;
+  c.fillRect(0, 0, SORTER_W, SORTER_H);
+  const bucketTop = SORTER_H - SORTER_BUCKET_H;
+  // centre divider between the two buckets
+  c.strokeStyle = "rgba(242,193,78,.35)";
+  c.lineWidth = 2;
+  c.beginPath();
+  c.moveTo(SORTER_W / 2, 10);
+  c.lineTo(SORTER_W / 2, bucketTop);
+  c.stroke();
+  // two labelled buckets
+  const bucketColors = ["#3a5a78", "#5a4a78"];
+  [0, 1].forEach((i) => {
+    const bx = i === 0 ? 0 : SORTER_W / 2;
+    c.fillStyle = bucketColors[i];
+    c.fillRect(bx + 3, bucketTop, SORTER_W / 2 - 6, SORTER_BUCKET_H - 3);
+    c.fillStyle = "#f6f1df";
+    c.font = "bold 12px Georgia";
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillText(fitLabelToWidth(c, round.choices[i], SORTER_W / 2 - 14), bx + SORTER_W / 4, bucketTop + SORTER_BUCKET_H / 2);
+  });
+  // falling case card
+  const cardLabel = round.card || round.prompt;
+  c.fillStyle = "#f6f1df";
+  catcherRoundRect(c, run.cardX, run.cardY, SORTER_CARD_W, SORTER_CARD_H, 8);
+  c.fill();
+  c.lineWidth = 2;
+  c.strokeStyle = "#3a2f28";
+  c.stroke();
+  c.fillStyle = "#26313a";
+  c.font = "bold 13px Georgia";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(fitLabelToWidth(c, cardLabel, SORTER_CARD_W - 14), run.cardX + SORTER_CARD_W / 2, run.cardY + SORTER_CARD_H / 2);
+  // read phase overlay
+  if (run.readMs > 0) {
+    c.fillStyle = "rgba(8,12,16,.5)";
+    c.fillRect(0, 0, SORTER_W, SORTER_H);
+    c.textAlign = "center";
+    c.fillStyle = "#f6f1df";
+    c.font = "bold 15px Georgia";
+    c.fillText("Read the case", SORTER_W / 2, SORTER_H / 2 - 30);
+    c.fillStyle = "#f2c14e";
+    c.font = "bold 48px Georgia";
+    c.fillText(String(Math.ceil(run.readMs / 1000)), SORTER_W / 2, SORTER_H / 2 + 16);
+    c.fillStyle = "#cdd6da";
+    c.font = "12px Georgia";
+    c.fillText("Then steer it into a bucket", SORTER_W / 2, SORTER_H / 2 + 44);
+    c.textAlign = "left";
+  }
+}
+
 function renderMiniGamePanel() {
   if (!miniGamePanelBody || !activeMiniGame) return;
   const game = MINI_GAMES[activeMiniGame.id];
   if (game.type === "wordReveal") {
     renderWordRevealPanel(game);
+    return;
+  }
+  if (game.type === "catcher" && !settings.reducedMotion) {
+    renderCatcherPanel(game);
+    return;
+  }
+  if (game.type === "sorter" && !settings.reducedMotion) {
+    renderSorterPanel(game);
     return;
   }
   const round = game.rounds[activeMiniGame.index];
@@ -4303,6 +5018,10 @@ function advanceMiniGame() {
   activeMiniGame.index += 1;
   if (activeMiniGame.type === "wordReveal") {
     Object.assign(activeMiniGame, makeWordRevealRound(game.rounds[activeMiniGame.index]));
+  } else if (activeMiniGame.type === "catcher") {
+    Object.assign(activeMiniGame, makeCatcherRound());
+  } else if (activeMiniGame.type === "sorter") {
+    Object.assign(activeMiniGame, makeSorterRound());
   } else {
     activeMiniGame.answered = false;
     activeMiniGame.selected = null;
@@ -4677,7 +5396,7 @@ function renderNpcPortrait(title, mood = "talk") {
   return svg;
 }
 
-function renderNpcWindow(title, body, hint, controls = "", mood = "talk") {
+function renderNpcWindow(title, body, hint, controls = "", mood = "talk", explain = "") {
   return `
     <div class="npc-window npc-window-${mood}">
       <div class="npc-portrait-frame">
@@ -4686,6 +5405,7 @@ function renderNpcWindow(title, body, hint, controls = "", mood = "talk") {
       <div class="npc-copy">
         <h2>${title}</h2>
         ${body ? `<p>${body}</p>` : ""}
+        ${explain ? `<div class="npc-explain"><strong>Why this matters</strong><p>${explain}</p></div>` : ""}
         ${controls ? `<div class="npc-actions">${controls}</div>` : ""}
         ${hint ? `<small>${hint}</small>` : ""}
       </div>
@@ -4693,8 +5413,8 @@ function renderNpcWindow(title, body, hint, controls = "", mood = "talk") {
   `;
 }
 
-function showDialogue(title, body, hint = "Press E to continue.", mood = "talk") {
-  dialogue.innerHTML = renderNpcWindow(title, body, hint, "", mood);
+function showDialogue(title, body, hint = "Press E to continue.", mood = "talk", explain = "") {
+  dialogue.innerHTML = renderNpcWindow(title, body, hint, "", mood, explain);
   dialogue.classList.remove("hidden");
 }
 
@@ -5065,10 +5785,18 @@ function answerQuest(index) {
   hidePanel();
   if (index !== quest.correct) {
     const giver = npcById(quest.giver);
-    showDialogue(giver.name, `Not quite. Remember: ${quest.clue}`, "Open the report option and try again.", "wrong");
+    showDialogue(giver.name, "Not quite \u2014 take another look, then report back.", "Open the report option and try again.", "wrong", questWhyExplanation(quest));
     return;
   }
   completeQuest(quest);
+}
+
+// Build the curriculum "why" explanation for a quest answer (correct or incorrect).
+// Falls back to the quest clue when a topic is not mapped in the curriculum guide.
+function questWhyExplanation(quest) {
+  const c = quest.curriculum;
+  if (c?.correctAnswer) return `${c.correctAnswer}${c.note ? ` ${c.note}` : ""}`.trim();
+  return quest.clue || "";
 }
 
 function completeQuest(quest) {
@@ -5082,6 +5810,7 @@ function completeQuest(quest) {
   awardStats({ ...statRewardForRegion(questLocationId), focus: -3, spark: 1 });
   const storyNote = markStoryFlag(REGION_STORY_FLAGS[questLocationId]);
   if (questId) state.completedQuests.add(questId);
+  if (questId) scheduleReview(questId);
   state.activeQuest = null;
   const location = currentLocation();
   const unfinished = location.questIds.filter((id) => !state.completedQuests.has(id)).length;
@@ -5091,7 +5820,7 @@ function completeQuest(quest) {
   state.journal = `${quest.title} complete. Reward: ${rewardText}.${storyNote}${levelHint}`;
   updateHud();
   saveGame();
-  showDialogue(npcById(quest.giver).name, `${quest.feedback} Reward: ${rewardText}.${storyNote}${levelHint}`, "Choose another quest or equip your rewards.", "reward");
+  showDialogue(npcById(quest.giver).name, `Correct! Reward: ${rewardText}.${storyNote}${levelHint}`, "Choose another quest or equip your rewards.", "reward", questWhyExplanation(quest));
 }
 
 function hasUniqueItem(id) {
@@ -5308,6 +6037,7 @@ function showFloatingMessage(text) {
 
 function movePlayer() {
   if (activeQuestion || !choicePanel.classList.contains("hidden") || !dialogue.classList.contains("hidden")) return;
+  if (miniGamePanel && !miniGamePanel.classList.contains("hidden")) return;
   let dx = 0;
   let dy = 0;
   if (keys.has("arrowleft") || keys.has("a")) dx -= 1;
@@ -5322,7 +6052,11 @@ function movePlayer() {
   if (dx > 0) state.player.dir = "right";
   if (dy < 0) state.player.dir = "up";
   if (dy > 0) state.player.dir = "down";
-  const speed = 2.25;
+  // Frame-rate independent movement: BASE_SPEED is px per 60fps-frame, scaled by the
+  // real elapsed time so the hero keeps a constant real-world speed even when FPS dips
+  // (ambient walkers / region pet already normalise by frameDeltaMs the same way).
+  // Clamp the per-frame step below the 32px tile so a frame spike can't tunnel a wall.
+  const speed = Math.min(30, 4 * (frameDeltaMs / (1000 / 60)));
   const nx = state.player.x + dx * speed;
   const ny = state.player.y + dy * speed;
   if (!isBlocked(nx, state.player.y, state.player.w, state.player.h)) state.player.x = nx;
@@ -6386,11 +7120,50 @@ function drawHeroSpriteAsset(p, fallbackFrame, fallbackBob) {
 function drawHeroProfileMarkers(p, bob, frame = 0, moving = false) {
   const visual = heroVisual();
   drawHeroShoeDetails(p, visual, frame, moving);
+  drawHeroOutfit(p, bob, visual);
   drawHeroHairColor(p, bob, visual);
   drawHeroCap(p, bob, visual);
   drawHeroAccentBand(p, bob, visual);
-  if (p.dir === "left" || p.dir === "right") drawHeroSideArm(p, bob, frame, moving);
+  if (p.dir === "left" || p.dir === "right") drawHeroSideArm(p, bob, frame, moving, visual);
   drawHeroUkFlag(p, bob);
+}
+
+// Repaint the hero's torso (jumper/top) in the chosen outfit colour so the world sprite
+// reflects the customisation choice in all four facings. The base spritesheet has a fixed
+// blue top baked in; this overlay covers the torso (below the neck y16, above the belt
+// y31) with the outfit colour plus a light/dark two-tone, matching the fallback sprite
+// footprints. Hair, scarf, and arm overlays draw on top (order in drawHeroProfileMarkers).
+function drawHeroOutfit(p, bob, visual) {
+  const coat = visual.outfit?.color || "#2f638f";
+  const lt = shadeHex(coat, 24);
+  const dk = shadeHex(coat, -26);
+  const y = p.y + bob;
+  if (p.dir === "up") {
+    rect(p.x + 6, y + 17, 20, 15, coat);
+    rect(p.x + 6, y + 17, 4, 15, lt);
+    rect(p.x + 22, y + 17, 4, 15, dk);
+    rect(p.x + 6, y + 17, 20, 1, shadeHex(coat, 38));
+    return;
+  }
+  if (p.dir === "right") {
+    rect(p.x + 8, y + 18, 15, 14, coat);
+    rect(p.x + 8, y + 18, 3, 14, lt);
+    rect(p.x + 20, y + 18, 3, 14, dk);
+    rect(p.x + 8, y + 18, 15, 1, shadeHex(coat, 38));
+    return;
+  }
+  if (p.dir === "left") {
+    rect(p.x + 9, y + 18, 15, 14, coat);
+    rect(p.x + 9, y + 18, 3, 14, lt);
+    rect(p.x + 21, y + 18, 3, 14, dk);
+    rect(p.x + 9, y + 18, 15, 1, shadeHex(coat, 38));
+    return;
+  }
+  // front (down)
+  rect(p.x + 6, y + 17, 20, 14, coat);
+  rect(p.x + 6, y + 17, 4, 14, lt);
+  rect(p.x + 22, y + 17, 4, 14, dk);
+  rect(p.x + 6, y + 17, 20, 1, shadeHex(coat, 38));
 }
 
 // Recolor the base sprite's hair to the chosen colour, consistently in all four
@@ -6529,10 +7302,10 @@ function drawHeroSideLeg(hipX, y, footDx, trouserColor, shoeColor) {
   rect(hipX + footDx, y + 45, 8, 1, "rgba(255,255,255,.12)");
 }
 
-function drawHeroSideArm(p, bob, frame, moving) {
+function drawHeroSideArm(p, bob, frame, moving, visual = heroVisual()) {
   const s = p.dir === "left" ? -1 : 1;
-  const jumper = "#3f6f97";
-  const jumperDk = "#2e567a";
+  const jumper = visual.outfit?.color || "#3f6f97";
+  const jumperDk = shadeHex(jumper, -26);
   const skin = "#f1c49c";
   const y = p.y + bob;
   const gripX = s === -1 ? p.x + 2 : p.x + 27;
@@ -7906,23 +8679,43 @@ function drawAmbientWalker(w) {
   rect(x + 2, torsoY + 2, 3, 13, w.coatDk);
   rect(x + 21, torsoY + 1, 4, 15, outline);
   rect(x + 22, torsoY + 2, 3, 13, w.coatLt);
-  rect(x + 4, y + 1 + bob, 18, 17, outline);
-  rect(x + 5, y + 2 + bob, 16, 15, w.skin);
-  rect(x + 18, y + 3 + bob, 3, 13, shadeHex(w.skin, -24));
-  if (w.dir === "up") {
-    rect(x + 4, y + 1 + bob, 18, 13, w.hair);
-  } else {
-    rect(x + 4, y + bob, 18, 7, w.hair);
-    rect(x + 4, y + 6 + bob, 3, 8, w.hair);
-    rect(x + 19, y + 6 + bob, 3, 8, w.hair);
-    rect(x + 4, y + bob, 18, 2, shadeHex(w.hair, 32));
-    if (w.dir !== "down") {
-      const ex = w.dir === "left" ? x + 8 : x + 14;
-      rect(ex, y + 9 + bob, 2, 2, "#243140");
+  const hy = y + bob;
+  if (w.dir === "left" || w.dir === "right") {
+    // Profile head: narrower than the front view, with a nose bump on the facing side,
+    // the hair massed over the back of the skull, and a single eye near the face.
+    const faceRight = w.dir === "right";
+    rect(x + 6, hy + 1, 15, 17, outline);
+    rect(x + 7, hy + 2, 13, 15, w.skin);
+    // jaw/cheek shading on the rear half of the face for depth
+    rect(faceRight ? x + 7 : x + 18, hy + 11, 3, 6, shadeHex(w.skin, -24));
+    // nose bump on the facing side
+    if (faceRight) {
+      rect(x + 20, hy + 8, 3, 4, outline);
+      rect(x + 20, hy + 8, 2, 3, w.skin);
     } else {
-      rect(x + 8, y + 9 + bob, 2, 2, "#243140");
-      rect(x + 15, y + 9 + bob, 2, 2, "#243140");
+      rect(x + 3, hy + 8, 3, 4, outline);
+      rect(x + 4, hy + 8, 2, 3, w.skin);
     }
+    // hair: full crown plus a thick lock down the back of the head
+    rect(x + 6, hy, 15, 6, w.hair);
+    rect(x + 6, hy, 15, 2, shadeHex(w.hair, 32));
+    rect(faceRight ? x + 6 : x + 16, hy, 5, 13, w.hair);
+    // single eye toward the front of the face
+    rect(faceRight ? x + 15 : x + 10, hy + 9, 2, 2, "#243140");
+  } else if (w.dir === "up") {
+    rect(x + 4, hy + 1, 18, 17, outline);
+    rect(x + 5, hy + 2, 16, 15, w.skin);
+    rect(x + 4, hy + 1, 18, 13, w.hair);
+  } else {
+    rect(x + 4, hy + 1, 18, 17, outline);
+    rect(x + 5, hy + 2, 16, 15, w.skin);
+    rect(x + 18, hy + 3, 3, 13, shadeHex(w.skin, -24));
+    rect(x + 4, hy, 18, 7, w.hair);
+    rect(x + 4, hy + 6, 3, 8, w.hair);
+    rect(x + 19, hy + 6, 3, 8, w.hair);
+    rect(x + 4, hy, 18, 2, shadeHex(w.hair, 32));
+    rect(x + 8, hy + 9, 2, 2, "#243140");
+    rect(x + 15, hy + 9, 2, 2, "#243140");
   }
 }
 
@@ -8411,6 +9204,8 @@ function loop() {
   updateRegionPet(frameDeltaMs);
   updateNpcChatter(frameDeltaMs);
   updateFootstepDust(frameDeltaMs);
+  updateMiniGameCatcher(frameDeltaMs);
+  updateMiniGameSorter(frameDeltaMs);
   if (regionTransitionMs > 0) regionTransitionMs = Math.max(0, regionTransitionMs - frameDeltaMs);
   if (messageTimer > 0) {
     messageTimer -= 1;
@@ -8475,6 +9270,11 @@ window.addEventListener("keyup", (event) => {
 });
 
 choicePanel.addEventListener("click", (event) => {
+  const reviewDone = event.target.closest("button[data-review-done]");
+  if (reviewDone) {
+    markReviewed(reviewDone.dataset.reviewDone);
+    return;
+  }
   const reviewChoice = event.target.closest("button[data-review-entry]");
   if (reviewChoice) {
     showReviewJournal(reviewChoice.dataset.reviewEntry);
@@ -8638,6 +9438,20 @@ miniGamePanel?.addEventListener("click", (event) => {
   const defineChoice = event.target.closest("button[data-minigame-define]");
   if (defineChoice) {
     answerWordDefinition(Number(defineChoice.dataset.minigameDefine));
+    return;
+  }
+  if (event.target.closest("button[data-minigame-catcher-start]")) {
+    if (activeMiniGame && activeMiniGame.type === "catcher" && activeMiniGame.readMs > 0) {
+      activeMiniGame.readMs = 0;
+      renderMiniGamePanel();
+    }
+    return;
+  }
+  if (event.target.closest("button[data-minigame-sorter-start]")) {
+    if (activeMiniGame && activeMiniGame.type === "sorter" && activeMiniGame.readMs > 0) {
+      activeMiniGame.readMs = 0;
+      renderMiniGamePanel();
+    }
     return;
   }
   if (event.target.closest("button[data-minigame-next]")) {

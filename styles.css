@@ -3566,6 +3566,29 @@ kbd {
   color: var(--ink);
 }
 
+/* Final-scene congratulations block (game completion + exam good-luck message) */
+.story-congrats {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(242, 193, 78, .55);
+  border-left: 4px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(242, 193, 78, .12);
+  display: grid;
+  gap: 6px;
+}
+
+.story-congrats strong {
+  color: var(--gold);
+  font-size: 1.02rem;
+}
+
+.story-congrats p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
 .story-scene-ending .story-art {
   background: linear-gradient(180deg, #314553 0%, #496c63 58%, #24352d 100%);
 }

@@ -3257,8 +3257,8 @@ const signs = [
   },
   {
     location: "examHall",
-    x: 440,
-    y: 158,
+    x: 456,
+    y: 300,
     title: "Final Gate",
     body: "Route note: the final gate links command words, source work, debate practice, and the ending challenge."
   },
@@ -5482,6 +5482,11 @@ function storySceneHtml(beat, endingId = null) {
         <p>${escapeHtml(beat.body)}</p>
         <p><strong>${isEnding ? "Result" : beat.villain}:</strong> ${escapeHtml(beat.objective || `Exam Readiness ${examChance()}% - Sparks ${collectedSparks()}`)}</p>
         <p><strong>Choices:</strong> ${escapeHtml(shadeReactionText())}</p>
+        ${isEnding ? `<div class="story-congrats">
+          <strong>Congratulations &mdash; you have completed Citizenship Valley!</strong>
+          <p>You restored the sparks of participation and worked through every GCSE Citizenship theme: rights and responsibilities, law and justice, democracy and government, participation, and active citizenship.</p>
+          <p>Take these habits into the real thing: read the command word, plan your points, back them with evidence, weigh both sides, and finish with a clear judgement. You are ready &mdash; good luck in your GCSE Citizenship exam!</p>
+        </div>` : ""}
       </div>
     </div>
   `;

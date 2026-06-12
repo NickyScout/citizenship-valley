@@ -8,11 +8,11 @@ Generated from current `game.js` world data for Map Phase 1. Use this before rec
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Citizenship Village | 210,392 | Civic Square / Noticeboard | Mayor Ada (168,242); Priya the Campaigner (372,292); Sam the Librarian (688,244); Justice Rowan (356,430); Councillor Noor (704,384) | Town Hall 130,160 -> townHallInterior; Library 652,160 -> libraryInterior; Court 452,474 -> courtInterior; Park 732,482 -> parkInterior | Petition Regatta at Priya the Campaigner (372,292) | - | Noticeboard (510,336); River Charter (232,104) | 4 prop(s) | Train to Modern Britain Borough -> Modern Britain Borough | walls 94, routes 140 | travel gate is currently NPC-menu based, not a world prop |
 | Modern Britain Borough | 242,394 | Media Plaza / Press Kiosk | Editor Vale (168,242); Historian Iona (372,292); Aid Worker Mina (640,232); Data Clerk Omar (356,430); Community Elder Grace (704,384) | City Hall 124,160 -> townHallInterior; Printworks 693,156 -> libraryInterior; Museum 456,478 -> libraryInterior; Garden 726,469 -> parkInterior | Source Detective at Editor Vale (168,242) | Source Detective kiosk (230,226) | Media Plaza (452,296); Source Kiosk (248,220); Underground Gate (776,360) | 4 prop(s) | Underground to Rights & Law Quarter -> Rights & Law Quarter | walls 94, routes 106 | travel gate is currently NPC-menu based, not a world prop |
-| Rights & Law Quarter | 330,394 | Court Square / Legal Scales | Advocate Farah (72,218); Sergeant Blake (372,292); Mediator Chen (612,220); Youth Worker Ellis (356,430); Justice Rowan (604,360) | Rights Aid 415,176 -> courtInterior; Archive 156,334 -> libraryInterior; Court 694,332 -> courtInterior; Police 682,475 -> courtInterior | Rights vs Responsibilities at Advocate Farah (72,218) | Rights vs Responsibilities notice (244,252) | Court Square (428,244); Rights Cards (126,196); Clock Lift Gate (748,394) | 4 prop(s) | Clock-lift to Democracy Capital -> Democracy Capital | walls 94, routes 68 | travel gate is currently NPC-menu based, not a world prop |
+| Rights & Law Quarter | 330,394 | Court Square / Legal Scales | Advocate Farah (372,268); Sergeant Blake (612,432); Mediator Chen (588,342); Youth Worker Ellis (380,346); Justice Rowan (592,256) | Rights Aid 415,176 -> courtInterior; Archive 156,334 -> libraryInterior; Court 694,332 -> courtInterior; Police 682,475 -> courtInterior | Rights vs Responsibilities at Advocate Farah (372,268) | Rights vs Responsibilities notice (320,322) | Quarter Map (440,360); Rights Cards (288,262); Clock Lift Gate (628,304) | 4 prop(s) | Clock-lift to Democracy Capital -> Democracy Capital | walls 94, routes 75 | travel gate is currently NPC-menu based, not a world prop |
 | Democracy Capital | 274,394 | Ballot Hall / Parliament Steps | Speaker Lark (108,242); MP Rivers (372,292); Campaign Manager Sol (640,244); Returning Officer June (356,430); Devolution Herald Ewan (704,368) | Parliament 161,168 -> townHallInterior; Party Hall 693,168 -> townHallInterior; Election 614,494 -> townHallInterior; Devolve 824,473 -> townHallInterior | Debate Arena at Campaign Manager Sol (640,244); Ballot Count at Returning Officer June (356,430) | Ballot Count ballotBox (420,384); Debate Arena podium (690,246) | Ballot Hall (430,326); Count Table (410,392); Debate Steps (696,248); Ferry Gate (788,386) | 4 prop(s) | Campaign Ferry to Participation Harbour -> Participation Harbour | walls 94, routes 130 | travel gate is currently NPC-menu based, not a world prop |
-| Participation Harbour | 330,394 | Petition Pier / Campaign Boat | Priya the Campaigner (164,250); Union Rep Morgan (372,292); Charity Lead Amina (664,220); Lobbyist Pax (356,406); Digital Moderator Rae (704,368) | Petitions 172,154 -> parkInterior; Signal Hub 489,386 -> parkInterior; Union Hall 292,473 -> parkInterior; Volunteer 688,477 -> parkInterior | Petition Regatta at Priya the Campaigner (164,250) | Petition Regatta petitionStand (238,272) | Petition Pier (252,250); Regatta Stand (218,304); Volunteer Dock (632,250); Campaign Boat Gate (744,384) | 4 prop(s) | Campaign Boat to Action Workshop -> Action Workshop | walls 94, water 186 + harbour exclusion, routes 116 | travel gate is currently NPC-menu based, not a world prop |
-| Action Workshop | 330,394 | Plan Board / Campaign Table | Councillor Noor (132,218); Surveyor Tess (372,292); Statistician Jules (664,220); Organiser Kai (356,430); Examiner Mira (620,384) | Research 306,162 -> libraryInterior; Survey Lab 600,162 -> libraryInterior; Planning 144,494 -> parkInterior; Impact 672,472 -> parkInterior | Campaign Planner at Councillor Noor (132,218) | Campaign Planner planningBoard (202,270) | Plan Board (224,254); Campaign Planner (170,196); Data Bench (608,258); Lighthouse Bridge (756,386) | 4 prop(s) | Lighthouse Bridge to Exam Hall -> Exam Hall Castle | walls 94, routes 132 | travel gate is currently NPC-menu based, not a world prop |
-| Exam Hall Castle | 274,394 | Final Gate / Exam Desk | Examiner Mira (236,218); Timekeeper Ash (372,292); Source Keeper Nia (648,220); Debate Coach Leon (356,430); Paragraph Scribe Pip (620,384) | Identify 426,162 -> identify; Describe 132,306 -> describe; Explain 730,306 -> explain; Evaluate 128,490 -> evaluate; Sources 728,490 -> sourceUsefulness | Exam Simulation at Examiner Mira (236,218); Debate Arena at Debate Coach Leon (356,430) | Exam Simulation examDesk (268,252); Debate Arena debateBench (420,408) | Final Gate (442,230); Exam Desk (286,242); Source Archive (646,244); Debate Bench (430,402) | 4 prop(s) | Course complete | walls 94, routes 108 | ready for focused layout pass |
+| Participation Harbour | 330,394 | Petition Pier / Campaign Boat | Priya the Campaigner (272,212); Union Rep Morgan (248,348); Charity Lead Amina (656,360); Lobbyist Pax (372,300); Digital Moderator Rae (664,232) | Petitions 172,154 -> parkInterior; Signal Hub 489,386 -> parkInterior; Union Hall 292,473 -> parkInterior; Volunteer 688,477 -> parkInterior | Petition Regatta at Priya the Campaigner (272,212) | Petition Regatta petitionStand (308,248) | Petition Pier (220,300); Regatta Stand (300,322); Volunteer Dock (548,430); Campaign Boat Gate (700,322) | 4 prop(s) | Campaign Boat to Action Workshop -> Action Workshop | walls 94, water 186 + harbour exclusion, routes 141 | travel gate is currently NPC-menu based, not a world prop |
+| Action Workshop | 330,394 | Plan Board / Campaign Table | Councillor Noor (252,238); Surveyor Tess (392,238); Statistician Jules (552,238); Organiser Kai (372,384); Examiner Mira (600,430) | Research 306,162 -> libraryInterior; Survey Lab 600,162 -> libraryInterior; Planning 144,494 -> parkInterior; Impact 672,472 -> parkInterior | Campaign Planner at Councillor Noor (252,238) | Campaign Planner planningBoard (138,250) | Plan Board (440,360); Campaign Planner (138,200); Data Bench (560,210); Lighthouse Bridge (740,360) | 4 prop(s) | Lighthouse Bridge to Exam Hall -> Exam Hall Castle | walls 94, routes 132 | travel gate is currently NPC-menu based, not a world prop |
+| Exam Hall Castle | 274,394 | Final Gate / Exam Desk | Examiner Mira (300,210); Timekeeper Ash (596,210); Source Keeper Nia (612,432); Debate Coach Leon (244,432); Paragraph Scribe Pip (232,300) | Identify 426,162 -> identify; Describe 132,306 -> describe; Explain 730,306 -> explain; Evaluate 128,490 -> evaluate; Sources 728,490 -> sourceUsefulness | Exam Simulation at Examiner Mira (300,210); Debate Arena at Debate Coach Leon (244,432) | Exam Simulation examDesk (210,360); Debate Arena debateBench (410,410) | Final Gate (456,300); Exam Desk (210,318); Source Archive (600,318); Debate Bench (360,408) | 4 prop(s) | Course complete | walls 94, routes 108 | ready for focused layout pass |
 
 ## Region Zone Sketches
 
@@ -69,11 +69,11 @@ Generated from current `game.js` world data for Map Phase 1. Use this before rec
     "safeSpawn": "330,394",
     "centralHub": "Court Square",
     "npcCluster": [
-      "Advocate Farah@72,218",
-      "Sergeant Blake@372,292",
-      "Mediator Chen@612,220",
-      "Youth Worker Ellis@356,430",
-      "Justice Rowan@604,360"
+      "Advocate Farah@372,268",
+      "Sergeant Blake@612,432",
+      "Mediator Chen@588,342",
+      "Youth Worker Ellis@380,346",
+      "Justice Rowan@592,256"
     ],
     "learningBuildings": [
       "Rights Aid@415,176",
@@ -82,10 +82,10 @@ Generated from current `game.js` world data for Map Phase 1. Use this before rec
       "Police@682,475"
     ],
     "miniGameArea": [
-      "Rights vs Responsibilities@72,218"
+      "Rights vs Responsibilities@372,268"
     ],
     "travelEdge": "Clock-lift to Democracy Capital via NPC menu",
-    "blockedZones": "walls 94, routes 68"
+    "blockedZones": "walls 94, routes 75"
   },
   {
     "location": "Democracy Capital",
@@ -116,11 +116,11 @@ Generated from current `game.js` world data for Map Phase 1. Use this before rec
     "safeSpawn": "330,394",
     "centralHub": "Petition Pier",
     "npcCluster": [
-      "Priya the Campaigner@164,250",
-      "Union Rep Morgan@372,292",
-      "Charity Lead Amina@664,220",
-      "Lobbyist Pax@356,406",
-      "Digital Moderator Rae@704,368"
+      "Priya the Campaigner@272,212",
+      "Union Rep Morgan@248,348",
+      "Charity Lead Amina@656,360",
+      "Lobbyist Pax@372,300",
+      "Digital Moderator Rae@664,232"
     ],
     "learningBuildings": [
       "Petitions@172,154",
@@ -129,21 +129,21 @@ Generated from current `game.js` world data for Map Phase 1. Use this before rec
       "Volunteer@688,477"
     ],
     "miniGameArea": [
-      "Petition Regatta@164,250"
+      "Petition Regatta@272,212"
     ],
     "travelEdge": "Campaign Boat to Action Workshop via NPC menu",
-    "blockedZones": "walls 94, water 186 + harbour exclusion, routes 116"
+    "blockedZones": "walls 94, water 186 + harbour exclusion, routes 141"
   },
   {
     "location": "Action Workshop",
     "safeSpawn": "330,394",
     "centralHub": "Plan Board",
     "npcCluster": [
-      "Councillor Noor@132,218",
-      "Surveyor Tess@372,292",
-      "Statistician Jules@664,220",
-      "Organiser Kai@356,430",
-      "Examiner Mira@620,384"
+      "Councillor Noor@252,238",
+      "Surveyor Tess@392,238",
+      "Statistician Jules@552,238",
+      "Organiser Kai@372,384",
+      "Examiner Mira@600,430"
     ],
     "learningBuildings": [
       "Research@306,162",
@@ -152,7 +152,7 @@ Generated from current `game.js` world data for Map Phase 1. Use this before rec
       "Impact@672,472"
     ],
     "miniGameArea": [
-      "Campaign Planner@132,218"
+      "Campaign Planner@252,238"
     ],
     "travelEdge": "Lighthouse Bridge to Exam Hall via NPC menu",
     "blockedZones": "walls 94, routes 132"
@@ -162,11 +162,11 @@ Generated from current `game.js` world data for Map Phase 1. Use this before rec
     "safeSpawn": "274,394",
     "centralHub": "Final Gate",
     "npcCluster": [
-      "Examiner Mira@236,218",
-      "Timekeeper Ash@372,292",
-      "Source Keeper Nia@648,220",
-      "Debate Coach Leon@356,430",
-      "Paragraph Scribe Pip@620,384"
+      "Examiner Mira@300,210",
+      "Timekeeper Ash@596,210",
+      "Source Keeper Nia@612,432",
+      "Debate Coach Leon@244,432",
+      "Paragraph Scribe Pip@232,300"
     ],
     "learningBuildings": [
       "Identify@426,162",
@@ -176,8 +176,8 @@ Generated from current `game.js` world data for Map Phase 1. Use this before rec
       "Sources@728,490"
     ],
     "miniGameArea": [
-      "Exam Simulation@236,218",
-      "Debate Arena@356,430"
+      "Exam Simulation@300,210",
+      "Debate Arena@244,432"
     ],
     "travelEdge": "Course complete",
     "blockedZones": "walls 94, routes 108"

@@ -3,7 +3,7 @@
 Generated route QA for Map Phase 5. This report checks reachability from each exterior region spawn to landmarks/signs, NPCs, building doors, mini-game hosts, mini-game trigger props, travel-gate hosts, and Exam Hall practice rooms.
 
 Status: passed
-Generated: 2026-06-05T12:44:21.428Z
+Generated: 2026-06-12T20:10:31.947Z
 
 | Region | Signs | NPCs | Doors | Mini-game Hosts | Trigger Props | Travel Gate Hosts | Exam Rooms |
 | --- | --- | --- | --- | --- | --- | --- | --- |

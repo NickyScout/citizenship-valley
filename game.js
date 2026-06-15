@@ -3132,13 +3132,13 @@ const signs = [
   {
     location: "modernBritain",
     x: 452,
-    y: 296,
+    y: 268,
     title: "Media Plaza",
     body: "Route note: use the central plaza to reach the press kiosk, museum, and community voices."
   },
   {
     location: "modernBritain",
-    x: 248,
+    x: 290,
     y: 220,
     title: "Source Kiosk",
     body: "Source Detective starts with Editor Vale. Check origin, purpose, evidence, and accuracy before sharing."
@@ -3166,7 +3166,7 @@ const signs = [
   },
   {
     location: "rightsLaw",
-    x: 628,
+    x: 612,
     y: 304,
     title: "Clock Lift Gate",
     body: "Complete the law quarter topics, then use any NPC travel gate to move toward Democracy Capital."
@@ -3180,14 +3180,14 @@ const signs = [
   },
   {
     location: "democracy",
-    x: 410,
+    x: 392,
     y: 392,
     title: "Count Table",
     body: "Ballot Count starts with Returning Officer June. Count votes carefully and keep the result transparent."
   },
   {
     location: "democracy",
-    x: 696,
+    x: 660,
     y: 248,
     title: "Debate Steps",
     body: "Debate Arena starts with Campaign Manager Sol. Use evidence, rebuttal, empathy, and judgement."
@@ -3286,9 +3286,9 @@ const signs = [
 ];
 
 const props = [
-  { location: "village", type: "lamp", x: 232, y: 100 },
+  { location: "village", type: "lamp", x: 300, y: 96 },
   { location: "village", type: "lamp", x: 760, y: 232 },
-  { location: "village", type: "flowers", x: 666, y: 96 },
+  { location: "village", type: "flowers", x: 440, y: 96 },
   { location: "village", type: "flowers", x: 790, y: 96 },
   { location: "modernBritain", type: "kiosk", x: 230, y: 226, miniGameId: "sourceDetective" },
   { location: "modernBritain", type: "bench", x: 438, y: 308 },
@@ -3309,7 +3309,7 @@ const props = [
   { location: "actionWorkshop", type: "planningBoard", x: 138, y: 250, miniGameId: "campaignPlanner" },
   { location: "actionWorkshop", type: "surveyBox", x: 470, y: 250 },
   { location: "actionWorkshop", type: "dataCards", x: 560, y: 296 },
-  { location: "actionWorkshop", type: "campaignTable", x: 712, y: 430 },
+  { location: "actionWorkshop", type: "campaignTable", x: 512, y: 452 },
   { location: "examHall", type: "finalGate", x: 440, y: 206 },
   { location: "examHall", type: "examDesk", x: 210, y: 360, miniGameId: "examSimulation" },
   { location: "examHall", type: "sourceArchive", x: 520, y: 410 },
@@ -6721,7 +6721,7 @@ function drawBuildingRoof(kind, x, y, w, h, roof, wall) {
   }
 }
 
-function drawBuilding(x, y, w, h, wall, roof, label, kind) {
+function drawBuilding(x, y, w, h, wall, roof, label, kind, doorSide = "bottom") {
   const buildingKind = kind || buildingKindFromLabel(label);
   ctx.save();
   ctx.globalAlpha = .16;
@@ -6759,11 +6759,16 @@ function drawBuilding(x, y, w, h, wall, roof, label, kind) {
   rect(x + w - 28, y + 16, 12, 3, "#f1c986");
   rect(x + w - 22, y + 14, 2, 14, "#513b35");
   rect(x + w - 30, y + 20, 16, 2, "#513b35");
-  rect(x + w / 2 - 11, y + h - 28, 22, 28, "#49342d");
-  rect(x + w / 2 - 13, y + h - 30, 26, 4, "#2d2521");
-  rect(x + w / 2 - 7, y + h - 24, 14, 19, "#805344");
-  rect(x + w / 2 - 5, y + h - 22, 10, 3, "#a96e55");
-  rect(x + w / 2 + 4, y + h - 15, 3, 3, "#f2c14e");
+  // Painted facade door. Anchored to match the actual E-interaction door side so the
+  // building's drawn entrance always coincides with where "E Enter" appears. Bottom is
+  // flush to the base (default); side doors sit mid-height under the golden door marker.
+  const doorCx = doorSide === "left" ? x + 4 : doorSide === "right" ? x + w - 4 : x + w / 2;
+  const doorTopY = doorSide === "bottom" ? y + h - 28 : y + Math.round(h / 2) - 14;
+  rect(doorCx - 11, doorTopY, 22, 28, "#49342d");
+  rect(doorCx - 13, doorTopY - 2, 26, 4, "#2d2521");
+  rect(doorCx - 7, doorTopY + 4, 14, 19, "#805344");
+  rect(doorCx - 5, doorTopY + 6, 10, 3, "#a96e55");
+  rect(doorCx + 4, doorTopY + 13, 3, 3, "#f2c14e");
   rect(x - 4, y, 4, h, "#6e5f56");
   rect(x + w, y, 4, h, "#5c5049");
   rect(x + 4, y + h - 4, w - 8, 2, "#eee1c0");
@@ -8217,14 +8222,14 @@ function drawFineDetails() {
   if (id === "modernBritain") {
     drawKiosk(520, 236, "NEWS");
     drawMarketStall(92, 396, "#466d9f", "Cafe");
-    drawMarketStall(668, 388, "#b94e48", "Press");
+    drawMarketStall(636, 388, "#b94e48", "Press");
     drawWorldLabel(548, 206, "Media Plaza", "#5da9e9", 84);
   }
   if (id === "participation") {
     drawBoat(788, 296);
     drawBoat(58, 84);
     drawMarketStall(632, 188, "#6fbf73", "Leaflets");
-    drawWorldLabel(352, 432, "Harbour Square", "#6fbf73", 100);
+    drawWorldLabel(380, 432, "Harbour Square", "#6fbf73", 100);
   }
   if (id === "actionWorkshop") {
     drawMarketStall(150, 360, "#b98231", "Tools");
@@ -8253,11 +8258,11 @@ function drawFineDetails() {
 function drawRegionLandmarks() {
   const id = state.currentLocation;
   if (id === "modernBritain") {
-    rect(616, 96, 52, 30, "#263036");
-    rect(620, 100, 44, 22, "#5da9e9");
-    rect(624, 104, 10, 8, "#f5f0df");
-    rect(638, 106, 20, 3, "#f5f0df");
-    rect(638, 114, 14, 3, "#f2c14e");
+    rect(586, 96, 52, 30, "#263036");
+    rect(590, 100, 44, 22, "#5da9e9");
+    rect(594, 104, 10, 8, "#f5f0df");
+    rect(608, 106, 20, 3, "#f5f0df");
+    rect(608, 114, 14, 3, "#f2c14e");
     rect(74, 354, 42, 34, "#8f4f44");
     rect(78, 358, 34, 4, "#e6d3a4");
     rect(82, 366, 26, 2, "#5da9e9");
@@ -8269,15 +8274,15 @@ function drawRegionLandmarks() {
     return;
   }
   if (id === "rightsLaw") {
-    drawWorldLabel(548, 208, "Court Square", "#d7d0c3", 86);
+    drawWorldLabel(548, 224, "Court Square", "#d7d0c3", 86);
     return;
   }
   if (id === "democracy") {
     drawWorldLabel(564, 32, "Ballot Hall", "#f2c14e", 78);
-    rect(636, 108, 46, 30, "#d8b36a");
-    rect(642, 114, 34, 5, "#8f4f44");
-    rect(646, 124, 22, 10, "#f5f0df");
-    rect(652, 128, 4, 4, "#466d9f");
+    rect(782, 108, 46, 30, "#d8b36a");
+    rect(788, 114, 34, 5, "#8f4f44");
+    rect(792, 124, 22, 10, "#f5f0df");
+    rect(798, 128, 4, 4, "#466d9f");
     rect(536, 74, 54, 46, "#d8b36a");
     rect(530, 70, 66, 8, "#8f4f44");
     rect(558, 48, 10, 24, "#d8b36a");
@@ -8310,12 +8315,12 @@ function drawRegionLandmarks() {
     rect(212, 306, 34, 5, "#466d9f");
     rect(212, 316, 20, 4, "#6fbf73");
     rect(212, 326, 28, 4, "#f2c14e");
-    rect(532, 82, 62, 36, "#9a633f");
-    rect(538, 88, 20, 16, "#d7d0c3");
-    rect(564, 88, 20, 16, "#d7d0c3");
-    rect(541, 94, 14, 2, "#466d9f");
-    rect(567, 94, 14, 2, "#6fbf73");
-    rect(552, 112, 22, 5, "#f2c14e");
+    rect(440, 82, 62, 36, "#9a633f");
+    rect(446, 88, 20, 16, "#d7d0c3");
+    rect(472, 88, 20, 16, "#d7d0c3");
+    rect(449, 94, 14, 2, "#466d9f");
+    rect(475, 94, 14, 2, "#6fbf73");
+    rect(460, 112, 22, 5, "#f2c14e");
     rect(272, 300, 118, 58, "#263036");
     for (let i = 0; i < 4; i += 1) rect(284 + i * 24, 314, 15, 30, ["#5da9e9", "#6fbf73", "#f2c14e", "#e36b5d"][i]);
     return;
@@ -8326,13 +8331,13 @@ function drawRegionLandmarks() {
     rect(642, 124, 44, 6, "#5da9e9");
     rect(642, 134, 34, 4, "#f5f0df");
     rect(642, 143, 25, 4, "#f2c14e");
-    rect(536, 72, 56, 48, "#6b5b8f");
-    rect(530, 66, 16, 54, "#5c5470");
-    rect(582, 66, 16, 54, "#5c5470");
-    rect(548, 58, 32, 12, "#d7d0c3");
-    rect(556, 94, 16, 24, "#2d2521");
-    rect(540, 78, 6, 6, "#f2c14e");
-    rect(586, 78, 6, 6, "#f2c14e");
+    rect(544, 72, 56, 48, "#6b5b8f");
+    rect(538, 66, 16, 54, "#5c5470");
+    rect(590, 66, 16, 54, "#5c5470");
+    rect(556, 58, 32, 12, "#d7d0c3");
+    rect(564, 94, 16, 24, "#2d2521");
+    rect(548, 78, 6, 6, "#f2c14e");
+    rect(594, 78, 6, 6, "#f2c14e");
   }
 }
 
@@ -8423,6 +8428,7 @@ function drawPathLayer() {
 
 function drawBuildingLayer(visual) {
   (currentLayout().buildings || WORLD_LAYOUTS.village.buildings).forEach((building, index) => {
+    const doorSide = BUILDING_DOOR_SIDE_OVERRIDES[`${state.currentLocation}Door${index}`] || "bottom";
     drawBuilding(
       building.x,
       building.y,
@@ -8431,7 +8437,8 @@ function drawBuildingLayer(visual) {
       building.wall,
       visual[building.roof] || visual.roofA || "#8f4f44",
       regionBuildingLabel(index),
-      building.kind
+      building.kind,
+      doorSide
     );
   });
 }

@@ -2887,9 +2887,9 @@ kbd {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(590px, calc(100% - 36px));
-  max-height: calc(100% - 36px);
-  aspect-ratio: 1;
+  width: min(720px, calc(100% - 24px));
+  height: min(470px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
   padding: 0;
   transform: translate(-50%, -50%);
   overflow: hidden;
@@ -2917,9 +2917,9 @@ kbd {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(590px, calc(100% - 36px));
-  max-height: calc(100% - 36px);
-  aspect-ratio: 1;
+  width: min(720px, calc(100% - 24px));
+  height: min(470px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
   padding: 0;
   transform: translate(-50%, -50%);
   overflow: hidden;
@@ -2927,11 +2927,12 @@ kbd {
 
 .npc-window {
   display: grid;
-  grid-template-rows: clamp(210px, 38%, 280px) minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: clamp(150px, 38%, 244px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 16px;
   width: 100%;
   height: 100%;
-  padding: 18px;
+  padding: 16px;
   background:
     linear-gradient(180deg, rgba(242, 193, 78, .08), transparent 40%),
     rgba(29, 36, 39, .98);
@@ -2939,41 +2940,46 @@ kbd {
 
 .npc-portrait-frame {
   min-height: 0;
+  min-width: 0;
   display: grid;
   place-items: center;
+  align-self: stretch;
   background:
-    radial-gradient(circle at 50% 38%, rgba(245, 240, 223, .16), transparent 42%),
-    #111719;
-  border: 1px solid rgba(245, 240, 223, .35);
+    radial-gradient(circle at 50% 40%, rgba(245, 240, 223, .06), transparent 62%),
+    #14191c;
+  border: 1px solid rgba(245, 240, 223, .14);
+  border-radius: 10px;
   overflow: hidden;
 }
 
 .npc-portrait {
-  width: min(100%, 250px);
-  aspect-ratio: 1;
+  width: 100%;
+  height: 100%;
   display: grid;
   place-items: center;
 }
 
 .npc-portrait svg {
-  width: 100%;
-  height: auto;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 12px;
   display: block;
 }
 
 .npc-portrait-photo {
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: inset 0 0 0 1px rgba(245, 240, 223, .25);
+  height: 100%;
+  display: grid;
+  place-items: center;
 }
 
 .npc-portrait-photo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
@@ -3004,8 +3010,27 @@ kbd {
 
 .npc-copy {
   min-height: 0;
+  min-width: 0;
   overflow: auto;
   padding-right: 4px;
+  align-self: stretch;
+}
+
+/* G8: narrow screens — keep image-left/answers-right but with a taller panel and a
+   slimmer portrait column so a question + answers still fit without scrolling. */
+@media (max-width: 620px) {
+  .dialogue,
+  .choice-panel {
+    width: min(440px, calc(100% - 14px));
+    height: min(564px, calc(100% - 14px));
+    max-height: calc(100% - 14px);
+  }
+
+  .npc-window {
+    grid-template-columns: clamp(108px, 32%, 168px) minmax(0, 1fr);
+    gap: 11px;
+    padding: 12px;
+  }
 }
 
 .npc-actions {

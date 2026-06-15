@@ -11,7 +11,8 @@ const userDataDir = path.join(process.env.TEMP || root, `citizenship-slice-${Dat
 const srcDir = 'assets/characters/portraits-src';
 const outDir = path.join(root, 'assets/characters/portraits');
 
-// Atlases have NO number badges; captions are at the BOTTOM of each card.
+// Atlases have NO number badges; captions (names) are at the BOTTOM of each card.
+// We keep the WHOLE card (full portrait + name caption), preserving its natural aspect.
 // Both are uniform grids, so we slice mathematically (no gutter detection — the
 // page background is warm cream, not pure white). Order per docs/NPC_CHARACTER_GUIDE.md §4.
 // NPC-1 = 7×4 grid (28 cards, ids 1..28, includes elderGrace).
@@ -65,37 +66,77 @@ const SLICER = (cols, rows) => `(async () => {
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
   const data = ctx.getImageData(0, 0, W, H).data;
-  // background = warm cream page colour; detect the content bounding box to trim any outer margin
+  // background = warm cream page colour (not pure white).
   const isBg = (x, y) => { const i = (y * W + x) * 4; return data[i] > 240 && data[i+1] > 238 && data[i+2] > 236; };
-  const rowBg = (y) => { let b = 0, n = 0; for (let x = 0; x < W; x += 3) { n++; if (isBg(x, y)) b++; } return b / n; };
-  const colBg = (x) => { let b = 0, n = 0; for (let y = 0; y < H; y += 3) { n++; if (isBg(x, y)) b++; } return b / n; };
-  let top = 0; while (top < H && rowBg(top) > 0.985) top++;
-  let bot = H - 1; while (bot > top && rowBg(bot) > 0.985) bot--;
-  let left = 0; while (left < W && colBg(left) > 0.985) left++;
-  let right = W - 1; while (right > left && colBg(right) > 0.985) right--;
-  const gx = left, gy = top, gw = (right - left + 1), gh = (bot - top + 1);
-  const cellW = gw / cols, cellH = gh / rows;
+  const rowBg = (y) => { let b = 0, n = 0; for (let x = 0; x < W; x += 2) { n++; if (isBg(x, y)) b++; } return b / n; };
+  const colBg = (x) => { let b = 0, n = 0; for (let y = 0; y < H; y += 2) { n++; if (isBg(x, y)) b++; } return b / n; };
+
+  // The atlas is a UNIFORM grid but can have a small/uneven cream margin (NPC-1 has a
+  // ~24px top margin, so a blind even-division from y=0 drifts the lower rows and bleeds
+  // the previous row's name caption into the next crop). Strategy: rough-trim the margin,
+  // estimate the even pitch, then LOCK each interior boundary onto the real cream gap by
+  // searching a window around its expected position. Robust to margin offset + slight
+  // non-uniformity, while caption text (dark) keeps in-card bands from being false gaps.
+  function trim(profileFn, length) {
+    let a = 0; while (a < length - 1 && profileFn(a) > 0.96) a++;
+    let b = length - 1; while (b > a && profileFn(b) > 0.96) b--;
+    return [a, b];
+  }
+  function gapCenter(profileFn, lo, hi) {
+    lo = Math.max(0, Math.round(lo)); hi = Math.round(hi);
+    let bestS = -1, bestLen = -1, s = -1;
+    for (let i = lo; i <= hi; i++) {
+      const hiBg = profileFn(i) >= 0.9;
+      if (hiBg && s < 0) s = i;
+      if ((!hiBg || i === hi) && s >= 0) {
+        const e = hiBg ? i : i - 1;
+        if (e - s > bestLen) { bestLen = e - s; bestS = s; }
+        s = -1;
+      }
+    }
+    if (bestS < 0) { // no clear gap: argmax of background in window
+      let ba = lo, bv = -1;
+      for (let i = lo; i <= hi; i++) { const v = profileFn(i); if (v > bv) { bv = v; ba = i; } }
+      return ba;
+    }
+    return bestS + bestLen / 2;
+  }
+  function cuts(profileFn, length, count) {
+    const [a, b] = trim(profileFn, length);
+    const pitch = (b - a) / count;
+    const out = [a];
+    for (let r = 1; r < count; r++) {
+      const expected = a + r * pitch;
+      out.push(gapCenter(profileFn, expected - pitch * 0.2, expected + pitch * 0.2));
+    }
+    out.push(b);
+    return out;
+  }
+  const rowCuts = cuts(rowBg, H, rows);
+  const colCuts = cuts(colBg, W, cols);
+
   const results = [];
   for (let r = 0; r < rows; r++) {
     for (let cc = 0; cc < cols; cc++) {
-      const cardX = gx + cc * cellW, cardY = gy + r * cellH;
-      // captions sit in the bottom band of each card; a larger TOP inset also clears
-      // any sliver of the previous row's caption bleeding in from grid rounding.
-      const insetX = Math.max(2, Math.round(cellW * 0.04));
-      const insetTop = Math.round(cellH * 0.105);
-      const captionFrac = 0.15;
-      const artH = cellH * (1 - captionFrac) - insetTop;
-      const side = Math.min(cellW - insetX * 2, Math.round(artH));
-      const sx = Math.round(cardX + (cellW - side) / 2);
-      const sy = Math.round(cardY + insetTop);
-      const oc = document.createElement('canvas'); oc.width = 256; oc.height = 256;
+      const y0 = rowCuts[r], y1 = rowCuts[r + 1];
+      const x0 = colCuts[cc], x1 = colCuts[cc + 1];
+      // small inset to sit just inside the card border / drop the gap centre line
+      const padX = (x1 - x0) * 0.012;
+      const padY = (y1 - y0) * 0.012;
+      const sx = Math.round(x0 + padX);
+      const sy = Math.round(y0 + padY);
+      const sw = Math.round((x1 - x0) - padX * 2);
+      const sh = Math.round((y1 - y0) - padY * 2);
+      const outW = 320;
+      const outH = Math.round(outW * sh / sw);
+      const oc = document.createElement('canvas'); oc.width = outW; oc.height = outH;
       const octx = oc.getContext('2d');
       octx.imageSmoothingEnabled = true; octx.imageSmoothingQuality = 'high';
-      octx.drawImage(c, sx, sy, side, side, 0, 0, 256, 256);
+      octx.drawImage(c, sx, sy, sw, sh, 0, 0, outW, outH);
       results.push(oc.toDataURL('image/png').split(',')[1]);
     }
   }
-  return JSON.stringify({ count: results.length, grid: { gx, gy, gw, gh }, pngs: results });
+  return JSON.stringify({ count: results.length, rowCuts: rowCuts.map((v) => Math.round(v)), colCuts: colCuts.map((v) => Math.round(v)), pngs: results });
 })()`;
 
 let chrome;
@@ -122,6 +163,7 @@ async function run() {
         if (parsed.count !== src.ids.length) {
             console.error(`WARNING ${src.file}: produced ${parsed.count} crops but mapped ${src.ids.length} ids`);
         }
+        console.error(`${src.file} rowCuts=${JSON.stringify(parsed.rowCuts)} colCuts=${JSON.stringify(parsed.colCuts)}`);
         parsed.pngs.forEach((b64, i) => {
             const id = src.ids[i];
             if (!id) return;

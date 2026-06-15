@@ -3019,6 +3019,7 @@ kbd {
 /* G8: narrow screens — keep image-left/answers-right but with a taller panel and a
    slimmer portrait column so a question + answers still fit without scrolling. */
 @media (max-width: 620px) {
+
   .dialogue,
   .choice-panel {
     width: min(440px, calc(100% - 14px));

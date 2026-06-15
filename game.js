@@ -6061,7 +6061,7 @@ function movePlayer() {
   // real elapsed time so the hero keeps a constant real-world speed even when FPS dips
   // (ambient walkers / region pet already normalise by frameDeltaMs the same way).
   // Clamp the per-frame step below the 32px tile so a frame spike can't tunnel a wall.
-  const speed = Math.min(30, 4 * (frameDeltaMs / (1000 / 60)));
+  const speed = Math.min(30, 2 * (frameDeltaMs / (1000 / 60)));
   const nx = state.player.x + dx * speed;
   const ny = state.player.y + dy * speed;
   if (!isBlocked(nx, state.player.y, state.player.w, state.player.h)) state.player.x = nx;
@@ -6118,8 +6118,11 @@ function updateCamera() {
   const worldH = map.length * LOGICAL_TILE;
   const targetX = state.player.x + state.player.w / 2 - VIEW_W / 2;
   const targetY = state.player.y + state.player.h / 2 - VIEW_H / 2;
-  camera.x = Math.max(0, Math.min(worldW - VIEW_W, targetX));
-  camera.y = Math.max(0, Math.min(worldH - VIEW_H, targetY));
+  // Round to whole world pixels: the hero sprite is drawn pixel-snapped (Math.round(p.x)),
+  // so a sub-pixel camera makes the hero shimmer/judder against the background as
+  // round(p.x)-p.x oscillates. Rounding the camera keeps hero + tiles in lockstep = smooth.
+  camera.x = Math.round(Math.max(0, Math.min(worldW - VIEW_W, targetX)));
+  camera.y = Math.round(Math.max(0, Math.min(worldH - VIEW_H, targetY)));
 }
 
 function inputKey(event) {

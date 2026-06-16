@@ -6943,8 +6943,8 @@ function drawBuilding(x, y, w, h, wall, roof, label, kind, doorSide = "bottom") 
 }
 
 function drawPerson(person) {
-  const style = npcStyle(person);
-  const role = npcRole(person);
+  const style = npcAppearance(person);
+  const role = style.role;
   const x = person.x;
   const y = person.y;
   const outline = "#1b232c";
@@ -7252,6 +7252,67 @@ function npcStyle(person) {
     sleeve: "#3a2b2b",
     trim: "#d3a74d"
   };
+}
+
+// Canonical skin + hair per NPC, sampled from each dialogue portrait so the WORLD sprite
+// matches the card (skin/hair were previously random from x,y). Keyed by canonical portrait
+// id (aliases resolve via npcPortraitId). Coat stays the role-anchored colour from npcStyle.
+const NPC_LOOK = {
+  mayor: { skin: "#deab6f", hair: "#3a3328" },
+  priya: { skin: "#d99f62", hair: "#31291f" },
+  sam: { skin: "#e2c096", hair: "#432910" },
+  rowan: { skin: "#e3c095", hair: "#473d30" },
+  noor: { skin: "#d7ab6f", hair: "#3e2e1c" },
+  editorVale: { skin: "#dcb384", hair: "#432c16" },
+  historianIona: { skin: "#deb07f", hair: "#9c4708" },
+  aidMina: { skin: "#bc8755", hair: "#3a2c1c" },
+  dataOmar: { skin: "#d8ab7e", hair: "#372b1d" },
+  elderGrace: { skin: "#b87e3e", hair: "#5f422b" },
+  advocateFarah: { skin: "#da9d59", hair: "#373027" },
+  sergeantBlake: { skin: "#e1bb94", hair: "#272a2c" },
+  mediatorChen: { skin: "#deb989", hair: "#2f2a22" },
+  youthEllis: { skin: "#e4b279", hair: "#3f2711" },
+  speakerLark: { skin: "#e2c299", hair: "#584c3f" },
+  mpRivers: { skin: "#e5c298", hair: "#3e2813" },
+  managerSol: { skin: "#d9a976", hair: "#452c14" },
+  officerJune: { skin: "#e1b682", hair: "#393229" },
+  heraldEwan: { skin: "#ad6939", hair: "#753d23" },
+  unionMorgan: { skin: "#cfa576", hair: "#4e3217" },
+  charityAmina: { skin: "#c9915e", hair: "#3a2c1f" },
+  lobbyistPax: { skin: "#dfc099", hair: "#5c4127" },
+  moderatorRae: { skin: "#dfa85d", hair: "#593d55" },
+  surveyorTess: { skin: "#dcac6c", hair: "#472c13" },
+  statJules: { skin: "#e1c198", hair: "#462c13" },
+  organiserKai: { skin: "#d8a169", hair: "#372f24" },
+  examinerMira: { skin: "#d3ae85", hair: "#492b11" },
+  timeAsh: { skin: "#e2b786", hair: "#2f2313" },
+  sourceNia: { skin: "#c79568", hair: "#362311" },
+  coachLeon: { skin: "#e1bd94", hair: "#352715" },
+  scribePip: { skin: "#e1bb8d", hair: "#3c250d" }
+};
+
+// Per-NPC appearance, computed ONCE and memoized by id (was recomputed every frame inside
+// drawPerson — string ops + hashNoise + shadeHex). Merges the role-anchored coat from
+// npcStyle with canonical skin/hair from NPC_LOOK, plus the cached role.
+const npcAppearanceCache = {};
+function npcAppearance(person) {
+  const key = person.id || person.name;
+  const cached = npcAppearanceCache[key];
+  if (cached) return cached;
+  const base = npcStyle(person);
+  const look = NPC_LOOK[npcPortraitId(person)];
+  const skin = look ? look.skin : base.skin;
+  const hair = look ? look.hair : base.hair;
+  const appearance = {
+    ...base,
+    skin,
+    skinDk: shadeHex(skin, -26),
+    hair,
+    hairLt: shadeHex(hair, 34),
+    role: npcRole(person)
+  };
+  npcAppearanceCache[key] = appearance;
+  return appearance;
 }
 
 function drawPlayer() {

@@ -6959,16 +6959,20 @@ function drawPerson(person) {
   rect(x + 17, y + 38, 7, 9, "#1f2224");
   rect(x + 4, y + 45, 9, 3, "#4a2f25");
   rect(x + 16, y + 45, 9, 3, "#4a2f25");
-  rect(x - 2, y + 17, 6, 18, outline);
-  rect(x - 1, y + 18, 5, 16, style.coat);
-  rect(x + 22, y + 17, 6, 18, outline);
-  rect(x + 23, y + 18, 5, 16, style.coat);
+  // Arms start at the shoulder line (y+20), clearly BELOW the head, so they no longer
+  // bulge out beside the jaw like "cheeks".
+  rect(x - 2, y + 20, 6, 15, outline);
+  rect(x - 1, y + 21, 5, 13, style.coat);
+  rect(x + 22, y + 20, 6, 15, outline);
+  rect(x + 23, y + 21, 5, 13, style.coat);
   rect(x - 1, y + 33, 5, 4, style.skin);
   rect(x + 23, y + 33, 5, 4, style.skin);
-  rect(x + 1, y + 13, 24, 27, outline);
-  rect(x + 2, y + 14, 22, 25, style.coat);
-  rect(x + 2, y + 14, 4, 25, style.coatLt);
-  rect(x + 20, y + 14, 4, 25, style.coatDk);
+  // Torso trimmed to x+2..x+24 (was x+1..x+25) so its corners don't poke out past the
+  // head either.
+  rect(x + 2, y + 13, 22, 27, outline);
+  rect(x + 3, y + 14, 20, 25, style.coat);
+  rect(x + 3, y + 14, 4, 25, style.coatLt);
+  rect(x + 19, y + 14, 4, 25, style.coatDk);
   rect(x + 8, y + 16, 10, 20, person.color);
   rect(x + 8, y + 16, 10, 2, "rgba(255,255,255,.22)");
   rect(x + 4, y + 31, 18, 3, "#5b3b2c");

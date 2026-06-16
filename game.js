@@ -2755,11 +2755,11 @@ const locationBlueprints = [
     travel: "Clock-lift to Democracy Capital",
     visual: { sky: "#586a75", water: "#245666", road: "#93908a", roofA: "#4b5a65", roofB: "#5c5470", roofC: "#7b6d65", roofD: "#2f4f5f" },
     npcs: [
-      ["advocateFarah", "Advocate Farah", 372, 268, "#466d9f", "Human rights, equality, and discrimination."],
+      ["advocateFarah", "Advocate Farah", 236, 212, "#466d9f", "Human rights, equality, and discrimination."],
       ["sergeantBlake", "Sergeant Blake", 612, 432, "#31405a", "Police powers, safeguards, and accountability."],
-      ["mediatorChen", "Mediator Chen", 588, 342, "#d88c5a", "Civil disputes and legal solutions."],
-      ["youthEllis", "Youth Worker Ellis", 380, 346, "#6fbf73", "Youth justice and rehabilitation."],
-      ["justiceRowan2", "Justice Rowan", 592, 256, "#b089d6", "Courts, rule of law, and fair trials."]
+      ["mediatorChen", "Mediator Chen", 500, 470, "#d88c5a", "Civil disputes and legal solutions."],
+      ["youthEllis", "Youth Worker Ellis", 250, 470, "#6fbf73", "Youth justice and rehabilitation."],
+      ["justiceRowan2", "Justice Rowan", 628, 196, "#b089d6", "Courts, rule of law, and fair trials."]
     ],
     topics: [
       ["ruleLaw", "Rule of Law Seal", "justiceRowan2", "advocateFarah", "Ask Farah why power must be limited by law.", "The rule of law means everyone is subject to law, including people in power, and laws should be applied fairly.", "Which statement best fits rule of law?", ["No one is above the law", "Power has no limits", "Only citizens obey law"]],

@@ -69,6 +69,8 @@ function loadGameData() {
       locationOrder,
       signs,
       props,
+      scenery,
+      sceneryFootprint,
       LOGICAL_TILE
     };
   `;
@@ -93,13 +95,14 @@ function isHarborWater(layout, x, y) {
     return inWater && !onDock;
 }
 
-function isBlocked(layout, x, y, logicalTile) {
+function isBlocked(layout, x, y, logicalTile, sceneryRects = []) {
     const playerRect = { x, y, w: PLAYER_W, h: PLAYER_H };
     const buildingHit = (layout.buildings || []).some((building) => {
         const solid = { x: building.x - 6, y: building.y - 28, w: building.w + 12, h: building.h + 34 };
         return rectsOverlap(playerRect, solid);
     });
     if (buildingHit) return true;
+    if (sceneryRects.some((r) => rectsOverlap(playerRect, r))) return true;
 
     const points = [
         [x + 2, y + 2],
@@ -110,7 +113,7 @@ function isBlocked(layout, x, y, logicalTile) {
     return points.some(([px, py]) => "#~T".includes(tileAt(layout, px, py, logicalTile)) || isHarborWater(layout, px, py));
 }
 
-function reachablePositions(layout, logicalTile) {
+function reachablePositions(layout, logicalTile, sceneryRects = []) {
     const spawn = layout.spawn;
     const worldW = layout.map[0].length * logicalTile;
     const worldH = layout.map.length * logicalTile;
@@ -126,7 +129,7 @@ function reachablePositions(layout, logicalTile) {
             const ny = y + dy;
             const key = `${nx},${ny}`;
             if (nx < 0 || ny < 0 || nx > maxX || ny > maxY || visited.has(key)) continue;
-            if (isBlocked(layout, nx, ny, logicalTile)) continue;
+            if (isBlocked(layout, nx, ny, logicalTile, sceneryRects)) continue;
             visited.add(key);
             queue.push([nx, ny]);
         }
@@ -193,12 +196,13 @@ function routeTarget(label, item, distance, visited) {
 
 function auditRoutes() {
     const data = loadGameData();
-    const { WORLD_LAYOUTS, WORLD, MINI_GAMES, BUILDING_DOORS, EXAM_PRACTICE_ROOMS, STORY_VISUALS, locationOrder, signs, props, LOGICAL_TILE } = data;
+    const { WORLD_LAYOUTS, WORLD, MINI_GAMES, BUILDING_DOORS, EXAM_PRACTICE_ROOMS, STORY_VISUALS, locationOrder, signs, props, scenery, sceneryFootprint, LOGICAL_TILE } = data;
     const exteriorIds = locationOrder;
     const regions = exteriorIds.map((locationId) => {
         const location = WORLD[locationId];
         const layout = WORLD_LAYOUTS[locationId];
-        const visited = reachablePositions(layout, LOGICAL_TILE);
+        const sceneryRects = (scenery || []).filter((s) => !s.location || s.location === locationId).map((s) => sceneryFootprint(s));
+        const visited = reachablePositions(layout, LOGICAL_TILE, sceneryRects);
         const visual = STORY_VISUALS[location.name];
         const locationSigns = signs.filter((sign) => sign.location === locationId);
         const locationProps = props.filter((prop) => prop.location === locationId);

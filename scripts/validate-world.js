@@ -81,6 +81,8 @@ function loadGameData() {
       locationOrder,
       signs,
       props,
+      scenery,
+      sceneryFootprint,
       EXAM_PRACTICE_ROOMS,
       LOGICAL_TILE,
       regionBuildingLabel,
@@ -110,13 +112,14 @@ function isHarborWater(layout, x, y) {
     return inWater && !onDock;
 }
 
-function isBlocked(layout, x, y, logicalTile) {
+function isBlocked(layout, x, y, logicalTile, sceneryRects = []) {
     const playerRect = { x, y, w: PLAYER_W, h: PLAYER_H };
     const buildingHit = (layout.buildings || []).some((building) => {
         const solid = { x: building.x - 6, y: building.y - 28, w: building.w + 12, h: building.h + 34 };
         return rectsOverlap(playerRect, solid);
     });
     if (buildingHit) return true;
+    if (sceneryRects.some((r) => rectsOverlap(playerRect, r))) return true;
 
     const points = [
         [x + 2, y + 2],
@@ -143,7 +146,7 @@ function interactableDistance(a, b) {
     return Math.hypot(ax - bx, ay - by);
 }
 
-function findReachablePositions(layout, logicalTile) {
+function findReachablePositions(layout, logicalTile, sceneryRects = []) {
     const spawn = layout.spawn;
     const worldW = layout.map[0].length * logicalTile;
     const worldH = layout.map.length * logicalTile;
@@ -159,7 +162,7 @@ function findReachablePositions(layout, logicalTile) {
             const ny = y + dy;
             const key = `${nx},${ny}`;
             if (nx < 0 || ny < 0 || nx > maxX || ny > maxY || visited.has(key)) continue;
-            if (isBlocked(layout, nx, ny, logicalTile)) continue;
+            if (isBlocked(layout, nx, ny, logicalTile, sceneryRects)) continue;
             visited.add(key);
             queue.push([nx, ny]);
         }
@@ -242,7 +245,7 @@ function propTouchesTile(layout, prop, tile, logicalTile) {
 function validateWorld() {
     const data = loadGameData();
     const failures = [];
-    const { WORLD_LAYOUTS, WORLD, QUESTS, MINI_GAMES, BUILDING_DOORS, INTERIOR_EXITS, STUDY_STATIONS, PROP_ASSETS, TILE_ASSETS, HERO_ASSETS, locationOrder, props, EXAM_PRACTICE_ROOMS, LOGICAL_TILE, curriculumIndex, regionBuildingLabel, state } = data;
+    const { WORLD_LAYOUTS, WORLD, QUESTS, MINI_GAMES, BUILDING_DOORS, INTERIOR_EXITS, STUDY_STATIONS, PROP_ASSETS, TILE_ASSETS, HERO_ASSETS, locationOrder, props, scenery, sceneryFootprint, EXAM_PRACTICE_ROOMS, LOGICAL_TILE, curriculumIndex, regionBuildingLabel, state } = data;
 
     if (!Array.isArray(locationOrder) || locationOrder.length === 0) failures.push("locationOrder must list at least one location.");
 
@@ -289,7 +292,8 @@ function validateWorld() {
 
         const width = layout.map[0]?.length;
         if (!width || layout.map.some((row) => row.length !== width)) failures.push(`Location ${locationId} map must be rectangular.`);
-        if (!layout.spawn || isBlocked(layout, layout.spawn.x, layout.spawn.y, LOGICAL_TILE)) failures.push(`Location ${locationId} spawn is blocked.`);
+        const locSceneryRects = (scenery || []).filter((s) => !s.location || s.location === locationId).map((s) => sceneryFootprint(s));
+        if (!layout.spawn || isBlocked(layout, layout.spawn.x, layout.spawn.y, LOGICAL_TILE, locSceneryRects)) failures.push(`Location ${locationId} spawn is blocked.`);
 
         const expectedNext = orderIndex < locationOrder.length - 1 ? locationOrder[orderIndex + 1] : null;
         if (location.next !== expectedNext) failures.push(`Location ${locationId} has next=${location.next}; expected ${expectedNext}.`);
@@ -302,7 +306,7 @@ function validateWorld() {
             if (!QUESTS[questId]) failures.push(`Location ${locationId} references missing quest ${questId}.`);
         });
 
-        const reachable = findReachablePositions(layout, LOGICAL_TILE);
+        const reachable = findReachablePositions(layout, LOGICAL_TILE, locSceneryRects);
         const reachableNpcs = reachableInteractables(reachable, location.npcs || [], NPC_INTERACTION_DISTANCE);
         const buildingDoors = (BUILDING_DOORS || []).filter((door) => door.from === locationId);
         const studyStations = STUDY_STATIONS?.[locationId] || [];
@@ -312,7 +316,7 @@ function validateWorld() {
         if ((location.next || orderIndex < locationOrder.length - 1) && !reachableNpcs.length) failures.push(`Location ${locationId} has no reachable NPC for the travel gate.`);
         buildingDoors.forEach((door) => {
             if (!canReachInteractable(reachable, { ...door, w: 24, h: 24 }, DOOR_INTERACTION_DISTANCE)) failures.push(`Building door ${locationId}:${door.id} (${door.label}) is not reachable from spawn.`);
-            if (door.returnSpawn && isBlocked(layout, door.returnSpawn.x, door.returnSpawn.y, LOGICAL_TILE)) failures.push(`Building door ${locationId}:${door.id} has a blocked return spawn.`);
+            if (door.returnSpawn && isBlocked(layout, door.returnSpawn.x, door.returnSpawn.y, LOGICAL_TILE, locSceneryRects)) failures.push(`Building door ${locationId}:${door.id} has a blocked return spawn.`);
         });
         studyStations.forEach((station) => {
             if (!canReachInteractable(reachable, { ...station, w: 28, h: 20 }, STUDY_STATION_INTERACTION_DISTANCE)) failures.push(`Study station ${locationId}:${station.id} is not reachable from spawn.`);

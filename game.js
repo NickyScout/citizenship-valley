@@ -3001,6 +3001,10 @@ function currentMiniGameTriggers() {
   );
 }
 
+function currentScenery() {
+  return scenery.filter((item) => !item.location || item.location === state.currentLocation);
+}
+
 function currentStudyStations(locationId = state.currentLocation) {
   return STUDY_STATIONS[locationId] || [];
 }
@@ -3101,6 +3105,38 @@ function setLocation(locationId, options = {}) {
   if (devLocationSelect && locationOrder.includes(locationId)) devLocationSelect.value = locationId;
   updateHud();
   if (!options.skipSave) saveGame();
+}
+
+// Decorative foliage landmarks placed on open grass margins only. Big trees span ~2x3
+// tiles, bushes ~2x2 tiles. (x,y) is the top-left of the footprint box. Only a small base
+// is solid (sceneryFootprint) so the player walks BEHIND tall canopies via the z-sort.
+// Positions are validated to keep building doors, NPCs, props, and travel routes clear.
+// Declared before the initial setLocation() so isBlocked can read it during first spawn.
+const scenery = [
+  { location: "village", type: "tree", x: 56, y: 468 },
+  { location: "village", type: "tree", x: 828, y: 96 },
+  { location: "village", type: "bush", x: 340, y: 44 },
+  { location: "village", type: "bush", x: 600, y: 500 },
+  { location: "modernBritain", type: "tree", x: 60, y: 470 },
+  { location: "modernBritain", type: "tree", x: 800, y: 96 },
+  { location: "modernBritain", type: "bush", x: 280, y: 40 },
+  { location: "modernBritain", type: "bush", x: 600, y: 500 },
+  { location: "rightsLaw", type: "tree", x: 44, y: 60 },
+  { location: "rightsLaw", type: "tree", x: 840, y: 60 },
+  { location: "rightsLaw", type: "bush", x: 400, y: 515 },
+  { location: "democracy", type: "tree", x: 56, y: 460 },
+  { location: "democracy", type: "tree", x: 840, y: 60 },
+  { location: "democracy", type: "bush", x: 400, y: 40 },
+  { location: "actionWorkshop", type: "tree", x: 60, y: 60 },
+  { location: "actionWorkshop", type: "tree", x: 840, y: 60 },
+  { location: "actionWorkshop", type: "bush", x: 460, y: 40 }
+];
+
+// Collision footprint for a foliage item: just the trunk base / lower shrub, so the player
+// can pass close and walk behind the canopy. Shared by the runtime AND the QA validators.
+function sceneryFootprint(item) {
+  if (item.type === "tree") return { x: item.x + 22, y: item.y + 76, w: 20, h: 16 };
+  return { x: item.x + 12, y: item.y + 30, w: 40, h: 26 };
 }
 
 setLocation("village");
@@ -5208,6 +5244,12 @@ function isBuildingBlocked(x, y, w, h) {
   });
 }
 
+// Foliage trunks/shrub bases are solid (canopy is not), so the player can walk behind them.
+function isSceneryBlocked(x, y, w, h) {
+  const playerRect = { x, y, w, h };
+  return currentScenery().some((item) => rectsOverlap(playerRect, sceneryFootprint(item)));
+}
+
 function isBlocked(x, y, w, h) {
   const points = [
     [x + 2, y + 2],
@@ -5215,7 +5257,7 @@ function isBlocked(x, y, w, h) {
     [x + 2, y + h - 2],
     [x + w - 2, y + h - 2]
   ];
-  return isBuildingBlocked(x, y, w, h) || points.some(([px, py]) => "#~T".includes(tileAtPixel(px, py)) || isHarborWater(px, py));
+  return isBuildingBlocked(x, y, w, h) || isSceneryBlocked(x, y, w, h) || points.some(([px, py]) => "#~T".includes(tileAtPixel(px, py)) || isHarborWater(px, py));
 }
 
 function isHarborWater(x, y) {
@@ -6479,6 +6521,113 @@ function drawTreeTile(x, y) {
   ctx.fillRect(cx + 6, y + 15, 2, 2);
   ctx.fillRect(cx - 3, y + 17, 2, 2);
   ctx.fillRect(cx + 2, y + 18, 1, 1);
+}
+
+// Shared canvas blob used by the large foliage sprites below.
+function leafBlob(bx, by, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(bx, by, r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Big landmark tree spanning roughly 2 tiles wide x 3 tiles tall (64x96 logical px),
+// anchored by the top-left (px,py) of its footprint box; trunk base sits near the bottom.
+// Hand-drawn pixel-art to match drawTreeTile; only the trunk base is solid (see
+// sceneryFootprint) so the player walks behind the canopy via the character z-sort.
+function drawBigTree(px, py) {
+  const cx = px + 32;
+  // ground shadow
+  ctx.save();
+  ctx.globalAlpha = .2;
+  ctx.fillStyle = "#16240f";
+  ctx.beginPath();
+  ctx.ellipse(cx + 6, py + 90, 26, 8, -0.18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = .26;
+  ctx.beginPath();
+  ctx.ellipse(cx, py + 89, 19, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  // trunk with bark shading + root flare
+  rect(cx - 7, py + 58, 14, 34, "#6a4a32");
+  rect(cx - 7, py + 58, 4, 34, "#825d40");
+  rect(cx + 3, py + 58, 4, 34, "#523521");
+  rect(cx - 4, py + 64, 2, 22, "#4a3020");
+  rect(cx - 11, py + 86, 8, 6, "#5d4029");
+  rect(cx + 3, py + 86, 9, 6, "#5d4029");
+  rect(cx - 12, py + 90, 5, 2, "#4a3020");
+  rect(cx + 8, py + 90, 5, 2, "#4a3020");
+  // canopy: base/shadow layer (darker underside)
+  leafBlob(cx, py + 46, 30, "#235829");
+  leafBlob(cx - 18, py + 44, 18, "#27602f");
+  leafBlob(cx + 18, py + 44, 18, "#27602f");
+  leafBlob(cx - 10, py + 56, 16, "#235829");
+  leafBlob(cx + 10, py + 56, 16, "#235829");
+  // mid layer
+  leafBlob(cx, py + 36, 27, "#347a3f");
+  leafBlob(cx - 16, py + 38, 15, "#367c41");
+  leafBlob(cx + 16, py + 38, 15, "#367c41");
+  leafBlob(cx - 7, py + 26, 16, "#3c8748");
+  leafBlob(cx + 9, py + 28, 14, "#3c8748");
+  // lit top-left layer
+  leafBlob(cx - 6, py + 22, 16, "#4d9a55");
+  leafBlob(cx - 15, py + 30, 10, "#4d9a55");
+  leafBlob(cx + 6, py + 20, 12, "#4d9a55");
+  leafBlob(cx - 9, py + 14, 10, "#58a85f");
+  // rim highlights (top-left light)
+  leafBlob(cx - 12, py + 16, 5, "#73c06d");
+  leafBlob(cx - 2, py + 10, 4.5, "#73c06d");
+  leafBlob(cx + 8, py + 14, 3.6, "#6fbf73");
+  ctx.fillStyle = "#9bd888";
+  ctx.fillRect(cx - 14, py + 12, 3, 3);
+  ctx.fillRect(cx - 3, py + 6, 3, 3);
+  ctx.fillRect(cx + 7, py + 10, 2, 2);
+  // leaf-clump texture dots (darker, lower-right)
+  ctx.fillStyle = "rgba(20,48,22,.4)";
+  ctx.fillRect(cx + 12, py + 48, 3, 3);
+  ctx.fillRect(cx + 4, py + 54, 2, 2);
+  ctx.fillRect(cx - 8, py + 52, 2, 2);
+  ctx.fillRect(cx + 16, py + 40, 2, 2);
+}
+
+// Round shrub spanning roughly 2x2 tiles (64x64 logical px), anchored top-left.
+function drawBush(px, py) {
+  const cx = px + 32;
+  ctx.save();
+  ctx.globalAlpha = .22;
+  ctx.fillStyle = "#16240f";
+  ctx.beginPath();
+  ctx.ellipse(cx + 3, py + 56, 24, 6.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  // base/shadow layer
+  leafBlob(cx, py + 42, 22, "#235829");
+  leafBlob(cx - 16, py + 44, 14, "#27602f");
+  leafBlob(cx + 16, py + 44, 14, "#27602f");
+  // mid layer
+  leafBlob(cx, py + 34, 20, "#347a3f");
+  leafBlob(cx - 13, py + 36, 12, "#367c41");
+  leafBlob(cx + 13, py + 36, 12, "#367c41");
+  // lit top-left layer
+  leafBlob(cx - 5, py + 28, 14, "#4d9a55");
+  leafBlob(cx - 13, py + 32, 8, "#4d9a55");
+  leafBlob(cx + 7, py + 28, 10, "#4d9a55");
+  // rim highlights
+  leafBlob(cx - 10, py + 24, 4.5, "#73c06d");
+  leafBlob(cx + 1, py + 21, 4, "#73c06d");
+  ctx.fillStyle = "#9bd888";
+  ctx.fillRect(cx - 12, py + 22, 3, 2);
+  ctx.fillRect(cx - 1, py + 18, 2, 2);
+  // texture dots (darker, lower-right)
+  ctx.fillStyle = "rgba(20,48,22,.4)";
+  ctx.fillRect(cx + 10, py + 44, 2, 2);
+  ctx.fillRect(cx + 2, py + 48, 2, 2);
+}
+
+function drawScenery(item) {
+  if (item.type === "tree") drawBigTree(item.x, item.y);
+  else drawBush(item.x, item.y);
 }
 
 function paintUnionJack(x, y, w, h) {
@@ -9158,6 +9307,7 @@ function drawCharacterLayer() {
   const renderables = [
     ...npcs.map((npc) => ({ type: "npc", y: npc.y + 48, entity: npc })),
     ...ambientWalkers.map((w) => ({ type: "walker", y: w.y + 48, entity: w })),
+    ...currentScenery().map((s) => ({ type: "scenery", y: s.y + (s.type === "tree" ? 92 : 58), entity: s })),
     ...(regionPet ? [{ type: "pet", y: regionPet.y + 16, entity: regionPet }] : []),
     { type: "player", y: state.player.y + state.player.h, entity: state.player }
   ].sort((a, b) => a.y - b.y);
@@ -9166,6 +9316,7 @@ function drawCharacterLayer() {
     if (renderable.type === "player") drawPlayer();
     else if (renderable.type === "walker") drawAmbientWalker(renderable.entity);
     else if (renderable.type === "pet") drawRegionPet();
+    else if (renderable.type === "scenery") drawScenery(renderable.entity);
     else drawPerson(renderable.entity);
   });
   drawMiniGameHostMarkers();

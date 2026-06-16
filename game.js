@@ -6602,9 +6602,9 @@ function drawBuildingRoof(kind, x, y, w, h, roof, wall) {
       rect(sx, y - 1, 12, 4, leafDk);
       rect(sx + 2, y, 8, 2, leaf);
     }
-    rect(cx - 2, y - 27, 4, 10, "#6b5a44");
-    rect(cx - 5, y - 30, 10, 5, "#ffd95e");
-    rect(cx - 3, y - 29, 6, 3, "#ffe9a8");
+    rect(cx - 6, y - 31, 12, 9, leafDk);
+    rect(cx - 5, y - 30, 10, 7, leaf);
+    rect(cx - 4, y - 29, 4, 2, leafLt);
     return;
   }
   if (kind === "townhall") {
@@ -7048,11 +7048,12 @@ function drawBuildingEntrance(kind, x, y, w, h, wall, label) {
   }
   if (kind === "garden") {
     [x + 8, x + w - 26].forEach((px) => {
-      rect(px, base - 14, 18, 14, "#3f8a47");
-      rect(px, base - 14, 18, 3, "#5bb45e");
-      rect(px + 3, base - 11, 3, 3, "#f05d5e");
-      rect(px + 9, base - 9, 3, 3, "#ffe066");
-      rect(px + 13, base - 12, 3, 3, "#e879c7");
+      rect(px, base - 14, 18, 14, "#6f4a32");
+      rect(px, base - 14, 18, 3, "#8a5a3c");
+      rect(px + 2, base - 12, 14, 7, "#3f8a47");
+      rect(px + 3, base - 11, 4, 4, "#4f9c54");
+      rect(px + 9, base - 10, 4, 4, "#5bb45e");
+      rect(px + 12, base - 12, 3, 3, "#357a3d");
     });
     return;
   }

@@ -6980,15 +6980,119 @@ function drawPerson(person) {
   rect(x + 4, y + 1, 20, 18, outline);
   rect(x + 5, y + 2, 18, 16, style.skin);
   rect(x + 20, y + 3, 3, 14, style.skinDk);
-  rect(x + 4, y, 21, 7, style.hair);
-  rect(x + 4, y + 6, 4, 9, style.hair);
-  rect(x + 21, y + 6, 4, 9, style.hair);
-  rect(x + 4, y, 21, 2, style.hairLt);
+  drawNpcHair(person, style);
+  if (style.beard) drawNpcBeard(person, style);
   rect(x + 8, y + 9, 2, 2, "#243140");
   rect(x + 16, y + 9, 2, 2, "#243140");
   rect(x + 11, y + 14, 5, 1, "#9c5d4a");
   drawNpcRoleKit(person, role, style);
   if (!state.completed.has(person.id)) drawNpcQuestMarker(x, y);
+}
+
+// Per-NPC hairstyle silhouettes — the head spans x+4..x+24 (centre x+14); face y+2..y+18,
+// eyes y+9, mouth y+14. Replaces the single universal hair cap so the world sprite reads
+// like the portrait (short/wavy/long/coily/bun/ponytail/wrap/cap/undercut). Resolved+cached
+// in npcAppearance (style.hairstyle). Drawn AFTER the face, BEFORE the role kit (so role
+// headwear like the police helmet still layers on top).
+function drawNpcHair(p, style) {
+  const x = p.x, y = p.y;
+  const h = style.hair, hl = style.hairLt, hd = shadeHex(h, -24);
+  const hs = style.hairstyle;
+  if (hs === "wrap") {
+    const cloth = p.color || "#5da9e9", clothLt = shadeHex(cloth, 22), clothDk = shadeHex(cloth, -22);
+    rect(x + 2, y - 1, 22, 9, cloth);
+    rect(x + 2, y - 1, 22, 2, clothLt);
+    rect(x + 1, y + 6, 5, 17, cloth);
+    rect(x + 22, y + 6, 5, 17, cloth);
+    rect(x + 1, y + 6, 2, 17, clothLt);
+    rect(x + 25, y + 6, 2, 17, clothDk);
+    rect(x + 5, y + 2, 15, 1, clothDk);
+    return;
+  }
+  if (hs === "cap") {
+    const cloth = p.color || "#6fbf73", clothLt = shadeHex(cloth, 20), clothDk = shadeHex(cloth, -20);
+    rect(x + 4, y + 4, 4, 7, h);
+    rect(x + 21, y + 4, 4, 7, h);
+    rect(x + 3, y, 22, 6, cloth);
+    rect(x + 3, y, 22, 2, clothLt);
+    rect(x + 1, y + 5, 12, 3, clothDk);
+    rect(x + 1, y + 5, 12, 1, cloth);
+    return;
+  }
+  if (hs === "undercut") {
+    rect(x + 4, y + 5, 2, 5, shadeHex(style.skin, -18));
+    rect(x + 22, y + 5, 2, 5, shadeHex(style.skin, -18));
+    rect(x + 5, y - 1, 19, 6, h);
+    rect(x + 5, y - 1, 19, 2, hl);
+    rect(x + 12, y - 3, 7, 3, h);
+    rect(x + 13, y - 3, 5, 1, hl);
+    return;
+  }
+  if (hs === "bun") {
+    rect(x + 10, y - 4, 9, 6, h);
+    rect(x + 11, y - 4, 6, 2, hl);
+    rect(x + 4, y, 21, 5, h);
+    rect(x + 4, y, 21, 2, hl);
+    rect(x + 4, y + 4, 2, 6, h);
+    rect(x + 23, y + 4, 2, 6, h);
+    return;
+  }
+  if (hs === "ponytail") {
+    rect(x + 4, y, 21, 6, h);
+    rect(x + 4, y, 21, 2, hl);
+    rect(x + 4, y + 5, 2, 6, h);
+    rect(x + 23, y + 5, 2, 6, h);
+    rect(x + 24, y + 4, 4, 14, h);
+    rect(x + 24, y + 4, 2, 14, hl);
+    rect(x + 26, y + 9, 2, 8, hd);
+    return;
+  }
+  if (hs === "coily") {
+    rect(x + 3, y - 2, 22, 9, h);
+    rect(x + 2, y, 4, 12, h);
+    rect(x + 23, y, 4, 12, h);
+    rect(x + 3, y - 2, 22, 2, hl);
+    rect(x + 6, y - 1, 3, 2, hl);
+    rect(x + 15, y - 2, 3, 2, hl);
+    rect(x + 5, y + 9, 2, 2, hd);
+    rect(x + 23, y + 9, 2, 2, hd);
+    return;
+  }
+  if (hs === "long") {
+    rect(x + 3, y, 22, 7, h);
+    rect(x + 3, y, 22, 2, hl);
+    rect(x + 2, y + 6, 5, 17, h);
+    rect(x + 22, y + 6, 5, 17, h);
+    rect(x + 2, y + 6, 2, 17, hl);
+    rect(x + 25, y + 6, 2, 17, hd);
+    return;
+  }
+  if (hs === "wavy") {
+    rect(x + 3, y, 22, 7, h);
+    rect(x + 3, y, 22, 2, hl);
+    rect(x + 3, y + 6, 4, 10, h);
+    rect(x + 22, y + 6, 4, 10, h);
+    rect(x + 4, y + 14, 3, 3, hd);
+    rect(x + 22, y + 14, 3, 3, hd);
+    rect(x + 6, y + 2, 3, 2, hl);
+    return;
+  }
+  // short (default)
+  rect(x + 4, y, 21, 6, h);
+  rect(x + 4, y, 21, 2, hl);
+  rect(x + 5, y + 5, 3, 6, h);
+  rect(x + 21, y + 5, 3, 6, h);
+}
+
+// Beard/stubble framing the jaw + a moustache above the mouth (mouth at y+14 stays clear).
+function drawNpcBeard(p, style) {
+  const x = p.x, y = p.y;
+  const h = style.hair, hd = shadeHex(h, -16);
+  rect(x + 5, y + 12, 4, 6, h);
+  rect(x + 20, y + 12, 4, 6, h);
+  rect(x + 7, y + 16, 14, 3, h);
+  rect(x + 9, y + 12, 10, 2, hd);
+  rect(x + 7, y + 17, 14, 1, hd);
 }
 
 // Explicit world-sprite role per NPC id (from docs/NPC_CHARACTER_GUIDE.md), used to
@@ -7124,11 +7228,7 @@ function drawNpcRoleKit(p, role, style) {
     return;
   }
   if (role === "campaign") {
-    // peaked cap (trim colour)
-    rect(x + 5, y - 1, 16, 5, style.trim);
-    rect(x + 5, y - 1, 16, 2, shadeHex(style.trim, 22));
-    rect(x + 2, y + 3, 9, 2, shadeHex(style.trim, -18));
-    // rosette + petition board in the right hand
+    // rosette + petition board in the right hand (no cap — campaign NPCs show their hair)
     rect(x + 6, y + 17, 5, 5, red);
     rect(x + 7, y + 18, 3, 3, "#f0998d");
     rect(x + 22, y + 21, 12, 15, paper);
@@ -7151,15 +7251,9 @@ function drawNpcRoleKit(p, role, style) {
     return;
   }
   if (role === "exam") {
-    // academic gown collar + mortarboard
-    rect(x + 7, y + 14, 11, 4, "#2a2533");
-    rect(x + 3, y - 1, 20, 3, "#1c1822");
-    rect(x + 8, y + 1, 10, 4, "#23202c");
-    rect(x + 12, y - 2, 3, 3, "#23202c");
-    rect(x + 15, y - 1, 6, 1, gold);
-    rect(x + 20, y - 1, 2, 7, gold);
-    rect(x + 20, y + 6, 3, 2, "#caa033");
-    // mark scheme + red pen in the right hand
+    // gown collar + mark scheme + red pen in the right hand (no mortarboard — examiner
+    // shows their hair in the portrait)
+    rect(x + 7, y + 15, 11, 3, "#2a2533");
     rect(x + 22, y + 24, 11, 14, paper);
     rect(x + 24, y + 27, 7, 1, ink);
     rect(x + 24, y + 30, 7, 1, ink);
@@ -7364,6 +7458,43 @@ const NPC_LOOK = {
   scribePip: { skin: "#e1bb8d", hair: "#3c250d" }
 };
 
+// Per-NPC hairstyle (and beard flag), classified from each dialogue portrait so the world
+// sprite reads like the card. `s` is a drawNpcHair variant; `beard` adds drawNpcBeard.
+// Keyed by canonical portrait id (aliases resolve via npcPortraitId).
+const NPC_HAIR = {
+  mayor: { s: "wavy" },
+  priya: { s: "ponytail" },
+  sam: { s: "short" },
+  rowan: { s: "short" },
+  noor: { s: "short", beard: true },
+  editorVale: { s: "short" },
+  historianIona: { s: "coily" },
+  aidMina: { s: "cap" },
+  dataOmar: { s: "short", beard: true },
+  elderGrace: { s: "bun" },
+  advocateFarah: { s: "long" },
+  sergeantBlake: { s: "short" },
+  mediatorChen: { s: "short" },
+  youthEllis: { s: "coily" },
+  speakerLark: { s: "short" },
+  mpRivers: { s: "short" },
+  managerSol: { s: "short", beard: true },
+  officerJune: { s: "short" },
+  heraldEwan: { s: "short", beard: true },
+  unionMorgan: { s: "short", beard: true },
+  charityAmina: { s: "wrap" },
+  lobbyistPax: { s: "short" },
+  moderatorRae: { s: "undercut" },
+  surveyorTess: { s: "wavy" },
+  statJules: { s: "short" },
+  organiserKai: { s: "short" },
+  examinerMira: { s: "wavy" },
+  timeAsh: { s: "short" },
+  sourceNia: { s: "long" },
+  coachLeon: { s: "short", beard: true },
+  scribePip: { s: "short" }
+};
+
 // Per-NPC appearance, computed ONCE and memoized by id (was recomputed every frame inside
 // drawPerson — string ops + hashNoise + shadeHex). Merges the role-anchored coat from
 // npcStyle with canonical skin/hair from NPC_LOOK, plus the cached role.
@@ -7373,7 +7504,9 @@ function npcAppearance(person) {
   const cached = npcAppearanceCache[key];
   if (cached) return cached;
   const base = npcStyle(person);
-  const look = NPC_LOOK[npcPortraitId(person)];
+  const portraitId = npcPortraitId(person);
+  const look = NPC_LOOK[portraitId];
+  const hairMeta = NPC_HAIR[portraitId] || { s: "short" };
   const skin = look ? look.skin : base.skin;
   const hair = look ? look.hair : base.hair;
   const appearance = {
@@ -7382,7 +7515,9 @@ function npcAppearance(person) {
     skinDk: shadeHex(skin, -26),
     hair,
     hairLt: shadeHex(hair, 34),
-    role: npcRole(person)
+    role: npcRole(person),
+    hairstyle: hairMeta.s,
+    beard: !!hairMeta.beard
   };
   npcAppearanceCache[key] = appearance;
   return appearance;

@@ -7007,99 +7007,168 @@ function npcRole(person) {
 function drawNpcRoleKit(p, role, style) {
   const x = p.x;
   const y = p.y;
-  const gold = "#f2c14e";
+  const gold = "#f2c14e", goldDk = "#b8881f";
   const paper = "#f5f0df";
   const ink = "#243140";
   const red = "#e36b5d";
   const white = "#fbf6e9";
+  const hiVis = "#e9d44a", hiVisDk = "#c9b733";
+  // Costumes are ADDITIVE: the coloured torso (incl. the NPC's anchor-colour vest) is
+  // already drawn, so each role layers a recognisable silhouette on top while keeping
+  // the anchor colour visible. Headwear sits over the hair; props sit at the right hand.
   if (role === "police") {
-    rect(x + 4, y - 6, 20, 10, "#1e2f4a");
-    rect(x + 5, y - 7, 18, 2, "#26395a");
-    rect(x + 12, y - 9, 4, 3, "#16233a");
-    rect(x + 4, y + 4, 20, 3, "#16233a");
-    rect(x + 12, y + 8, 4, 4, gold);
+    // navy collar, tie + epaulettes
+    rect(x + 6, y + 14, 14, 4, "#16233a");
+    rect(x + 11, y + 15, 4, 9, "#0f1726");
+    rect(x + 2, y + 15, 5, 3, "#16233a");
+    rect(x + 19, y + 15, 5, 3, "#16233a");
+    // custodian helmet over the hair
+    rect(x + 5, y - 8, 16, 13, "#161e2b");
+    rect(x + 5, y - 8, 5, 13, "#212d40");
+    rect(x + 3, y + 1, 20, 4, "#10161f");
+    rect(x + 11, y - 11, 4, 4, "#212d40");
+    rect(x + 10, y - 3, 8, 7, "#cfa233");
+    rect(x + 12, y - 1, 4, 4, "#f2d97a");
+    rect(x + 13, y, 2, 2, "#8a6a1e");
     return;
   }
   if (role === "council") {
-    rect(x + 3, y + 15, 21, 2, gold);
-    rect(x + 6, y + 16, 2, 4, gold);
-    rect(x + 19, y + 16, 2, 4, gold);
-    rect(x + 10, y + 19, 6, 5, gold);
-    rect(x + 11, y + 20, 4, 3, "#b8881f");
+    rect(x + 8, y + 14, 11, 2, "#2b3a4a");
+    // gold chain of office (V of links) + medallion
+    rect(x + 6, y + 14, 3, 3, gold);
+    rect(x + 8, y + 17, 2, 3, gold);
+    rect(x + 10, y + 20, 2, 2, gold);
+    rect(x + 19, y + 14, 3, 3, gold);
+    rect(x + 17, y + 17, 2, 3, gold);
+    rect(x + 16, y + 20, 2, 2, gold);
+    rect(x + 11, y + 22, 6, 6, gold);
+    rect(x + 12, y + 23, 4, 4, goldDk);
+    rect(x + 13, y + 24, 2, 2, "#fff0c0");
     return;
   }
   if (role === "law") {
-    rect(x + 1, y + 14, 5, 24, "#2a2533");
-    rect(x + 22, y + 14, 5, 24, "#2a2533");
-    rect(x + 9, y + 15, 8, 7, white);
-    rect(x + 12, y + 15, 2, 7, "#cfc8b6");
+    // black robe sleeves over the arms
+    rect(x - 2, y + 15, 6, 23, "#23202c");
+    rect(x - 2, y + 15, 2, 23, "#322c3e");
+    rect(x + 23, y + 15, 6, 23, "#23202c");
+    rect(x + 23, y + 15, 2, 23, "#322c3e");
+    // white jabot bands at the throat
+    rect(x + 11, y + 14, 6, 9, white);
+    rect(x + 13, y + 14, 1, 9, "#cfc8b6");
+    rect(x + 11, y + 14, 6, 2, "#fffdf5");
     return;
   }
   if (role === "democracy") {
-    rect(x + 15, y + 16, 9, 9, red);
-    rect(x + 17, y + 18, 5, 5, "#f0998d");
-    rect(x + 17, y + 25, 2, 6, gold);
-    rect(x + 20, y + 25, 2, 6, paper);
+    rect(x + 12, y + 15, 3, 10, "#3a4f74");
+    // rosette with ribbon tails
+    rect(x + 15, y + 16, 8, 8, red);
+    rect(x + 16, y + 17, 6, 6, "#f0998d");
+    rect(x + 18, y + 19, 2, 2, gold);
+    rect(x + 16, y + 23, 2, 6, gold);
+    rect(x + 19, y + 23, 2, 6, paper);
     return;
   }
   if (role === "media") {
-    rect(x + 12, y + 14, 4, 9, ink);
-    rect(x + 8, y + 21, 12, 8, paper);
-    rect(x + 10, y + 23, 5, 4, "#5da9e9");
+    // press lanyard + ID card
+    rect(x + 10, y + 14, 2, 7, ink);
+    rect(x + 16, y + 14, 2, 7, ink);
+    rect(x + 9, y + 20, 10, 8, paper);
+    rect(x + 10, y + 21, 8, 2, "#5da9e9");
+    rect(x + 10, y + 24, 6, 1, "#8f8576");
+    rect(x + 10, y + 26, 5, 1, "#8f8576");
+    // camera in right hand
+    rect(x + 22, y + 27, 9, 6, "#2b333a");
+    rect(x + 24, y + 28, 4, 4, "#7fb0f5");
+    rect(x + 29, y + 26, 2, 2, "#1b2228");
     return;
   }
   if (role === "book") {
-    rect(x + 6, y + 8, 12, 2, ink);
-    rect(x - 5, y + 27, 13, 11, "#6f4633");
-    rect(x - 4, y + 28, 5, 9, paper);
-    rect(x + 2, y + 28, 5, 9, "#e7dcc4");
-    rect(x - 1, y + 28, 1, 9, "#b6a98a");
+    // round glasses
+    rect(x + 7, y + 8, 4, 4, ink);
+    rect(x + 8, y + 9, 2, 2, "#cfe3f0");
+    rect(x + 15, y + 8, 4, 4, ink);
+    rect(x + 16, y + 9, 2, 2, "#cfe3f0");
+    rect(x + 11, y + 9, 4, 1, ink);
+    // collar + book under the left arm
+    rect(x + 8, y + 14, 10, 2, "#7a5a44");
+    rect(x - 6, y + 25, 13, 12, "#6f4633");
+    rect(x - 5, y + 26, 5, 10, paper);
+    rect(x + 1, y + 26, 5, 10, "#e7dcc4");
+    rect(x - 1, y + 26, 1, 10, "#b6a98a");
     return;
   }
   if (role === "data") {
-    rect(x + 21, y + 23, 13, 15, "#33424b");
-    rect(x + 23, y + 25, 9, 9, "#e9eef0");
-    rect(x + 24, y + 30, 2, 3, "#6fbf73");
-    rect(x + 27, y + 27, 2, 6, gold);
-    rect(x + 30, y + 25, 2, 8, "#5da9e9");
+    // pocket pen + clipboard with a mini bar chart
+    rect(x + 8, y + 16, 2, 5, "#5da9e9");
+    rect(x + 21, y + 22, 13, 16, "#33424b");
+    rect(x + 23, y + 24, 9, 11, "#e9eef0");
+    rect(x + 24, y + 26, 6, 1, ink);
+    rect(x + 24, y + 31, 2, 3, "#6fbf73");
+    rect(x + 27, y + 29, 2, 5, "#5da9e9");
+    rect(x + 30, y + 27, 2, 7, gold);
     return;
   }
   if (role === "care") {
-    rect(x + 3, y + 15, 19, 11, "#3f74c4");
-    rect(x + 9, y + 18, 7, 6, paper);
-    rect(x + 11, y + 20, 3, 3, red);
+    // tabard in the NPC anchor colour + white first-aid panel
+    const tab = p.color || "#3f74c4";
+    rect(x + 5, y + 15, 16, 17, tab);
+    rect(x + 5, y + 15, 4, 17, shadeHex(tab, 18));
+    rect(x + 17, y + 15, 4, 17, shadeHex(tab, -18));
+    rect(x + 9, y + 18, 8, 8, paper);
+    rect(x + 12, y + 19, 2, 6, red);
+    rect(x + 10, y + 21, 6, 2, red);
     return;
   }
   if (role === "campaign") {
-    rect(x + 4, y - 2, 19, 5, style.trim);
-    rect(x + 4, y + 1, 19, 2, "rgba(0,0,0,.22)");
-    rect(x + 2, y - 3, 6, 2, style.trim);
+    // peaked cap (trim colour)
+    rect(x + 5, y - 1, 16, 5, style.trim);
+    rect(x + 5, y - 1, 16, 2, shadeHex(style.trim, 22));
+    rect(x + 2, y + 3, 9, 2, shadeHex(style.trim, -18));
+    // rosette + petition board in the right hand
+    rect(x + 6, y + 17, 5, 5, red);
+    rect(x + 7, y + 18, 3, 3, "#f0998d");
     rect(x + 22, y + 21, 12, 15, paper);
-    rect(x + 24, y + 24, 8, 2, ink);
-    rect(x + 24, y + 28, 8, 1, "#8f8576");
-    rect(x + 24, y + 31, 6, 1, "#8f8576");
+    rect(x + 24, y + 23, 8, 2, ink);
+    rect(x + 24, y + 27, 8, 1, "#8f8576");
+    rect(x + 24, y + 30, 6, 1, "#8f8576");
     return;
   }
   if (role === "time") {
-    rect(x + 2, y + 15, 21, 13, "#d8a23a");
-    rect(x + 6, y + 17, 3, 10, "rgba(255,255,255,.5)");
-    rect(x + 16, y + 17, 3, 10, "rgba(255,255,255,.5)");
-    rect(x + 23, y + 27, 10, 10, "#e9eef0");
-    rect(x + 25, y + 29, 6, 6, ink);
-    rect(x + 27, y + 25, 2, 3, "#8f8576");
+    // hi-vis steward vest + stopwatch
+    rect(x + 5, y + 15, 16, 16, hiVis);
+    rect(x + 5, y + 15, 4, 16, "#f4e88a");
+    rect(x + 17, y + 15, 4, 16, hiVisDk);
+    rect(x + 8, y + 15, 2, 16, "#eef0ea");
+    rect(x + 16, y + 15, 2, 16, "#eef0ea");
+    rect(x + 22, y + 26, 10, 10, "#e9eef0");
+    rect(x + 24, y + 28, 6, 6, ink);
+    rect(x + 26, y + 24, 2, 3, "#8f8576");
+    rect(x + 26, y + 29, 2, 3, red);
     return;
   }
   if (role === "exam") {
-    rect(x + 21, y + 23, 12, 16, paper);
-    rect(x + 23, y + 27, 8, 1, ink);
-    rect(x + 23, y + 30, 8, 1, ink);
-    rect(x + 23, y + 33, 5, 1, ink);
-    rect(x + 30, y + 21, 2, 9, red);
-    rect(x + 30, y + 20, 2, 2, "#cfc8b6");
+    // academic gown collar + mortarboard
+    rect(x + 7, y + 14, 11, 4, "#2a2533");
+    rect(x + 3, y - 1, 20, 3, "#1c1822");
+    rect(x + 8, y + 1, 10, 4, "#23202c");
+    rect(x + 12, y - 2, 3, 3, "#23202c");
+    rect(x + 15, y - 1, 6, 1, gold);
+    rect(x + 20, y - 1, 2, 7, gold);
+    rect(x + 20, y + 6, 3, 2, "#caa033");
+    // mark scheme + red pen in the right hand
+    rect(x + 22, y + 24, 11, 14, paper);
+    rect(x + 24, y + 27, 7, 1, ink);
+    rect(x + 24, y + 30, 7, 1, ink);
+    rect(x + 24, y + 33, 4, 1, ink);
+    rect(x + 31, y + 22, 2, 9, red);
+    rect(x + 31, y + 21, 2, 2, "#cfc8b6");
     return;
   }
-  rect(x + 5, y + 15, 17, 3, style.trim);
-  rect(x + 9, y + 18, 4, 4, style.trim);
+  // citizen: cozy scarf
+  rect(x + 6, y + 14, 16, 4, style.trim);
+  rect(x + 6, y + 14, 16, 1, shadeHex(style.trim, 24));
+  rect(x + 9, y + 17, 4, 9, style.trim);
+  rect(x + 9, y + 24, 4, 2, shadeHex(style.trim, -18));
 }
 
 function drawNpcQuestMarker(x, y) {

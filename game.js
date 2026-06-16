@@ -5215,6 +5215,15 @@ function isHarborWater(x, y) {
   return inWater && !onDock;
 }
 
+// True only when a small decoration footprint sits entirely on plantable grass: clear of
+// building footprints, harbour water, and any wall/water/road/path/plaza tile under its
+// corners. Scattered flowers and grass tufts use this so they never land on houses or paths.
+function isPlantableGrass(x, y, w, h) {
+  if (isBuildingBlocked(x, y, w, h)) return false;
+  const corners = [[x, y], [x + w, y], [x, y + h], [x + w, y + h]];
+  return corners.every(([px, py]) => !isHarborWater(px, py) && !"#~=,:T".includes(tileAtPixel(px, py)));
+}
+
 function rectsNear(a, b, distance = 42) {
   const ax = a.x + a.w / 2;
   const ay = a.y + a.h / 2;
@@ -8212,8 +8221,7 @@ function drawFineDetails() {
     for (let i = 0; i < 14; i += 1) {
       const x = 88 + Math.floor(hashNoise(i, 33, 5) * 710);
       const y = 70 + Math.floor(hashNoise(i, 37, 6) * 430);
-      const tile = tileAtPixel(x, y);
-      if ("#~=,:".includes(tile) || isBuildingBlocked(x, y, 16, 16)) continue;
+      if (!isPlantableGrass(x, y, 18, 17)) continue;
       rect(x, y + 10, 18, 7, "#4f8f4a");
       rect(x + 4, y + 5, 4, 4, i % 2 ? "#f7f0a3" : "#f05d5e");
       rect(x + 11, y + 3, 4, 4, i % 3 ? "#ffe066" : "#e36b5d");
@@ -8240,8 +8248,7 @@ function drawFineDetails() {
   for (let i = 0; i < 34; i += 1) {
     const x = 40 + Math.floor(hashNoise(i, 14, 1) * 850);
     const y = 46 + Math.floor(hashNoise(i, 21, 2) * 520);
-    const tile = tileAtPixel(x, y);
-    if (isHarborWater(x, y) || "#~=,:".includes(tile)) continue;
+    if (!isPlantableGrass(x, y, 5, 8)) continue;
     rect(x, y, 2, 7, id === "rightsLaw" || id === "examHall" ? "#56635a" : "#2f7b42");
     rect(x + 2, y + 1, 3, 3, id === "democracy" ? "#e6d3a4" : "#78c86d");
   }

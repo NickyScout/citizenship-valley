@@ -2871,7 +2871,7 @@ const locationBlueprints = [
       ["timeAsh", "Timekeeper Ash", 596, 210, "#d88c5a", "Timed practice."],
       ["sourceNia", "Source Keeper Nia", 612, 432, "#5da9e9", "Source reliability and usefulness."],
       ["coachLeon", "Debate Coach Leon", 244, 432, "#6fbf73", "Balanced arguments."],
-      ["scribePip", "Paragraph Scribe Pip", 232, 300, "#f2c14e", "PEEL paragraphs and evidence."]
+      ["scribePip", "Paragraph Scribe Pip", 632, 300, "#f2c14e", "PEEL paragraphs and evidence."]
     ],
     topics: [
       ["commandWords", "Command Word Corridor", "examMira2", "scribePip", "Ask Pip how explain differs from identify.", "Identify means name something; explain means give a developed reason or link.", "Explain questions need...", ["Developed reasons", "One-word labels only", "No links"]],

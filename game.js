@@ -5216,10 +5216,20 @@ function isHarborWater(x, y) {
 }
 
 // True only when a small decoration footprint sits entirely on plantable grass: clear of
-// building footprints, harbour water, and any wall/water/road/path/plaza tile under its
-// corners. Scattered flowers and grass tufts use this so they never land on houses or paths.
+// building footprints (incl. the label sign above each building), the village stone plaza,
+// harbour water, and any wall/water/road/path/plaza/tree tile under its corners. Scattered
+// flowers and grass tufts use this so they never land on houses, signs, or paving.
 function isPlantableGrass(x, y, w, h) {
-  if (isBuildingBlocked(x, y, w, h)) return false;
+  const foot = { x, y, w, h };
+  // Exclude building footprints AND the label sign banner that sits ~40px above each
+  // building (taller than the collision zone so scattered decor never lands on a sign).
+  const onBuilding = (currentLayout().buildings || []).some((b) =>
+    rectsOverlap(foot, { x: b.x - 8, y: b.y - 46, w: b.w + 16, h: b.h + 54 })
+  );
+  if (onBuilding) return false;
+  // The village paints a stone town-square (drawStonePlaza) over a fixed rectangle that
+  // visually covers some grass tiles, so treat that whole area as non-plantable too.
+  if (state.currentLocation === "village" && rectsOverlap(foot, { x: 32, y: 192, w: 686, h: 160 })) return false;
   const corners = [[x, y], [x + w, y], [x, y + h], [x + w, y + h]];
   return corners.every(([px, py]) => !isHarborWater(px, py) && !"#~=,:T".includes(tileAtPixel(px, py)));
 }
@@ -6332,40 +6342,12 @@ function drawBeachCorners(x, y, tl, tr, bl, br) {
 function drawPavingEdges(x, y, top, right, bottom, left, row, col) {
   const T = LOGICAL_TILE;
   const shade = "rgba(45,62,32,.22)";
-  const blade = "#5aa14a";
-  const bladeLt = "#82c468";
-  if (top === "grass") {
-    rect(x, y, T, 2, shade);
-    for (let i = 3; i < T - 3; i += 7) {
-      if (hashNoise(col, row * 4 + i, 17) < .5) continue;
-      rect(x + i, y, 2, 4, blade);
-      rect(x + i + 1, y, 1, 2, bladeLt);
-    }
-  }
-  if (bottom === "grass") {
-    rect(x, y + T - 2, T, 2, shade);
-    for (let i = 3; i < T - 3; i += 7) {
-      if (hashNoise(col, row * 4 + i, 19) < .5) continue;
-      rect(x + i, y + T - 4, 2, 4, blade);
-      rect(x + i + 1, y + T - 2, 1, 2, bladeLt);
-    }
-  }
-  if (left === "grass") {
-    rect(x, y, 2, T, shade);
-    for (let i = 3; i < T - 3; i += 7) {
-      if (hashNoise(col * 4 + i, row, 21) < .5) continue;
-      rect(x, y + i, 4, 2, blade);
-      rect(x, y + i + 1, 2, 1, bladeLt);
-    }
-  }
-  if (right === "grass") {
-    rect(x + T - 2, y, 2, T, shade);
-    for (let i = 3; i < T - 3; i += 7) {
-      if (hashNoise(col * 4 + i, row, 23) < .5) continue;
-      rect(x + T - 4, y + i, 4, 2, blade);
-      rect(x + T - 2, y + i + 1, 2, 1, bladeLt);
-    }
-  }
+  // Soft shadow line where paving meets grass. No green blades — the user wants roads and
+  // paving to stay clean (blades read as plants on the stone).
+  if (top === "grass") rect(x, y, T, 2, shade);
+  if (bottom === "grass") rect(x, y + T - 2, T, 2, shade);
+  if (left === "grass") rect(x, y, 2, T, shade);
+  if (right === "grass") rect(x + T - 2, y, 2, T, shade);
 }
 
 function drawTile(ch, x, y, row = 0, col = 0, map = currentMap()) {

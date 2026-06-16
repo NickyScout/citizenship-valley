@@ -2991,6 +2991,16 @@ function currentSigns() {
   return signs.filter((item) => !item.location || item.location === state.currentLocation);
 }
 
+// Decorative props that carry a `miniGameId` show a "Play" marker; these are the world
+// quick-launch boards for a mini-game (the same game an NPC host also offers via dialogue).
+function currentMiniGameTriggers() {
+  return props.filter((prop) =>
+    prop.miniGameId &&
+    MINI_GAMES[prop.miniGameId] &&
+    (!prop.location || prop.location === state.currentLocation)
+  );
+}
+
 function currentStudyStations(locationId = state.currentLocation) {
   return STUDY_STATIONS[locationId] || [];
 }
@@ -5247,6 +5257,8 @@ function findInteractable() {
   if (door) return { type: "buildingDoor", item: door };
   const npc = npcs.find((person) => rectsNear(state.player, person));
   if (npc) return { type: "npc", item: npc };
+  const trigger = currentMiniGameTriggers().find((prop) => rectsNear(state.player, prop, 46));
+  if (trigger) return { type: "miniGameTrigger", item: trigger };
   if (isInteriorLocation()) {
     const station = currentStudyStations().find((item) => rectsNear(state.player, { ...item, w: 28, h: 20 }, 64));
     if (station) return { type: "studyStation", item: station };
@@ -6048,6 +6060,10 @@ function interact() {
   }
   if (found.type === "examRoom") {
     showExamPracticeRoom(found.item);
+    return;
+  }
+  if (found.type === "miniGameTrigger") {
+    openMiniGame(found.item.miniGameId);
     return;
   }
   showNpcMenu(found.item);
@@ -6959,9 +6975,10 @@ function drawBuildingOrnaments(x, y, w, h, label) {
     return;
   }
   if (lower.includes("park") || lower.includes("garden") || lower.includes("volunteer")) {
-    rect(x + 8, y + h - 30, 17, 9, "#4e9b50");
-    rect(x + 10, y + h - 34, 4, 4, "#f05d5e");
-    rect(x + 18, y + h - 36, 4, 4, "#ffe066");
+    rect(x + 8, y + h - 30, 17, 9, "#3f8a47");
+    rect(x + 8, y + h - 30, 17, 2, "#5bb45e");
+    rect(x + 11, y + h - 33, 5, 4, "#4f9c54");
+    rect(x + 18, y + h - 34, 4, 4, "#357a3d");
     return;
   }
   if (lower.includes("election") || lower.includes("petition") || lower.includes("campaign")) {
@@ -8340,18 +8357,22 @@ function drawInteractionHint() {
     ? "E Practice"
     : found.type === "buildingDoor"
       ? "E Enter"
-      : found.type === "studyStation"
-        ? "E Study"
-        : found.type === "exitDoor"
-          ? "E Exit"
-          : "E";
+      : found.type === "miniGameTrigger"
+        ? "E Play"
+        : found.type === "studyStation"
+          ? "E Study"
+          : found.type === "exitDoor"
+            ? "E Exit"
+            : "E";
   const width = found.type === "examRoom"
     ? 72
     : found.type === "buildingDoor" || found.type === "studyStation"
       ? 68
-      : found.type === "exitDoor"
+      : found.type === "miniGameTrigger"
         ? 56
-        : 36;
+        : found.type === "exitDoor"
+          ? 56
+          : 36;
   ctx.fillStyle = "#111719";
   ctx.fillRect(x - width / 2, y - 14, width, 20);
   ctx.strokeStyle = "#f2c14e";
@@ -8368,7 +8389,8 @@ function drawInteractionRangeHighlight() {
   const item = found.item;
   const x = item.x + 12;
   const y = item.y + 16;
-  const color = found.type === "npc" && item.miniGameId ? "#5da9e9" : "#f2c14e";
+  const isMiniGame = found.type === "miniGameTrigger" || (found.type === "npc" && item.miniGameId);
+  const color = isMiniGame ? "#5da9e9" : "#f2c14e";
   const baseRx = found.type === "npc" ? 24 : 20;
   const pulse = settings.reducedMotion ? 0 : 0.5 + 0.5 * Math.sin(animationClockMs / 260);
   ctx.save();

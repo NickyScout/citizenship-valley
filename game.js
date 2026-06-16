@@ -6948,44 +6948,81 @@ function drawPerson(person) {
   const x = person.x;
   const y = person.y;
   const outline = "#1b232c";
-  ctx.save();
-  ctx.globalAlpha = .28;
+  const rm = settings.reducedMotion;
+  // §S4 idle: gentle breathing bob (0..2px, integer so it stays pixel-aligned), faster
+  // while speaking; per-NPC phase so the crowd isn't synced. reducedMotion freezes it.
+  const speaking = Boolean(person.bubble);
+  const sway = rm ? 0 : Math.round(0.9 + 0.9 * Math.sin(animationClockMs / (speaking ? 360 : 760) + style.animPhase));
+  // §S4 blink: per-NPC phased, eyes close briefly every ~3.6s.
+  const blink = !rm && ((animationClockMs + style.animPhase * 900) % 3600) < 140;
+  // §S5 look toward the player when they are close (eyes shift 1px) — reads as "facing you".
+  let look = 0;
+  if (!rm) {
+    const dx = state.player.x - x;
+    if (Math.abs(dx) < 96 && Math.abs(state.player.y - y) < 80) look = dx > 8 ? 1 : dx < -8 ? -1 : 0;
+  }
+  const build = style.build;
+
+  // §S6 soft contact shadow, planted at the feet (scales with build). Single ellipse, no
+  // save/restore (rect() sets its own fillStyle), to keep the NPC cost near baseline.
+  ctx.globalAlpha = .24;
   ctx.fillStyle = "#10160f";
   ctx.beginPath();
-  ctx.ellipse(x + 12, y + 46, 15, 4.5, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + 12, y + 47, 15 + build, 4.8, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.restore();
+  ctx.globalAlpha = 1;
+
+  // legs/shoes — planted (do NOT breathe)
   rect(x + 5, y + 38, 7, 9, "#2b2d2f");
   rect(x + 17, y + 38, 7, 9, "#1f2224");
   rect(x + 4, y + 45, 9, 3, "#4a2f25");
   rect(x + 16, y + 45, 9, 3, "#4a2f25");
-  // Arms start at the shoulder line (y+20), clearly BELOW the head, so they no longer
-  // bulge out beside the jaw like "cheeks".
-  rect(x - 2, y + 20, 6, 15, outline);
-  rect(x - 1, y + 21, 5, 13, style.coat);
-  rect(x + 22, y + 20, 6, 15, outline);
-  rect(x + 23, y + 21, 5, 13, style.coat);
-  rect(x - 1, y + 33, 5, 4, style.skin);
-  rect(x + 23, y + 33, 5, 4, style.skin);
-  // Torso trimmed to x+2..x+24 (was x+1..x+25) so its corners don't poke out past the
-  // head either.
+
+  // upper body breathes (translate by -sway, undone at the end — avoids a save/restore pair)
+  if (sway) ctx.translate(0, -sway);
+  // arms — build widens/narrows the shoulders; cuff + hand at the wrist
+  const al = x - 2 - build, ar = x + 22 + build;
+  rect(al, y + 20, 6, 15, outline);
+  rect(al + 1, y + 21, 5, 13, style.coat);
+  rect(ar, y + 20, 6, 15, outline);
+  rect(ar + 1, y + 21, 5, 13, style.coat);
+  rect(al + 1, y + 30, 5, 2, style.coatDk);
+  rect(ar + 1, y + 30, 5, 2, style.coatDk);
+  rect(al + 1, y + 33, 5, 4, style.skin);
+  rect(ar + 1, y + 33, 5, 4, style.skin);
+  // torso with side light/shade + a bottom shade for depth
   rect(x + 2, y + 13, 22, 27, outline);
   rect(x + 3, y + 14, 20, 25, style.coat);
   rect(x + 3, y + 14, 4, 25, style.coatLt);
   rect(x + 19, y + 14, 4, 25, style.coatDk);
+  rect(x + 4, y + 36, 16, 3, shadeHex(style.coat, -16));
+  // anchor-colour vest with top highlight + lower shade
   rect(x + 8, y + 16, 10, 20, person.color);
   rect(x + 8, y + 16, 10, 2, "rgba(255,255,255,.22)");
+  rect(x + 8, y + 33, 10, 2, "rgba(0,0,0,.16)");
   rect(x + 4, y + 31, 18, 3, "#5b3b2c");
   rect(x + 11, y + 31, 4, 3, style.trim);
+  // head + side shade + a thin neck shadow under the chin
   rect(x + 4, y + 1, 20, 18, outline);
   rect(x + 5, y + 2, 18, 16, style.skin);
   rect(x + 20, y + 3, 3, 14, style.skinDk);
+  rect(x + 9, y + 18, 8, 1, shadeHex(style.skin, -30));
   drawNpcHair(person, style);
   if (style.beard) drawNpcBeard(person, style);
-  rect(x + 8, y + 9, 2, 2, "#243140");
-  rect(x + 16, y + 9, 2, 2, "#243140");
-  rect(x + 11, y + 14, 5, 1, "#9c5d4a");
+  // eyes — blink (1px line) or open (2px), shifted toward the player
+  if (blink) {
+    rect(x + 8 + look, y + 10, 2, 1, "#243140");
+    rect(x + 16 + look, y + 10, 2, 1, "#243140");
+  } else {
+    rect(x + 8 + look, y + 9, 2, 2, "#243140");
+    rect(x + 16 + look, y + 9, 2, 2, "#243140");
+  }
+  // §S5 mouth — opens a little while the NPC is speaking (chatter bubble active)
+  if (speaking && !rm) rect(x + 11, y + 14, 5, 2, "#7a3b33");
+  else rect(x + 11, y + 14, 5, 1, "#9c5d4a");
   drawNpcRoleKit(person, role, style);
+  if (sway) ctx.translate(0, sway);
+
   if (!state.completed.has(person.id)) drawNpcQuestMarker(x, y);
 }
 
@@ -7517,7 +7554,11 @@ function npcAppearance(person) {
     hairLt: shadeHex(hair, 34),
     role: npcRole(person),
     hairstyle: hairMeta.s,
-    beard: !!hairMeta.beard
+    beard: !!hairMeta.beard,
+    // Per-NPC idle-animation phase (so the crowd doesn't breathe/blink in sync) and a
+    // subtle build (-1 slim / 0 / +1 broad) for silhouette variety. Computed once.
+    animPhase: hashNoise(person.x, person.y, 12) * Math.PI * 2,
+    build: Math.round(hashNoise(person.y, person.x, 15) * 2) - 1
   };
   npcAppearanceCache[key] = appearance;
   return appearance;

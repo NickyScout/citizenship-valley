@@ -1,6 +1,55 @@
 # AI Handoff
 
-## 0. Current Status Update — 2026-06-05
+## 0. V1 FINAL — handoff to V2 (2026-06-17)
+
+> This section is the authoritative current state. **Everything below section 0 is historical (pre-2026-06-05) and partly outdated — read it for background only, and trust this section where they conflict.** V2's focus is a **new-graphics overhaul**.
+
+### V1 final state
+- Live site: `https://lemon-meadow-063d62b03.7.azurestaticapps.net`, version **`2026.06.12.34`**, all QA green.
+- Git: root **IS** a normal Git repo now (the old "use publish/ for git" note below is OBSOLETE). Remote `NickyScout/citizenship-valley`, branch `main`, tag **`v1.0`** marks this final state. Commit + `git push origin main` from the **root**.
+- Node: bundled at `.tools/node-v22.11.0-win-x64` (gitignored). Always prefix:
+  `$env:PATH = "$PWD\.tools\node-v22.11.0-win-x64;$env:PATH"` before node commands.
+- **No `package.json` at root** — `node_modules/` (holds the `swa` CLI) is NOT reproducible via `npm install`; it must be carried over, not reinstalled.
+
+### Deploy recipe (verified, current)
+1. Bump the cache-bust version in `index.html` — **5 markers**: `styles.css?v=`, `<body data-app-version=`, `#appVersion` text `v…`, `curriculum.js?v=`, `game.js?v=`. Returning browsers won't refetch an identical `?v=`.
+2. Build `dist/`: copy `index.html,styles.css,game.js,curriculum.js,staticwebapp.config.json` + `assets/` into `dist`, then delete `dist/assets/characters/portraits-src` (source atlases, excluded from deploy).
+3. Token (never print/commit): `az staticwebapp secrets list --name citizenship-gcse-game-nmilyaev --resource-group rg-citizenship-game --query properties.apiKey -o tsv`.
+4. `.\node_modules\.bin\swa.cmd deploy .\dist --deployment-token $token --env production`.
+5. **Verify LIVE** flipped: fetch `index.html?cb=<ts>` for the new version + `game.js` for the changed line. Split bump/build/deploy/verify into separate commands (a giant `;`-chain can deploy a STALE dist).
+- After deploy, `git push origin main` (separate from Azure). Verify sync `git rev-list --left-right --count origin/main...HEAD` == `0 0`. `publish/` and `*-result.json` are gitignored — never staged.
+
+### QA (all pass at v1.0)
+`node scripts\validate-world.js` · `node scripts\validate-ui.js` · `node qa-visual-smoke.mjs` (+ `node --check game.js`, regional/route audits in `docs/QA_RUNBOOK.md`).
+
+### Graphics architecture (the V2 replacement target)
+All art is hand-coded pixel-art via `rect(x,y,w,h,color)` + a few SVG/PNG assets under `assets/`. Canvas `1280×768`, logical tile `32`, `RENDER_SCALE=1.5`. `animationClockMs` drives animation; `settings.reducedMotion` gates ALL motion. Draw pipeline in `drawWorld()`: ground → paths → buildings → props → characters → world-UI.
+- **NPC sprite**: `drawPerson(person)` reads `npcAppearance(person)` (memoized per id in `npcAppearanceCache`; merges `npcStyle` coat + `NPC_LOOK` skin/hair + role + `NPC_HAIR` style/beard + animPhase + build). Hair via `drawNpcHair`, beard `drawNpcBeard`, costume `drawNpcRoleKit(p,role,style)` (roles: police/council/law/democracy/media/book/data/care/campaign/time/exam/citizen). Role from `NPC_ROLE` map.
+- **NPC face geometry (local coords)**: head `x+4..x+24` (centre `x+14`), eyes `y+9`, **mouth `x+11..x+16, y+14`**, chin/face-bottom `y+18`.
+- **Hero**: `drawHeroSpriteAsset` (spritesheet `assets/characters/hero-base-spritesheet.svg`, 4 dir × 4 frame) + overlays in `drawHeroProfileMarkers` (outfit recolor, hair, cap, scarf, side-arm, flag). Procedural `drawHeroFront/Back/Side` fallback.
+- **Tiles**: `drawTile` + `TILE_ASSETS` (SVG in `assets/tiles/`) with primitive fallback + autotiling edges (`drawWaterFoam/drawBeachEdges/drawPavingEdges`).
+- **Props**: `drawProp` (primitive art per `prop.type`) tries `drawPropAsset` (`PROP_ASSETS` PNGs) first; `propAssetBounds` holds per-type widths. Mini-game "Play" markers `drawMiniGameTriggerMarkers`; NPC host "Game" markers `drawMiniGameHostMarkers`.
+- **Portraits**: real PNG cards in `assets/characters/portraits/` (sliced by `qa-slice-portraits.mjs` from `portraits-src/`), shown in the landscape dialogue panel; procedural SVG fallback only.
+
+### Hard-won art rules (do NOT regress in V2)
+- The mouth is at `y+14` over `x+8..x+18`; `drawNpcRoleKit`/hair/beard draw AFTER the face, so **any opaque costume band at `y+14–15` over the face centre HIDES the mouth**. Keep neckwear at **`y+18`+ (below the chin)**. Bright/low-contrast garments (hi-vis yellow) need `y+18` even though `y+15` is technically below the mouth.
+- **Vertical/centred** elements touching the mouth's bottom edge also merge — keep costume art off the `x+11..x+16` column directly under the mouth (route sashes/cords diagonally/to the side from `y+20`).
+- Beards: moustache `y+12-13` ABOVE, chin beard `y+16-18` BELOW, mouth drawn after → keep the `y+14` row clear.
+- World markers that float above a prop must hold ALL their text inside one board AND clear the prop top (a label drawn below a board lands on the prop art — that was the kiosk "New" bug).
+- Hero spritesheet MUST be drawn at `Math.round(p.x),Math.round(p.y)` (rect() rounds, drawImage doesn't → 1px shelf while walking). Keep per-frame rects within the 48px sheet row (bleed rule).
+
+### Browser-montage QA recipe (how to inspect sprites at zoom)
+Serve the game; in `page.evaluate` set `window.requestAnimationFrame=()=>0` **and** `window.draw=function(){}` to KILL the render loop (it repaints over your montage — the title screen is a DOM overlay so the canvas always runs), `settings.reducedMotion=true`, `state.completed={has:()=>true}` (hide quest "!"). Gather NPCs from `WORLD`+`locationBlueprints`, then per sprite `ctx.setTransform(scale,0,0,scale,ox,oy); drawPerson({id,name,x:0,y:0,color})`. Capture with the `screenshot_page` tool on a viewport-sized canvas (≤~1000×950, paginate); **toggle the viewport size to force a fresh capture** (it caches stale frames); first remove `#titleScreen` + `[aria-label="Touch controls"]`. Element/path `page.screenshot` HANGS on font-wait and clips a big canvas; downloads/`require` are unavailable in the playwright tool.
+
+### Transfer notes for V2
+- `publish/` is a **legacy gitignored mirror** of root files — V2 should DROP it and its sync step; the deploy builds `dist/` from root directly.
+- Stale facts in the legacy sections below to ignore in V2: "root is not a Git repo / use publish/", "procedural SVG portraits" (real PNGs now exist), the G2/G3 TODO list, `SAVE_VERSION = 6` (see `migrateSave()` for the real current target).
+- For V2 deploy: create a NEW SWA (analogous to the existing one, its own deployment token) and a NEW GitHub repo; update the SWA name / resource group / live URL / repo slug in `AGENTS.md`, `.github/copilot-instructions.md`, `README.md`, and this file.
+- Repo memory (`/memories/repo/`) is workspace-scoped and will be EMPTY in the V2 workspace — this section is the bridge; re-seed memory from it after opening V2.
+
+---
+
+## 0. Current Status Update — 2026-06-05 (HISTORICAL — superseded by section 0 above)
 
 Resume point after the planned PC restart:
 

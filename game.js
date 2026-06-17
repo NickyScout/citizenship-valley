@@ -7275,12 +7275,13 @@ function drawNpcRoleKit(p, role, style) {
     return;
   }
   if (role === "time") {
-    // hi-vis steward vest + stopwatch
-    rect(x + 5, y + 15, 16, 16, hiVis);
-    rect(x + 5, y + 15, 4, 16, "#f4e88a");
-    rect(x + 17, y + 15, 4, 16, hiVisDk);
-    rect(x + 8, y + 15, 2, 16, "#eef0ea");
-    rect(x + 16, y + 15, 2, 16, "#eef0ea");
+    // hi-vis steward vest (starts at the neckline, below the chin — the bright yellow
+    // must not ride up to the mouth) + stopwatch
+    rect(x + 5, y + 18, 16, 13, hiVis);
+    rect(x + 5, y + 18, 4, 13, "#f4e88a");
+    rect(x + 17, y + 18, 4, 13, hiVisDk);
+    rect(x + 8, y + 18, 2, 13, "#eef0ea");
+    rect(x + 16, y + 18, 2, 13, "#eef0ea");
     rect(x + 22, y + 26, 10, 10, "#e9eef0");
     rect(x + 24, y + 28, 6, 6, ink);
     rect(x + 26, y + 24, 2, 3, "#8f8576");

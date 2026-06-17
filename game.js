@@ -7204,13 +7204,22 @@ function drawNpcRoleKit(p, role, style) {
     return;
   }
   if (role === "democracy") {
-    rect(x + 12, y + 15, 3, 10, "#3a4f74");
+    // diagonal shoulder sash (runs from the shoulder down across the chest — starts below
+    // the chin so it never sits under the mouth) + election rosette pinned on the chest
+    const sash = "#3a4f74", sashLt = "#4a6190";
+    rect(x + 4, y + 20, 5, 3, sash);
+    rect(x + 6, y + 23, 5, 3, sash);
+    rect(x + 8, y + 26, 5, 3, sash);
+    rect(x + 10, y + 29, 5, 3, sash);
+    rect(x + 12, y + 32, 5, 3, sash);
+    rect(x + 4, y + 20, 5, 1, sashLt);
+    rect(x + 6, y + 23, 5, 1, sashLt);
     // rosette with ribbon tails
-    rect(x + 15, y + 16, 8, 8, red);
-    rect(x + 16, y + 17, 6, 6, "#f0998d");
-    rect(x + 18, y + 19, 2, 2, gold);
-    rect(x + 16, y + 23, 2, 6, gold);
-    rect(x + 19, y + 23, 2, 6, paper);
+    rect(x + 14, y + 21, 8, 8, red);
+    rect(x + 15, y + 22, 6, 6, "#f0998d");
+    rect(x + 17, y + 24, 2, 2, gold);
+    rect(x + 15, y + 28, 2, 6, gold);
+    rect(x + 18, y + 28, 2, 6, paper);
     return;
   }
   if (role === "media") {

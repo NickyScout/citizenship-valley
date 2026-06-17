@@ -8631,21 +8631,31 @@ function drawMiniGameHostMarkers() {
 function drawMiniGameTriggerMarkers() {
   props.filter((prop) => prop.miniGameId && (!prop.location || prop.location === state.currentLocation) && MINI_GAMES[prop.miniGameId]).forEach((prop) => {
     const status = miniGameMapStatus(prop.miniGameId);
-    const x = prop.x + 24;
-    const y = prop.y - 16;
-    rect(x - 16, y + 5, 32, 18, "rgba(17,23,25,.9)");
+    // Centre the marker on the prop (widths come from propAssetBounds) and float it well
+    // clear ABOVE the prop, with BOTH "Play" and the status label inside one board — like
+    // the NPC "Game" marker. Previously the label was drawn below a 1-line board at
+    // prop.y+11, landing on the kiosk's red banner ("New" didn't fit and overlapped it).
+    const bounds = propAssetBounds(prop);
+    const cx = prop.x + Math.round((bounds ? bounds.w : 44) / 2);
+    const boardH = 24;
+    const boardTop = prop.y - 10 - boardH;
+    const markerW = Math.max(40, status.label.length * 6 + 16);
+    const left = Math.round(cx - markerW / 2);
+    rect(left, boardTop, markerW, boardH, "rgba(17,23,25,.92)");
     ctx.strokeStyle = status.color;
-    ctx.strokeRect(x - 16, y + 5, 32, 18);
-    rect(x - 5, y - 2, 10, 10, status.color);
+    ctx.strokeRect(left, boardTop, markerW, boardH);
+    // small "!" tab on top of the board
+    rect(cx - 5, boardTop - 8, 10, 10, status.color);
     ctx.fillStyle = "#141c1f";
     ctx.font = "8px Georgia";
     ctx.textAlign = "center";
-    ctx.fillText("!", x, y + 6);
+    ctx.fillText("!", cx, boardTop - 1);
+    // line 1: Play  /  line 2: status — both inside the board
     ctx.fillStyle = "#f5f0df";
     ctx.font = "8px Georgia";
-    ctx.fillText("Play", x, y + 17);
+    ctx.fillText("Play", cx, boardTop + 11);
     ctx.fillStyle = status.color;
-    ctx.fillText(status.label, x, y + 27);
+    ctx.fillText(status.label, cx, boardTop + 21);
   });
 }
 

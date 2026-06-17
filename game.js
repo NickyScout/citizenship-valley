@@ -7162,11 +7162,11 @@ function drawNpcRoleKit(p, role, style) {
   // already drawn, so each role layers a recognisable silhouette on top while keeping
   // the anchor colour visible. Headwear sits over the hair; props sit at the right hand.
   if (role === "police") {
-    // navy collar, tie + epaulettes
-    rect(x + 6, y + 14, 14, 4, "#16233a");
-    rect(x + 11, y + 15, 4, 9, "#0f1726");
-    rect(x + 2, y + 15, 5, 3, "#16233a");
-    rect(x + 19, y + 15, 5, 3, "#16233a");
+    // navy collar, tie + epaulettes (collar sits at the neckline, below the chin)
+    rect(x + 6, y + 18, 14, 3, "#16233a");
+    rect(x + 11, y + 19, 4, 7, "#0f1726");
+    rect(x + 2, y + 16, 5, 3, "#16233a");
+    rect(x + 19, y + 16, 5, 3, "#16233a");
     // custodian helmet over the hair
     rect(x + 5, y - 8, 16, 13, "#161e2b");
     rect(x + 5, y - 8, 5, 13, "#212d40");
@@ -7178,17 +7178,17 @@ function drawNpcRoleKit(p, role, style) {
     return;
   }
   if (role === "council") {
-    rect(x + 8, y + 14, 11, 2, "#2b3a4a");
-    // gold chain of office (V of links) + medallion
-    rect(x + 6, y + 14, 3, 3, gold);
-    rect(x + 8, y + 17, 2, 3, gold);
-    rect(x + 10, y + 20, 2, 2, gold);
-    rect(x + 19, y + 14, 3, 3, gold);
-    rect(x + 17, y + 17, 2, 3, gold);
-    rect(x + 16, y + 20, 2, 2, gold);
-    rect(x + 11, y + 22, 6, 6, gold);
-    rect(x + 12, y + 23, 4, 4, goldDk);
-    rect(x + 13, y + 24, 2, 2, "#fff0c0");
+    rect(x + 8, y + 18, 11, 2, "#2b3a4a");
+    // gold chain of office (V of links) + medallion, hanging from the collar (below chin)
+    rect(x + 6, y + 18, 3, 3, gold);
+    rect(x + 8, y + 21, 2, 3, gold);
+    rect(x + 10, y + 24, 2, 2, gold);
+    rect(x + 19, y + 18, 3, 3, gold);
+    rect(x + 17, y + 21, 2, 3, gold);
+    rect(x + 16, y + 24, 2, 2, gold);
+    rect(x + 11, y + 25, 6, 5, gold);
+    rect(x + 12, y + 26, 4, 3, goldDk);
+    rect(x + 13, y + 27, 2, 2, "#fff0c0");
     return;
   }
   if (role === "law") {
@@ -7197,10 +7197,10 @@ function drawNpcRoleKit(p, role, style) {
     rect(x - 2, y + 15, 2, 23, "#322c3e");
     rect(x + 23, y + 15, 6, 23, "#23202c");
     rect(x + 23, y + 15, 2, 23, "#322c3e");
-    // white jabot bands at the throat
-    rect(x + 11, y + 14, 6, 9, white);
-    rect(x + 13, y + 14, 1, 9, "#cfc8b6");
-    rect(x + 11, y + 14, 6, 2, "#fffdf5");
+    // white jabot bands at the throat (below the chin, on the chest — not over the mouth)
+    rect(x + 11, y + 19, 6, 6, white);
+    rect(x + 13, y + 19, 1, 6, "#cfc8b6");
+    rect(x + 11, y + 19, 6, 2, "#fffdf5");
     return;
   }
   if (role === "democracy") {
@@ -7288,9 +7288,9 @@ function drawNpcRoleKit(p, role, style) {
     return;
   }
   if (role === "exam") {
-    // gown collar + mark scheme + red pen in the right hand (no mortarboard — examiner
-    // shows their hair in the portrait)
-    rect(x + 7, y + 15, 11, 3, "#2a2533");
+    // gown collar (at the neckline) + mark scheme + red pen in the right hand (no
+    // mortarboard — examiner shows their hair in the portrait)
+    rect(x + 7, y + 18, 11, 3, "#2a2533");
     rect(x + 22, y + 24, 11, 14, paper);
     rect(x + 24, y + 27, 7, 1, ink);
     rect(x + 24, y + 30, 7, 1, ink);

@@ -7214,9 +7214,9 @@ function drawNpcRoleKit(p, role, style) {
     return;
   }
   if (role === "media") {
-    // press lanyard + ID card
-    rect(x + 10, y + 14, 2, 7, ink);
-    rect(x + 16, y + 14, 2, 7, ink);
+    // press lanyard (cords start below the chin) + ID card
+    rect(x + 10, y + 16, 2, 6, ink);
+    rect(x + 16, y + 16, 2, 6, ink);
     rect(x + 9, y + 20, 10, 8, paper);
     rect(x + 10, y + 21, 8, 2, "#5da9e9");
     rect(x + 10, y + 24, 6, 1, "#8f8576");
@@ -7234,8 +7234,8 @@ function drawNpcRoleKit(p, role, style) {
     rect(x + 15, y + 8, 4, 4, ink);
     rect(x + 16, y + 9, 2, 2, "#cfe3f0");
     rect(x + 11, y + 9, 4, 1, ink);
-    // collar + book under the left arm
-    rect(x + 8, y + 14, 10, 2, "#7a5a44");
+    // shirt collar (at the neckline, below the chin) + book under the left arm
+    rect(x + 8, y + 18, 10, 2, "#7a5a44");
     rect(x - 6, y + 25, 13, 12, "#6f4633");
     rect(x - 5, y + 26, 5, 10, paper);
     rect(x + 1, y + 26, 5, 10, "#e7dcc4");
@@ -7299,11 +7299,11 @@ function drawNpcRoleKit(p, role, style) {
     rect(x + 31, y + 21, 2, 2, "#cfc8b6");
     return;
   }
-  // citizen: cozy scarf
-  rect(x + 6, y + 14, 16, 4, style.trim);
-  rect(x + 6, y + 14, 16, 1, shadeHex(style.trim, 24));
-  rect(x + 9, y + 17, 4, 9, style.trim);
-  rect(x + 9, y + 24, 4, 2, shadeHex(style.trim, -18));
+  // citizen: cozy scarf around the neck (below the chin so the mouth stays clear)
+  rect(x + 6, y + 18, 16, 4, style.trim);
+  rect(x + 6, y + 18, 16, 1, shadeHex(style.trim, 24));
+  rect(x + 9, y + 22, 4, 6, style.trim);
+  rect(x + 9, y + 26, 4, 2, shadeHex(style.trim, -18));
 }
 
 function drawNpcQuestMarker(x, y) {
